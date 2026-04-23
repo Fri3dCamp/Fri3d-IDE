@@ -1080,7 +1080,7 @@ export function applyTranslation() {
 
 (async () => {
 
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
         try {
             await navigator.serviceWorker.register('./app_worker.js');
         } catch (err) {
@@ -1420,4 +1420,33 @@ function stopDrag() {
     document.documentElement.removeEventListener('touchmove', doDrag, false)
     document.documentElement.removeEventListener('mouseup', stopDrag, false)
     document.documentElement.removeEventListener('touchend', stopDrag, false)
+}
+
+// Expose exports as window.app for HTML inline event handlers
+window.app = {
+    connectDevice,
+    refreshFileTree,
+    createNewFile,
+    removeFile,
+    removeDir,
+    fileTreeSelect,
+    toggleFolder,
+    collapseAllFolders,
+    expandAllFolders,
+    fileClick,
+    pyMinify,
+    pyPrettify,
+    saveCurrentFile,
+    clearTerminal,
+    reboot,
+    runCurrentFile,
+    loadAllPkgIndexes,
+    installPkg,
+    installPkgFromUrl,
+    toggleSideMenu,
+    autoHideSideMenu,
+    toggleFullScreen,
+    applyTranslation,
+    updateApp,
+    initDrag,
 }

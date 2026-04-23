@@ -1,52 +1,16 @@
-<!DOCTYPE html>
-<html lang="en" translate="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ViperIDE P2P Bridge</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png"/>
+/*
+ * SPDX-FileCopyrightText: 2024 Volodymyr Shymanskyy
+ * SPDX-License-Identifier: MIT
+ *
+ * The software is provided "as is", without any warranties or guarantees (explicit or implied).
+ * This includes no assurances about being fit for any specific purpose.
+ */
 
-    <link rel="stylesheet" href="./viper_lib.css">
-    <style>
-    body {
-        padding: 20px;
-        line-height: 1.8rem;
-    }
-    .warning {
-        color: #ffd600;
-    }
-    #bridge-id {
-        font-size: 1.5rem;
-        line-height: 1.5em;
-    }
-    </style>
-</head>
-<body>
-    <h2>ViperIDE P2P Bridge</h2>
-
-    <p>The bridge allows creating a secure, peer-to-peer connection between the device and ViperIDE <b>across the internet</b>.</p>
-
-    <ol>
-        <li>
-            <span>Connect your device:</span>
-            <button title="Connect WebREPL"       onclick="connectDevice('ws')"  id="btn-conn-ws" ><i class="fa-solid fa-link"></i></button>
-            <button title="Connect Bluetooth"     onclick="connectDevice('ble')" id="btn-conn-ble"><i class="fa-brands fa-bluetooth-b"></i></button>
-            <button title="Connect USB/Serial"    onclick="connectDevice('usb')" id="btn-conn-usb"><i class="fa-brands fa-usb"></i></button>
-        </li>
-        <li>Grab a Bridge P2P ID:<br>
-            <span class="highlight monospace" id="bridge-id"></span>
-        </li>
-        <li>In <a class="link" href="https://viper-ide.org" target="_blank">Viper IDE</a>, click <span class="highlight"><i class="fa-solid fa-link"></i> Connect WebREPL</span> button and insert your Bridge P2P ID.<br>
-            You can also use a direct link: <span class="highlight monospace" id="ide-link"></span>
-        </li>
-    </ol>
-
-    <p>⚠️ Keep this page open for the connection to remain active</p>
-
-    <script src="https://viper-ide.org/micropython.mjs" type="module" crossorigin="anonymous"></script>
-    <script src="./viper_lib.js"></script>
-    <script>
-    Object.assign(window, viper_lib)
+import {
+    toastr, ConnectionUID, webSerialPolyfill,
+    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonWASM,
+    QID, iOS, indicateActivity, report,
+} from './viper_lib.js'
 
 const my_p2p_id = ConnectionUID.random().value();
 let rtc = null;
@@ -63,15 +27,15 @@ async function disconnectDevice() {
 
     try {
         await rtc.disconnect()
-    } catch(err) {}
+    } catch(_err) { /* ignore */ }
 
     try {
         await port.disconnect()
-    } catch(err) {}
+    } catch(_err) { /* ignore */ }
 
     try {
         await wakeLock.release()
-    } catch(err) {}
+    } catch(_err) { /* ignore */ }
 
     rtc = null
     port = null
@@ -166,7 +130,7 @@ async function prepareNewPort(type) {
 
     try {
         await new_port.requestAccess()
-    } catch (err) {
+    } catch (_err) {
         return
     }
     return new_port
@@ -225,7 +189,7 @@ async function connectDevice(type) {
 
     try {
         wakeLock = await navigator.wakeLock.request('screen')
-    } catch (err) {}
+    } catch (_err) { /* ignore */ }
 
     toastr.success('Bridge created')
 }
@@ -234,8 +198,6 @@ window.analytics = {
     track: function() {}
 }
 
-disconnectDevice()
+window.connectDevice = connectDevice
 
-    </script>
-</body>
-</html>
+disconnectDevice()

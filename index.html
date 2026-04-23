@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ViperIDE</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png"/>
+    <link rel="icon" type="image/png" href="/assets/favicon.png"/>
     <link rel="manifest" href="manifest.json">
-
-    <link rel="stylesheet" href="./app.css">
 </head>
 <body id="app">
     <div id="tool-panel">
@@ -146,7 +144,7 @@
             <div id="menu-about" class="tab-content">
                 <a class="github-fork-ribbon left-top" href="https://github.com/vshymanskyy/ViperIDE" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
                 <div style="text-align: center; padding: 50px 0 0 0;">
-                    <img src="assets/logo_1024.png" alt="Logo" width="30%">
+                    <img src="/assets/logo_1024.png" alt="Logo" width="30%">
                     <div style="font-size:1.5em;">ViperIDE</div>
                     <div id='viper-ide-version'></div>
                     <small><div id='viper-ide-build'></div></small>
@@ -200,6 +198,6 @@
     <script src="https://unpkg.com/@june-so/analytics-next@2.0.0/dist/umd/standalone.js" integrity="sha256-mm/qRhmZXfHLF27WLTxbnMVhPgFMOsxvjYXk3NpaKnc=" crossorigin="anonymous"></script>
 
     <script src="https://viper-ide.org/micropython.mjs" type="module" crossorigin="anonymous"></script>
-    <script src="./app.js"></script>
+    <script type="module" src="./src/app.js"></script>
 </body>
 </html>
