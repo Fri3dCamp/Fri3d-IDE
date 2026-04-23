@@ -227,6 +227,10 @@ body.loaded {
     color: var(--fg-color-highlight);
 }
 
+#menu-file-tree .file-tree-collapse-icon {
+    color: inherit;
+}
+
 .menu-action {
     font-weight: normal;
     float: right;
@@ -291,4 +295,3 @@ body.loaded {
         display: none;
     }
 }
-

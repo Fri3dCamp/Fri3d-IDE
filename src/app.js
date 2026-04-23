@@ -390,7 +390,7 @@ function _updateFileTree(fs_tree, fs_stats)
         <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
         <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
         <a href="#" class="menu-action" title="Expand all" onclick="app.expandAllFolders();return false;"><i class="fa-solid fa-folder-open fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Collapse all" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw"></i></a>
+        <a href="#" class="menu-action" title="Collapse all" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
         <span class="menu-action">${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}</span>
     </div>`
     function buildTree(node, depth) {
