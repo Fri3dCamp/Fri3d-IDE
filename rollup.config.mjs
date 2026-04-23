@@ -10,6 +10,7 @@ import fs from 'fs'
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
 
+fs.mkdirSync('build', { recursive: true })
 fs.copyFileSync('src/ViperIDE.html',  'build/index.html')
 fs.copyFileSync('src/benchmark.html', 'build/benchmark.html')
 fs.copyFileSync('src/bridge.html',    'build/bridge.html')
