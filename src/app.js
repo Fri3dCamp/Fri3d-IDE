@@ -300,27 +300,89 @@ export async function refreshFileTree() {
 
 export async function createNewFile(path) {
     if (!port) return;
-    const fn = prompt(`Creating new file inside ${path}\nPlease enter the name:`)
-    if (fn == null || fn == '') return
-    const raw = await MpRawMode.begin(port)
-    try {
-        if (fn.endsWith('/')) {
-            const full = path + fn.slice(0, -1)
-            await raw.makePath(full)
-        } else {
-            const full = path + fn
-            if (fn.includes('/')) {
-                // Ensure path exists
-                const [dirname, _] = splitPath(full)
-                await raw.makePath(dirname)
-            }
-            await raw.touchFile(full)
-            await _raw_loadFile(raw, full)
+
+    // Remove any existing inline input before creating a new one
+    const existingContainer = QID('file-tree-new-item')
+    if (existingContainer) existingContainer.remove()
+
+    // Expand collapsed folder when "+" is clicked on it
+    if (path !== '/') {
+        const folderPath = path.slice(0, -1)
+        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${folderPath}"]`)
+        if (contentEl && contentEl.classList.contains('collapsed')) {
+            toggleFolder(folderPath)
         }
-        await _raw_updateFileTree(raw)
-    } finally {
-        await raw.end()
     }
+
+    // Calculate indentation depth: root "/" → 1 emsp, "/dir/" → 2 emsp, etc.
+    // Uses em-space (\u2003) to match the &emsp; characters used in buildTree.
+    const depth = path.split('/').filter(Boolean).length + 1
+    const offset = '\u2003'.repeat(depth - 1)
+
+    const div = document.createElement('div')
+    div.id = 'file-tree-new-item'
+    div.innerHTML = `${offset}<input type="text" id="file-tree-new-input" class="file-tree-new-input" placeholder="name or folder/" autocomplete="off" spellcheck="false" />`
+
+    if (path === '/') {
+        // Insert after the root header (first child of fileTree)
+        const fileTree = QID('menu-file-tree')
+        const rootHeader = fileTree.firstElementChild
+        fileTree.insertBefore(div, rootHeader ? rootHeader.nextSibling : null)
+    } else {
+        // Insert at the top of the folder's content element
+        const folderPath = path.slice(0, -1)
+        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${folderPath}"]`)
+        if (!contentEl) return
+        contentEl.insertBefore(div, contentEl.firstChild)
+    }
+
+    const input = QID('file-tree-new-input')
+    input.focus()
+
+    let confirmed = false
+
+    async function confirmCreate() {
+        confirmed = true
+        const fn = input.value.trim()
+        div.remove()
+        if (!fn) return
+        const raw = await MpRawMode.begin(port)
+        try {
+            if (fn.endsWith('/')) {
+                const full = path + fn.slice(0, -1)
+                await raw.makePath(full)
+            } else {
+                const full = path + fn
+                if (fn.includes('/')) {
+                    // Ensure path exists
+                    const [dirname] = splitPath(full)
+                    await raw.makePath(dirname)
+                }
+                await raw.touchFile(full)
+                await _raw_loadFile(raw, full)
+            }
+            await _raw_updateFileTree(raw)
+        } finally {
+            await raw.end()
+        }
+    }
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            confirmCreate()
+        } else if (e.key === 'Escape') {
+            div.remove()
+        }
+    })
+
+    input.addEventListener('blur', () => {
+        // Small delay so that a click on the input itself doesn't accidentally cancel.
+        // Skip removal if Enter was already pressed (confirmCreate handles cleanup).
+        setTimeout(() => {
+            if (!confirmed) div.remove()
+        }, 150)
+    })
 }
 
 export async function removeFile(path) {

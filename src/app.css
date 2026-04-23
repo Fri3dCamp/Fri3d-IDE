@@ -231,6 +231,19 @@ body.loaded {
     color: inherit;
 }
 
+#menu-file-tree .file-tree-new-input {
+    background: transparent;
+    border: 1px solid var(--fg-color);
+    color: var(--fg-color);
+    outline: none;
+    padding: 1px 4px;
+    width: calc(100% - 2em);
+    max-width: 200px;
+    font-size: inherit;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
 .menu-action {
     font-weight: normal;
     float: right;
