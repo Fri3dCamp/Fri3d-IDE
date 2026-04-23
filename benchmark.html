@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViperIDE Benchmark</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png"/>
+
+    <style>
+    body {
+        padding: 20px;
+        line-height: 1.8rem;
+    }
+    </style>
+</head>
+<body>
+    <h2>ViperIDE Benchmark</h2>
+    <p>
+    <div>
+        1. Select benchmarks:
+        <span><input type="checkbox" id="test-fs"  checked/><label for="test-fs">File System</label></span>
+        <span><input type="checkbox" id="test-cpu" checked/><label for="test-cpu">CPU</label></span>
+    </div>
+
+    <div>
+        2. Connect your device:
+        <button title="Connect WebREPL"       onclick="connectDevice('ws')"  id="btn-conn-ws" ><i class="fa-solid fa-link"></i></button>
+        <button title="Connect Bluetooth"     onclick="connectDevice('ble')" id="btn-conn-ble"><i class="fa-brands fa-bluetooth-b"></i></button>
+        <button title="Connect USB/Serial"    onclick="connectDevice('usb')" id="btn-conn-usb"><i class="fa-brands fa-usb"></i></button>
+    </div>
+    </p>
+
+    <pre class="monospace" id="log"></pre>
+
+    <script src="https://viper-ide.org/micropython.mjs" type="module" crossorigin="anonymous"></script>
+    <script type="module" src="./src/benchmark.js"></script>
+</body>
+</html>

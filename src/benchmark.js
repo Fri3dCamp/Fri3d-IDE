@@ -1,42 +1,17 @@
-<!DOCTYPE html>
-<html lang="en" translate="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ViperIDE Benchmark</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png"/>
+/*
+ * SPDX-FileCopyrightText: 2024 Volodymyr Shymanskyy
+ * SPDX-License-Identifier: MIT
+ *
+ * The software is provided "as is", without any warranties or guarantees (explicit or implied).
+ * This includes no assurances about being fit for any specific purpose.
+ */
 
-    <link rel="stylesheet" href="./viper_lib.css">
-    <style>
-    body {
-        padding: 20px;
-        line-height: 1.8rem;
-    }
-    </style>
-</head>
-<body>
-    <h2>ViperIDE Benchmark</h2>
-    <p>
-    <div>
-        1. Select benchmarks:
-        <span><input type="checkbox" id="test-fs"  checked/><label for="test-fs">File System</label></span>
-        <span><input type="checkbox" id="test-cpu" checked/><label for="test-cpu">CPU</label></span>
-    </div>
-
-    <div>
-        2. Connect your device:
-        <button title="Connect WebREPL"       onclick="connectDevice('ws')"  id="btn-conn-ws" ><i class="fa-solid fa-link"></i></button>
-        <button title="Connect Bluetooth"     onclick="connectDevice('ble')" id="btn-conn-ble"><i class="fa-brands fa-bluetooth-b"></i></button>
-        <button title="Connect USB/Serial"    onclick="connectDevice('usb')" id="btn-conn-usb"><i class="fa-brands fa-usb"></i></button>
-    </div>
-    </p>
-
-    <pre class="monospace" id="log"></pre>
-
-    <script src="https://viper-ide.org/micropython.mjs" type="module" crossorigin="anonymous"></script>
-    <script src="./viper_lib.js"></script>
-    <script>
-    Object.assign(window, viper_lib)
+import {
+    toastr, webSerialPolyfill,
+    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonWASM,
+    ConnectionUID, MpRawMode,
+    QID, iOS, indicateActivity, report,
+} from './viper_lib.js'
 
 let port = null;
 let wakeLock = null;
@@ -50,18 +25,18 @@ function areBytewiseEqual(a, b) {
 }
 
 function findFile(fs, filePath) {
-  for (const item of fs) {
-    if (item.path === filePath) {
-      return item;
+    for (const item of fs) {
+        if (item.path === filePath) {
+            return item;
+        }
+        if (item.content) {
+            const f = findFile(item.content, filePath);
+            if (f !== undefined) {
+                return f;
+            }
+        }
     }
-    if (item.content) {
-      const f = findFile(item.content, filePath);
-      if (f !== undefined) {
-        return f;
-      }
-    }
-  }
-  return undefined;
+    return undefined;
 }
 
 async function disconnectDevice() {
@@ -71,11 +46,11 @@ async function disconnectDevice() {
 
     try {
         await port.disconnect()
-    } catch(err) {}
+    } catch(_err) { /* ignore */ }
 
     try {
         await wakeLock.release()
-    } catch(err) {}
+    } catch(_err) { /* ignore */ }
 
     port = null
     wakeLock = null
@@ -169,7 +144,7 @@ async function prepareNewPort(type) {
 
     try {
         await new_port.requestAccess()
-    } catch (err) {
+    } catch (_err) {
         return
     }
     return new_port
@@ -326,6 +301,7 @@ print((end-beg)//tms)
             log('---\n')
         }
 
+        let rsp
         try {
             log(`prime(99929) ${i.name}... `)
             rsp = await raw.exec(`
@@ -423,6 +399,4 @@ window.analytics = {
     track: function() {}
 }
 
-    </script>
-</body>
-</html>
+window.connectDevice = connectDevice

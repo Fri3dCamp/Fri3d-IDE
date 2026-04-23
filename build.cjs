@@ -8,26 +8,9 @@ function readfile(fn) {
     return fs.readFileSync(fn, 'utf-8');
 }
 
-function run(cmd) {
+function run(cmd, options = {}) {
     console.log(`> ${cmd}`);
-    execSync(cmd, { stdio: 'inherit' });
-}
-
-function genTranslations(srcDir, dst) {
-    const result = {};
-    const files = fs.readdirSync(srcDir).filter(f => f.endsWith('.json')).sort();
-    for (const fn of files) {
-        const lang = fn.replace('.json', '');
-        result[lang] = JSON.parse(readfile(path.join(srcDir, fn)));
-    }
-    fs.writeFileSync(dst, JSON.stringify(result, null, null));
-}
-
-function genManifest(src, dst) {
-    const pkg = JSON.parse(readfile('package.json'));
-    const result = JSON.parse(readfile(src));
-    result.version = pkg.version;
-    fs.writeFileSync(dst, JSON.stringify(result));
+    execSync(cmd, { stdio: 'inherit', ...options });
 }
 
 function genTar(src, dst) {
@@ -64,25 +47,11 @@ async function downloadAndExtract(url, subfolder, dest) {
     }
 }
 
-function combine(dst) {
-    let combined = readfile(dst);
-    combined = combined.replace(
-        '<link rel="stylesheet" href="./app.css">',
-        () => '<style>\n' + readfile('build/app.css') + '\n</style>'
-    );
-    combined = combined.replace(
-        '<link rel="stylesheet" href="./viper_lib.css">',
-        () => '<style>\n' + readfile('build/viper_lib.css') + '\n</style>'
-    );
-    combined = combined.replace(
-        '<script src="./app.js"></script>',
-        () => '<script>\n' + readfile('build/app.js') + '\n</script>'
-    );
-    combined = combined.replace(
-        '<script src="./viper_lib.js"></script>',
-        () => '<script>\n' + readfile('build/viper_lib.js') + '\n</script>'
-    );
-    fs.writeFileSync(dst, combined);
+function buildServiceWorker() {
+    const pkg = JSON.parse(readfile('package.json'));
+    const src = readfile('src/app_worker.js')
+        .replace(/VIPER_IDE_VERSION/g, JSON.stringify(pkg.version));
+    fs.writeFileSync('build/app_worker.js', src);
 }
 
 async function main() {
@@ -91,8 +60,6 @@ async function main() {
     fs.mkdirSync('build/assets', { recursive: true });
     fs.copyFileSync('./src/webrepl_content.js', './build/webrepl_content.js');
     fs.cpSync('./assets', './build/assets', { recursive: true });
-    genTranslations('./src/lang/', 'build/translations.json');
-    genManifest('./src/manifest.json', 'build/manifest.json');
 
     await downloadAndExtract(
         'https://github.com/dflook/python-minifier/archive/refs/tags/3.1.1.zip',
@@ -102,19 +69,16 @@ async function main() {
     genTar('src/tools_vfs', 'build/assets/tools_vfs.tar.gz');
     genTar('src/vm_vfs', 'build/assets/vm_vfs.tar.gz');
 
-    // Build
+    // Build (vite generates translations.json/manifest.json via its plugin,
+    // then bundles and inlines JS/CSS into the HTML output files).
+    // Each page is built separately so vite-plugin-singlefile can inline everything.
     run('npx eslint');
-    run('npx rollup --config');
-
-    // Combine everything (inline CSS/JS into HTML)
-    combine('build/index.html');
-    combine('build/bridge.html');
-    combine('build/benchmark.html');
-
-    // Cleanup intermediate files
-    for (const f of ['build/app.css', 'build/viper_lib.css', 'build/app.js', 'build/viper_lib.js']) {
-        fs.rmSync(f, { force: true });
+    for (const page of ['index', 'bridge', 'benchmark']) {
+        run(`npx vite build`, { env: { ...process.env, VIPER_PAGE: page } });
     }
+
+    // Build service worker (plain JS file, handled separately from Vite)
+    buildServiceWorker();
 
     // Add assets from packages
     fs.copyFileSync('node_modules/@micropython/micropython-webassembly-pyscript/micropython.wasm', './build/assets/micropython.wasm');
@@ -129,3 +93,4 @@ main().catch(err => {
     console.error(err);
     process.exit(1);
 });
+
