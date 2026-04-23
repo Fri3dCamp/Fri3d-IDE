@@ -30,8 +30,8 @@ export class MpRawMode {
         while (timeout <= 0 || (Date.now() < endTime)) {
             await this.port.write('\x03')   // Ctrl-C: interrupt any running program
             try {
-                let banner = await this.port.readUntil('>>> ', 500)
-                if (this.port.prevRecvCbk && banner != '\r\n>>> ') {
+                let banner = await this.port.readUntil(['>>> ', '--> '], 500)
+                if (this.port.prevRecvCbk && !['>>> ', '--> '].some(p => banner === '\r\n' + p)) {
                     this.port.prevRecvCbk(banner)
                 }
                 await this.port.flushInput()
@@ -60,7 +60,7 @@ export class MpRawMode {
                 try {
                     await this.port.write('\x02')     // Ctrl-B: exit raw REPL
                     await this.port.readUntil('>\r\n')
-                    await this.port.readUntil('>>> ')
+                    await this.port.readUntil(['>>> ', '--> '])
                 } finally {
                     release()
                 }
