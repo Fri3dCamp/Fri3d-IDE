@@ -68,19 +68,19 @@ function combine(dst) {
     let combined = readfile(dst);
     combined = combined.replace(
         '<link rel="stylesheet" href="./app.css">',
-        '<style>\n' + readfile('build/app.css') + '\n</style>'
+        () => '<style>\n' + readfile('build/app.css') + '\n</style>'
     );
     combined = combined.replace(
         '<link rel="stylesheet" href="./viper_lib.css">',
-        '<style>\n' + readfile('build/viper_lib.css') + '\n</style>'
+        () => '<style>\n' + readfile('build/viper_lib.css') + '\n</style>'
     );
     combined = combined.replace(
         '<script src="./app.js"></script>',
-        '<script>\n' + readfile('build/app.js') + '\n</script>'
+        () => '<script>\n' + readfile('build/app.js') + '\n</script>'
     );
     combined = combined.replace(
         '<script src="./viper_lib.js"></script>',
-        '<script>\n' + readfile('build/viper_lib.js') + '\n</script>'
+        () => '<script>\n' + readfile('build/viper_lib.js') + '\n</script>'
     );
     fs.writeFileSync(dst, combined);
 }
