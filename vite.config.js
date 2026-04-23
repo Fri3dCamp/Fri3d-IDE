@@ -64,8 +64,8 @@ function serveAssetsPlugin() {
     }
 }
 
-// When VIPER_PAGE is set, build only that page (required for vite-plugin-singlefile
-// which doesn't support multiple inputs). The dev server uses all pages.
+// When VIPER_PAGE is set, build only that page (required for vite-plugin-singlefile,
+// which does not support multiple inputs). The dev server uses all pages.
 const pageMap = {
     index:     'index.html',
     bridge:    'bridge.html',

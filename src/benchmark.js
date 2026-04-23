@@ -182,7 +182,7 @@ async function test_FS(raw, devinfo) {
     const encoder = new TextEncoder('utf-8')
     const data_txt_encoded = new Uint8Array(Array.from(encoder.encode(data_txt)))
     if (!areBytewiseEqual(data_txt_encoded, actual_txt)) {
-        log(`ERROR: content missmatch\n`)
+        log(`ERROR: content mismatch\n`)
         success = false
     }
 
@@ -204,7 +204,7 @@ async function test_FS(raw, devinfo) {
     log(` ${(endTime-startTime).toFixed(1)}ms\n`)
 
     if (!areBytewiseEqual(data_bin, actual_bin)) {
-        log(`ERROR: content missmatch\n`)
+        log(`ERROR: content mismatch\n`)
         success = false
     }
 
@@ -301,10 +301,9 @@ print((end-beg)//tms)
             log('---\n')
         }
 
-        let rsp
         try {
             log(`prime(99929) ${i.name}... `)
-            rsp = await raw.exec(`
+            const rsp = await raw.exec(`
 beg = t()
 assert prime(99929)
 end = t()
