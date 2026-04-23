@@ -131,12 +131,22 @@ export class Transport {
         if (!this.inTransaction) {
             throw new Error('Not in transaction')
         }
+        const endings = Array.isArray(ending) ? ending : [ending]
         let endTime = Date.now() + timeout
         while (timeout <= 0 || (Date.now() < endTime)) {
-            const idx = this.receivedData.indexOf(ending) + ending.length
-            if (idx >= ending.length) {
-                const res = this.receivedData.substring(0, idx)
-                this.receivedData = this.receivedData.substring(idx)
+            let bestIdx = -1
+            let bestEnd = null
+            for (const e of endings) {
+                const idx = this.receivedData.indexOf(e)
+                if (idx !== -1 && (bestIdx === -1 || idx < bestIdx)) {
+                    bestIdx = idx
+                    bestEnd = e
+                }
+            }
+            if (bestIdx !== -1) {
+                const endIdx = bestIdx + bestEnd.length
+                const res = this.receivedData.substring(0, endIdx)
+                this.receivedData = this.receivedData.substring(endIdx)
                 return res
             }
             const prev_avail = this.receivedData.length
