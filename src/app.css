@@ -193,6 +193,23 @@ body.loaded {
     white-space: nowrap;
 }
 
+#menu-file-tree .folder-toggleable {
+    cursor: pointer;
+}
+
+#menu-file-tree .folder-content.collapsed {
+    display: none;
+}
+
+#menu-file-tree .folder-chevron {
+    transition: transform var(--animation);
+    font-size: 0.7em;
+}
+
+#menu-file-tree .folder-chevron.open {
+    transform: rotate(90deg);
+}
+
 #menu-file-tree div .open::after {
     content: "●";
     color: #666;

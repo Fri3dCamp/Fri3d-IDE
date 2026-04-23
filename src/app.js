@@ -43,7 +43,7 @@ import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
 import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
-         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark
+         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight
        } from '@fortawesome/free-solid-svg-icons'
 import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
@@ -51,7 +51,7 @@ library.add(faUsb, faBluetoothB)
 library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
-         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark)
+         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight)
 library.add(faMessage, faCircleDown)
 dom.watch()
 
@@ -69,6 +69,7 @@ let editor, term, port
 let editorFn = ''
 let isInRunMode = false
 let devInfo = null
+const openFolders = new Set()
 
 async function disconnectDevice() {
     if (port) {
@@ -390,16 +391,20 @@ function _updateFileTree(fs_tree, fs_stats)
         <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
         <span class="menu-action">${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}</span>
     </div>`
-    function traverse(node, depth) {
+    function buildTree(node, depth) {
         const offset = '&emsp;'.repeat(depth)
+        let html = ''
         for (const n of sorted(node)) {
             if ('content' in n) {
-                fileTree.insertAdjacentHTML('beforeend', `<div>
-                    ${offset}<span class="folder name"><i class="fa-solid fa-folder fa-fw"></i> ${n.name}</span>
+                const isOpen = openFolders.has(n.path)
+                html += `<div>
+                    ${offset}<span class="folder name folder-toggleable" onclick="app.toggleFolder('${n.path}');return false;"><i class="fa-solid fa-chevron-right fa-fw folder-chevron${isOpen ? ' open' : ''}"></i><i class="fa-solid fa-folder fa-fw"></i> ${n.name}</span>
                     <a href="#" class="menu-action" title="Remove" onclick="app.removeDir('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
                     <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('${n.path}/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
-                </div>`)
-                traverse(n.content, depth+1)
+                </div>
+                <div class="folder-content${isOpen ? '' : ' collapsed'}" data-folder-path="${n.path}">
+                    ${buildTree(n.content, depth+1)}
+                </div>`
             } else {
                 /* TODO ••• */
                 let icon;
@@ -416,20 +421,21 @@ function _updateFileTree(fs_tree, fs_stats)
                 let sel = ([editorFn, `/${editorFn}`, `/flash/${editorFn}`].includes(n.path)) ? 'selected' : ''
                 if (n.path.startsWith("/proc/") || n.path.startsWith("/dev/")) {
                     icon = '<i class="fa-solid fa-gear fa-fw"></i>'
-                    fileTree.insertAdjacentHTML('beforeend', `<div>
+                    html += `<div>
                         ${offset}<span>${icon} ${n.name}&nbsp;</span>
-                    </div>`)
+                    </div>`
                 } else {
-                    fileTree.insertAdjacentHTML('beforeend', `<div>
+                    html += `<div>
                         ${offset}<a href="#" class="name ${sel}" data-fn="${n.path}" onclick="app.fileClick('${n.path}');return false;">${icon} ${n.name}&nbsp;</a>
                         <a href="#" class="menu-action" title="Remove" onclick="app.removeFile('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
                         <span class="menu-action">${sizeFmt(n.size)}</span>
-                    </div>`)
+                    </div>`
                 }
             }
         }
+        return html
     }
-    traverse(fs_tree, 1)
+    fileTree.insertAdjacentHTML('beforeend', buildTree(fs_tree, 1))
 
     for (let fn of changed_files) {
         QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("changed")
@@ -469,7 +475,39 @@ export function fileTreeSelect(fn) {
         // might be a meta/unsaved file
         return
     }
+    // Auto-expand any collapsed parent folders so the file is visible
+    let el = fileElement.closest('.folder-content.collapsed')
+    while (el) {
+        const path = el.dataset.folderPath
+        openFolders.add(path)
+        el.classList.remove('collapsed')
+        const headerDiv = el.previousElementSibling
+        if (headerDiv) {
+            const chevron = headerDiv.querySelector('.folder-chevron')
+            if (chevron) chevron.classList.add('open')
+        }
+        el = el.parentElement.closest('.folder-content.collapsed')
+    }
     fileElement.classList.add('selected')
+    fileElement.scrollIntoView({ block: 'nearest' })
+}
+
+export function toggleFolder(path) {
+    const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${path}"]`)
+    if (!contentEl) return
+
+    if (openFolders.has(path)) {
+        openFolders.delete(path)
+        contentEl.classList.add('collapsed')
+    } else {
+        openFolders.add(path)
+        contentEl.classList.remove('collapsed')
+    }
+    const headerDiv = contentEl.previousElementSibling
+    if (headerDiv) {
+        const chevron = headerDiv.querySelector('.folder-chevron')
+        if (chevron) chevron.classList.toggle('open', openFolders.has(path))
+    }
 }
 
 export async function fileClick(fn) {
