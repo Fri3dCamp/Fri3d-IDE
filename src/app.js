@@ -40,7 +40,7 @@ import { splitPath, sleep, fetchJSON, getUserUID, getScreenInfo, IdleMonitor,
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
-import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFile, faFileCircleExclamation, faCubes, faGear,
+import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight
@@ -48,7 +48,7 @@ import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFil
 import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
 library.add(faUsb, faBluetoothB)
-library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFile, faFileCircleExclamation, faCubes, faGear,
+library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight)
@@ -389,6 +389,8 @@ function _updateFileTree(fs_tree, fs_stats)
         <span class="folder name"><i class="fa-solid fa-folder fa-fw"></i> /</span>
         <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
         <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
+        <a href="#" class="menu-action" title="Expand all" onclick="app.expandAllFolders();return false;"><i class="fa-solid fa-folder-open fa-fw"></i></a>
+        <a href="#" class="menu-action" title="Collapse all" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw"></i></a>
         <span class="menu-action">${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}</span>
     </div>`
     function buildTree(node, depth) {
@@ -509,6 +511,33 @@ export function toggleFolder(path) {
         if (chevron) chevron.classList.toggle('open', openFolders.has(path))
     }
 }
+
+export function collapseAllFolders() {
+    QSA('#menu-file-tree .folder-content').forEach((el) => {
+        const path = el.dataset.folderPath
+        openFolders.delete(path)
+        el.classList.add('collapsed')
+        const headerDiv = el.previousElementSibling
+        if (headerDiv) {
+            const chevron = headerDiv.querySelector('.folder-chevron')
+            if (chevron) chevron.classList.remove('open')
+        }
+    })
+}
+
+export function expandAllFolders() {
+    QSA('#menu-file-tree .folder-content').forEach((el) => {
+        const path = el.dataset.folderPath
+        openFolders.add(path)
+        el.classList.remove('collapsed')
+        const headerDiv = el.previousElementSibling
+        if (headerDiv) {
+            const chevron = headerDiv.querySelector('.folder-chevron')
+            if (chevron) chevron.classList.add('open')
+        }
+    })
+}
+
 
 export async function fileClick(fn) {
     if (!port) return;
