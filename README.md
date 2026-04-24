@@ -36,6 +36,31 @@
 [Documentation](./docs/)  
 [Discussion](https://github.com/orgs/micropython/discussions/15219)  
 
+## Testing
+
+This repository includes two layers of regression testing:
+
+- Unit tests with Vitest (fast logic-level checks).
+- End-to-end smoke tests with Playwright (main pages load and core controls are present).
+
+Run tests locally:
+
+```sh
+npm test
+npm run test:watch
+npm run test:e2e
+```
+
+Playwright notes:
+
+- First-time setup may require browser installation:
+
+```sh
+npx playwright install chromium
+```
+
+- E2E tests stub the external `https://viper-ide.org/micropython.mjs` dependency to keep runs deterministic and avoid network-related flakes.
+
 ## Used software
 
 - [CodeMirror](https://codemirror.net) - Main code editor, MIT
