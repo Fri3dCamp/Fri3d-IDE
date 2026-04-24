@@ -33,6 +33,7 @@ import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
 import { UAParser } from 'ua-parser-js'
+import { initAssistantPanel } from './assistant/ui/panel.js'
 
 import { splitPath, sleep, fetchJSON, getUserUID, getScreenInfo, IdleMonitor,
          getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML, isRunningStandalone,
@@ -69,7 +70,30 @@ let editor, term, port
 let editorFn = ''
 let isInRunMode = false
 let devInfo = null
+let lastTracebackText = ''
+const terminalLogLines = []
 const openFolders = new Set()
+
+function appendTerminalLog(data) {
+    const clean = String(data || '')
+        .replace(/\r/g, '')
+
+    for (const line of clean.split('\n')) {
+        if (line === '' && terminalLogLines.length === 0) {
+            continue
+        }
+        terminalLogLines.push(line)
+    }
+
+    while (terminalLogLines.length > 500) {
+        terminalLogLines.shift()
+    }
+}
+
+function writeTerminal(data) {
+    term.write(data)
+    appendTerminalLog(data)
+}
 
 async function disconnectDevice() {
     if (port) {
@@ -218,7 +242,7 @@ export async function connectDevice(type) {
     port.onActivity(indicateActivity)
 
     port.onReceive((data) => {
-        term.write(data)
+        writeTerminal(data)
     })
 
     port.onDisconnect(() => {
@@ -754,6 +778,7 @@ export async function saveCurrentFile() {
 
 export function clearTerminal() {
     term.clear()
+    terminalLogLines.length = 0
 }
 
 export async function reboot(mode = 'hard') {
@@ -786,7 +811,7 @@ export async function runCurrentFile() {
         return
     }
 
-    term.write('\r\n')
+    writeTerminal('\r\n')
 
     const soft_reboot = false
     const timeout = -1
@@ -804,8 +829,12 @@ export async function runCurrentFile() {
             const backtrace = parseStackTrace(err.message)
             if (backtrace) {
                 console.log(backtrace)
+                lastTracebackText = `${backtrace.type || 'Traceback'}\n${backtrace.summary || err.message}`
+                toastr.error(sanitizeHTML(backtrace.summary), backtrace.type)
+            } else {
+                lastTracebackText = String(err.message || err)
+                toastr.error(sanitizeHTML(lastTracebackText), 'Error')
             }
-            toastr.error(sanitizeHTML(backtrace.summary), backtrace.type)
             return
         }
     } finally {
@@ -813,7 +842,7 @@ export async function runCurrentFile() {
         await raw.end()
         QID('btn-run-icon').classList.replace('fa-circle-stop', 'fa-circle-play')
         isInRunMode = false
-        term.write('\r\n>>> ')
+        writeTerminal('\r\n>>> ')
     }
     // Success
     analytics.track('Script Run')
@@ -1290,6 +1319,32 @@ export function applyTranslation() {
             fileElement.classList.remove("open")
             fileElement.classList.remove("changed")
         }
+    })
+
+    initAssistantPanel({
+        getEditorState() {
+            if (!editor) {
+                return null
+            }
+
+            const sel = editor.state.selection.main
+            const selected = editor.state.sliceDoc(sel.from, sel.to)
+
+            return {
+                filename: editorFn,
+                selection: selected,
+                content: editor.state.doc.toString(),
+            }
+        },
+        getTerminalLines() {
+            return [...terminalLogLines]
+        },
+        getTraceback() {
+            return lastTracebackText
+        },
+        getBoardInfo() {
+            return devInfo
+        },
     })
 
     setTimeout(() => {

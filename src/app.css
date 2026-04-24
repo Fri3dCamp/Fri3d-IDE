@@ -182,9 +182,76 @@ body.loaded {
     font-weight: bold;
 }
 
+#menu-assistant-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
 #menu-file-tree div, #menu-pkg-list div, #menu-settings-list div, #menu-tools-list div {
     margin: 5px 0;
     line-height: 1.2em;
+}
+
+#menu-assistant {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#menu-settings-list input[type='text'],
+#menu-settings-list input[type='password'],
+#menu-settings-list input[type='number'] {
+    min-width: 130px;
+    width: 58%;
+    background: var(--bg-color-edit);
+    color: var(--fg-color);
+    border: 1px solid #666;
+}
+
+.assistant-provider-status {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.assistant-task-row,
+.assistant-quick-actions,
+.assistant-actions,
+.assistant-settings-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+#assistant-prompt {
+    width: 100%;
+    resize: vertical;
+    min-height: 90px;
+    background: var(--bg-color-edit);
+    color: var(--fg-color);
+    border: 1px solid #666;
+}
+
+.assistant-status {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.assistant-output {
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--bg-color-edit);
+    border: 1px solid #444;
+    padding: 8px;
+    min-height: 60px;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.assistant-warning {
+    font-size: 0.8rem;
+    color: #e6c35c;
 }
 
 #menu-file-tree div .name {
