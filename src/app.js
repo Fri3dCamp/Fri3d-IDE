@@ -35,8 +35,8 @@ import { marked } from 'marked'
 import { UAParser } from 'ua-parser-js'
 import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
 
-import { splitPath, sleep, fetchJSON, getUserUID, getScreenInfo, IdleMonitor,
-         getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML, isRunningStandalone,
+import { splitPath, sleep, fetchJSON, getCssPropertyValue,
+         QSA, QS, QID, iOS, sanitizeHTML,
          sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
@@ -44,7 +44,8 @@ import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
 import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
-         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight
+         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
+         faPen, faEye
        } from '@fortawesome/free-solid-svg-icons'
 import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
@@ -52,7 +53,8 @@ library.add(faUsb, faBluetoothB)
 library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
-         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight)
+         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
+         faPen, faEye)
 library.add(faMessage, faCircleDown)
 dom.watch()
 
@@ -137,6 +139,7 @@ let devInfo = null
 let lastTracebackText = ''
 const terminalLogLines = []
 const openFolders = new Set()
+const _mdRawContent = new WeakMap()
 
 function appendTerminalLog(data) {
     const clean = String(data || '')
@@ -179,8 +182,6 @@ let defaultWsPass = ''
 
 async function prepareNewPort(type) {
     let new_port;
-    analytics.track('Device Start Connection', { connection: type })
-
     if (type === 'ws') {
         let url
         if (typeof window.webrepl_url === 'undefined' || window.webrepl_url == '') {
@@ -318,8 +319,6 @@ export async function connectDevice(type) {
 
     QID(`btn-conn-${type}`).classList.add('connected')
 
-    analytics.track('Device Port Connected', Object.assign({ connection: type }, await port.getInfo()))
-
     if (QID('interrupt-device').checked) {
         // TODO: detect WDT and disable it temporarily
 
@@ -329,7 +328,6 @@ export async function connectDevice(type) {
             Object.assign(devInfo, { connection: type })
 
             toastr.success(sanitizeHTML(devInfo.machine + '\n' + devInfo.version), 'Device connected')
-            analytics.track('Device Connected', devInfo)
             console.log('Device info', devInfo)
 
             if (window.pkg_install_url) {
@@ -368,7 +366,6 @@ export async function connectDevice(type) {
         await port.write('\x02')
     } else {
         toastr.success('Device connected')
-        analytics.track('Device Connected')
     }
 }
 
@@ -590,10 +587,10 @@ function _updateFileTree(fs_tree, fs_stats)
     fileTree.insertAdjacentHTML('beforeend', buildTree(fs_tree, 1))
 
     for (let fn of changed_files) {
-        QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("changed")
+        QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("changed")
     }
     for (let fn of open_files) {
-        QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("open")
+        QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("open")
     }
 
     if (QID('advanced-mode').checked) {
@@ -752,13 +749,17 @@ async function _raw_loadFile(raw, fn) {
 
 async function _loadContent(fn, content, editorElement) {
     const willDisasm = fn.endsWith('.mpy') && QID('advanced-mode').checked
+    const paneEl = editorElement.closest('.editor-tab-pane')
 
     if (content instanceof Uint8Array && !willDisasm) {
         hexViewer(content.buffer, editorElement)
         editor = null
     } else if (fn.endsWith('.md') && QID('render-markdown').checked) {
+        _mdRawContent.set(paneEl, content)
         editorElement.innerHTML = `<div class="marked-viewer">` + marked(content) + `</div>`
+        paneEl.dataset.mdMode = 'view'
         editor = null
+        _setMdToggleButton(fn, 'view')
     } else {
         let readOnly = false
         if (fn.endsWith('.json') && QID('expand-minify-json').checked) {
@@ -783,13 +784,90 @@ async function _loadContent(fn, content, editorElement) {
         document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: editor, fn: fn}}))
         addUpdateHandler(editor, (update) => {
             if (update.docChanged) {
-                QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("changed")
+                QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("changed")
             }
         })
+
+        if (fn.endsWith('.md')) {
+            _mdRawContent.set(paneEl, content)
+            paneEl.dataset.mdMode = 'edit'
+            _setMdToggleButton(fn, 'edit')
+        }
 
         editorFn = fn
     }
     autoHideSideMenu()
+}
+
+function _setMdToggleButton(fn, mode) {
+    const tabEl = QS(`#editor-tabs [data-fn="${fn}"]`)
+    if (!tabEl) return
+    let btn = tabEl.querySelector('.md-toggle-btn')
+    if (!btn) {
+        btn = document.createElement('a')
+        btn.className = 'menu-action md-toggle-btn'
+        btn.href = '#'
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            toggleMarkdownView(fn)
+        })
+        const closeBtn = tabEl.querySelector('.menu-action')
+        tabEl.insertBefore(btn, closeBtn)
+    }
+    if (mode === 'view') {
+        btn.title = T('editor.md-edit', 'Edit raw')
+        btn.innerHTML = '<i class="fa-solid fa-pen"></i>'
+    } else {
+        btn.title = T('editor.md-preview', 'Preview')
+        btn.innerHTML = '<i class="fa-solid fa-eye"></i>'
+    }
+}
+
+export async function toggleMarkdownView(fn) {
+    const tabEl = QS(`#editor-tabs [data-fn="${fn}"]`)
+    if (!tabEl) return
+    const paneEl = QS(`.editor-tab-pane[data-pane="${tabEl.dataset.tab}"]`)
+    if (!paneEl) return
+    const editorEl = paneEl.querySelector('.editor')
+    const isActive = paneEl.classList.contains('active')
+    const currentMode = paneEl.dataset.mdMode || 'view'
+
+    if (currentMode === 'view') {
+        // Switch to edit mode
+        const content = _mdRawContent.get(paneEl) || ''
+        editorEl.innerHTML = ''
+        const newEditor = await createNewEditor(editorEl, fn, content, {
+            wordWrap: QID('use-word-wrap').checked,
+            devInfo,
+        })
+        document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: newEditor, fn: fn}}))
+        addUpdateHandler(newEditor, (update) => {
+            if (update.docChanged) {
+                const fileEl = QS(`#menu-file-tree [data-fn="${fn}"]`)
+                if (fileEl) fileEl.classList.add("changed")
+            }
+        })
+        paneEl.dataset.mdMode = 'edit'
+        if (isActive) {
+            editor = newEditor
+            editorFn = fn
+        }
+        _setMdToggleButton(fn, 'edit')
+    } else {
+        // Switch to view mode
+        const currentEditor = getEditorFromElement(editorEl)
+        const content = currentEditor
+            ? currentEditor.state.doc.toString()
+            : (_mdRawContent.get(paneEl) || '')
+        _mdRawContent.set(paneEl, content)
+        editorEl.innerHTML = `<div class="marked-viewer">` + marked(content) + `</div>`
+        paneEl.dataset.mdMode = 'view'
+        if (isActive) {
+            editor = null
+        }
+        _setMdToggleButton(fn, 'view')
+    }
 }
 
 export async function saveCurrentFile() {
@@ -833,11 +911,10 @@ export async function saveCurrentFile() {
         await raw.end()
     }
     // Success
-    analytics.track('File Saved')
     toastr.success('File Saved')
 
     document.dispatchEvent(new CustomEvent("fileSaved", {detail: {fn: editorFn}}))
-    QS(`#menu-file-tree [data-fn="${editorFn}"]`).classList.remove("changed")
+    QS(`#menu-file-tree [data-fn="${editorFn}"]`)?.classList.remove("changed")
 }
 
 export function clearTerminal() {
@@ -909,7 +986,6 @@ export async function runCurrentFile() {
         writeTerminal('\r\n>>> ')
     }
     // Success
-    analytics.track('Script Run')
 }
 
 /*
@@ -947,7 +1023,6 @@ export async function loadAllPkgIndexes() {
 }
 
 async function _raw_installPkg(raw, pkg, { version=null } = {}) {
-    analytics.track('Package Install', { name: pkg })
     toastr.info(`Installing ${pkg}...`)
     const dev_info = await raw.getDeviceInfo()
     const pkg_info = await rawInstallPkg(raw, pkg, {
@@ -1197,72 +1272,6 @@ export function applyTranslation() {
         await i18next.changeLanguage(this.value)
         applyTranslation()
     })
-
-    try {
-        if (typeof window.analytics.track === 'undefined') {
-            throw new Error()
-        }
-
-        const ua = new UAParser()
-        const geo = await fetchJSON('https://freeipapi.com/api/json')
-        const scr = getScreenInfo()
-
-        let tz
-        try {
-            tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-        } catch (_e) {
-            tz = (new Date()).getTimezoneOffset()
-        }
-
-        //console.log(geo)
-        //console.log(ua.getResult())
-        //console.log(scr)
-
-        const userUID = getUserUID()
-
-        analytics.identify(userUID, {
-            email: userUID.split('-').pop() + '@vip.er',
-            version: VIPER_IDE_VERSION,
-            build: getBuildDate(),
-            browser: ua.getBrowser().name,
-            browser_version: ua.getBrowser().version,
-            os: ua.getOS().name,
-            os_version: ua.getOS().version,
-            cpu: ua.getCPU().architecture,
-            pwa: isRunningStandalone(),
-            screen: scr.width + 'x' + scr.height,
-            orientation: scr.orientation,
-            dpr: scr.dpr,
-            dpi: QID('dpi-ruler').offsetHeight,
-            lang: currentLang,
-            location: geo.latitude + ',' + geo.longitude,
-            continent: geo.continent,
-            country: geo.countryName,
-            region: geo.regionName,
-            city: geo.cityName,
-            tz: tz,
-        })
-
-        analytics.track('Visit', {
-            url: window.location.href,
-            referrer: document.referrer,
-        })
-
-        const idleMonitor = new IdleMonitor(3*60*1000);
-
-        idleMonitor.setIdleCallback(() => {
-            analytics.track('User Idle')
-        })
-
-        idleMonitor.setActiveCallback(() => {
-            analytics.track('User Active')
-        })
-
-    } catch (_err) {
-        window.analytics = {
-            track: function() {}
-        }
-    }
 
     const zoom_sel = QID('zoom')
     const applyZoom = (zoomValue) => {
@@ -1576,4 +1585,5 @@ window.app = {
     updateApp,
     initDrag,
     toggleAssistantSidebar,
+    toggleMarkdownView,
 }

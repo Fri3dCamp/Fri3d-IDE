@@ -47,7 +47,6 @@ let defaultWsPass = ''
 
 async function prepareNewPort(type) {
     let new_port;
-    analytics.track('Device Start Connection', { connection: type })
 
     if (type === 'ws') {
         let url
@@ -192,10 +191,6 @@ async function connectDevice(type) {
     } catch (_err) { /* ignore */ }
 
     toastr.success('Bridge created')
-}
-
-window.analytics = {
-    track: function() {}
 }
 
 window.connectDevice = connectDevice
