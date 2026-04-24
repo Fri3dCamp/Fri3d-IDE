@@ -40,7 +40,8 @@ body.loaded {
 }
 
 #side-menu {
-    flex: 0 0 300px;
+    --side-menu-width: 300px;
+    flex: 0 0 var(--side-menu-width);
     display: flex;
     flex-direction: column-reverse;
     background-color: var(--bg-color-menu);
@@ -51,7 +52,21 @@ body.loaded {
 }
 
 #side-menu.hidden {
-    margin-left: -300px;
+    margin-left: calc(-1 * var(--side-menu-width));
+}
+
+#side-menu-resizer {
+    flex: 0 0 6px;
+    cursor: col-resize;
+    background: transparent;
+}
+
+#side-menu-resizer:hover {
+    background: #444;
+}
+
+#side-menu.hidden + #side-menu-resizer {
+    display: none;
 }
 
 #main-editor {
@@ -290,6 +305,27 @@ body.loaded {
     white-space: nowrap;
 }
 
+#menu-file-tree > div:not(.folder-content),
+#menu-file-tree .folder-content > div:not(.folder-content) {
+    display: flex;
+    align-items: center;
+}
+
+#menu-file-tree > div:not(.folder-content) > .name,
+#menu-file-tree .folder-content > div:not(.folder-content) > .name {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#menu-file-tree > div:not(.folder-content) > .menu-action:first-of-type,
+#menu-file-tree .folder-content > div:not(.folder-content) > .menu-action:first-of-type {
+    margin-left: auto;
+}
+
+#menu-file-tree .menu-action {
+    float: none;
+}
+
 #menu-file-tree .folder-toggleable {
     cursor: pointer;
 }
@@ -361,6 +397,10 @@ body.loaded {
 
     #side-menu.show {
         left: 0;
+    }
+
+    #side-menu-resizer {
+        display: none;
     }
 
     #overlay {

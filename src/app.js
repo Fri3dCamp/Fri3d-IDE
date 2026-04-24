@@ -32,7 +32,6 @@ import { parseStackTrace, validatePython, disassembleMPY, minifyPython, prettify
 import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
-import { UAParser } from 'ua-parser-js'
 import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
 
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
@@ -1070,6 +1069,46 @@ export async function installPkgFromUrl() {
 
 const fileTree = QID('side-menu')
 const overlay = QID('overlay')
+
+/*
+ * Left sidebar resizer
+ */
+
+const DEFAULT_SIDE_MENU_WIDTH = 300
+
+;(function initSideMenuResizer() {
+    const resizer = QID('side-menu-resizer')
+    if (!resizer) return
+
+    const uiSettings = loadUiSettings()
+    const savedWidth = Number(uiSettings['side-menu-width']) || DEFAULT_SIDE_MENU_WIDTH
+    fileTree.style.setProperty('--side-menu-width', savedWidth + 'px')
+
+    resizer.addEventListener('mousedown', (event) => {
+        if (window.innerWidth <= 768) return
+        event.preventDefault()
+
+        const startX = event.clientX
+        const startWidth = fileTree.getBoundingClientRect().width
+
+        const onMouseMove = (moveEvent) => {
+            const width = Math.min(600, Math.max(150, Math.round(startWidth + moveEvent.clientX - startX)))
+            fileTree.style.setProperty('--side-menu-width', width + 'px')
+        }
+
+        const onMouseUp = () => {
+            const width = Math.round(fileTree.getBoundingClientRect().width)
+            const current = loadUiSettings()
+            current['side-menu-width'] = width
+            saveUiSettings(current)
+            document.removeEventListener('mousemove', onMouseMove)
+            document.removeEventListener('mouseup', onMouseUp)
+        }
+
+        document.addEventListener('mousemove', onMouseMove)
+        document.addEventListener('mouseup', onMouseUp)
+    })
+}())
 
 export function toggleSideMenu() {
     if (window.innerWidth <= 768) {
