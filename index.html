@@ -19,6 +19,7 @@
             <button title="Connect WebREPL"      onclick="app.connectDevice('ws')"  id="btn-conn-ws" ><i class="fa-solid fa-link"></i></button>
             <button title="Connect Bluetooth"    onclick="app.connectDevice('ble')" id="btn-conn-ble"><i class="fa-brands fa-bluetooth-b"></i></button>
             <button title="Connect USB/Serial"   onclick="app.connectDevice('usb')" id="btn-conn-usb"><i class="fa-brands fa-usb"></i></button>
+            <button title="Toggle Assistant"     onclick="app.toggleAssistantSidebar()" id="assistant-toggle"><i class="fa-regular fa-message"></i></button>
             <button title="Full Screen" onclick="app.toggleFullScreen('app')"  id="app-expand"><i class="fa-solid fa-expand"></i></button>
         </div>
     </div>
@@ -33,7 +34,6 @@
                 </div>
                 <div>
                     <a class="tab" data-target="menu-settings"><i class="fa-solid fa-sliders fa-fw"></i></a>
-                    <a class="tab" data-target="menu-assistant"><i class="fa-regular fa-message fa-fw"></i></a>
                     <a class="tab" data-target="menu-about"><i class="fa-solid fa-circle-info fa-fw"></i></a>
                     <!--button onclick="TODO"><i class="fa-regular fa-message fa-fw"></i></button>
                     <button onclick="TODO"><i class="fa-regular fa-star fa-fw"></i></button-->
@@ -141,83 +141,55 @@
                     </div>
                     <div><input type="checkbox" id="use-natural-sort" checked/><label for="use-natural-sort">Use natural sorting</label></div>
 
-                    <div class="title-lines" id="menu-line-assistant">assistant</div>
-                    <div class="space-between">
-                        <label for="assistant-provider">Provider:</label>
-                        <select id="assistant-provider">
-                            <option value="openai-compatible">Cloud (OpenAI-compatible)</option>
-                            <option value="chrome-prompt-api">Local (Chrome Prompt API)</option>
-                            <option value="webllm">Local (WebLLM)</option>
-                        </select>
-                    </div>
-                    <div class="space-between">
-                        <label for="assistant-base-url">Base URL:</label>
-                        <input id="assistant-base-url" type="text" placeholder="https://api.openai.com/v1"/>
-                    </div>
-                    <div class="space-between">
-                        <label for="assistant-model">Model:</label>
-                        <input id="assistant-model" type="text" placeholder="gpt-4.1-mini"/>
-                    </div>
-                    <div class="space-between">
-                        <label for="assistant-api-key">API key:</label>
-                        <input id="assistant-api-key" type="password" autocomplete="off" placeholder="sk-..."/>
-                    </div>
-                    <div class="space-between">
-                        <label for="assistant-temperature">Temperature:</label>
-                        <input id="assistant-temperature" type="number" min="0" max="2" step="0.1"/>
-                    </div>
-                    <div class="space-between">
-                        <label for="assistant-max-tokens">Max tokens:</label>
-                        <input id="assistant-max-tokens" type="number" min="32" max="8192" step="1"/>
-                    </div>
-                    <div class="space-between">
-                        <label for="assistant-timeout-ms">Timeout (ms):</label>
-                        <input id="assistant-timeout-ms" type="number" min="2000" max="120000" step="1000"/>
-                    </div>
-                    <div><input type="checkbox" id="assistant-fallback" checked/><label for="assistant-fallback">Allow provider fallback to cloud</label></div>
-                    <div><input type="checkbox" id="assistant-include-editor" checked/><label for="assistant-include-editor">Include editor context</label></div>
-                    <div><input type="checkbox" id="assistant-include-terminal" checked/><label for="assistant-include-terminal">Include terminal context</label></div>
-                    <div><input type="checkbox" id="assistant-include-board" checked/><label for="assistant-include-board">Include board info</label></div>
-                    <div><input type="checkbox" id="assistant-include-grounding" checked/><label for="assistant-include-grounding">Use docs grounding (MCP)</label></div>
-                    <div class="space-between">
-                        <label for="assistant-webllm-model">WebLLM model:</label>
-                        <input id="assistant-webllm-model" type="text" placeholder="Llama-3.1-8B-Instruct-q4f32_1-MLC"/>
-                    </div>
-                    <div class="assistant-warning">Assistant keys are stored in your browser profile. Avoid using shared/public machines.</div>
-                    <div class="assistant-settings-actions">
-                        <button id="assistant-clear-data" type="button">Clear assistant data</button>
+                    <div id="assistant-settings-section">
+                        <div class="title-lines" id="menu-line-assistant">assistant</div>
+                        <div class="space-between">
+                            <label for="assistant-provider">Provider:</label>
+                            <select id="assistant-provider">
+                                <option value="openai-compatible">Cloud (OpenAI-compatible)</option>
+                                <option value="chrome-prompt-api">Local (Chrome Prompt API)</option>
+                                <option value="webllm">Local (WebLLM)</option>
+                            </select>
+                        </div>
+                        <div class="space-between">
+                            <label for="assistant-base-url">Base URL:</label>
+                            <input id="assistant-base-url" type="text" placeholder="https://api.openai.com/v1"/>
+                        </div>
+                        <div class="space-between">
+                            <label for="assistant-model">Model:</label>
+                            <input id="assistant-model" type="text" placeholder="gpt-4.1-mini"/>
+                        </div>
+                        <div class="space-between">
+                            <label for="assistant-api-key">API key:</label>
+                            <input id="assistant-api-key" type="password" autocomplete="off" placeholder="sk-..."/>
+                        </div>
+                        <div class="space-between">
+                            <label for="assistant-temperature">Temperature:</label>
+                            <input id="assistant-temperature" type="number" min="0" max="2" step="0.1"/>
+                        </div>
+                        <div class="space-between">
+                            <label for="assistant-max-tokens">Max tokens:</label>
+                            <input id="assistant-max-tokens" type="number" min="32" max="8192" step="1"/>
+                        </div>
+                        <div class="space-between">
+                            <label for="assistant-timeout-ms">Timeout (ms):</label>
+                            <input id="assistant-timeout-ms" type="number" min="2000" max="120000" step="1000"/>
+                        </div>
+                        <div><input type="checkbox" id="assistant-fallback" checked/><label for="assistant-fallback">Allow provider fallback to cloud</label></div>
+                        <div><input type="checkbox" id="assistant-include-editor" checked/><label for="assistant-include-editor">Include editor context</label></div>
+                        <div><input type="checkbox" id="assistant-include-terminal" checked/><label for="assistant-include-terminal">Include terminal context</label></div>
+                        <div><input type="checkbox" id="assistant-include-board" checked/><label for="assistant-include-board">Include board info</label></div>
+                        <div><input type="checkbox" id="assistant-include-grounding" checked/><label for="assistant-include-grounding">Use docs grounding (MCP)</label></div>
+                        <div class="space-between">
+                            <label for="assistant-webllm-model">WebLLM model:</label>
+                            <input id="assistant-webllm-model" type="text" placeholder="Llama-3.1-8B-Instruct-q4f32_1-MLC"/>
+                        </div>
+                        <div class="assistant-warning">Assistant keys are stored in your browser profile. Avoid using shared/public machines.</div>
+                        <div class="assistant-settings-actions">
+                            <button id="assistant-clear-data" type="button">Clear assistant data</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="menu-assistant" class="tab-content">
-                <div id="menu-assistant-title">Assistant</div>
-                <div id="assistant-provider-status" class="assistant-provider-status">Provider: idle</div>
-                <div class="assistant-task-row">
-                    <label for="assistant-task-preset">Task:</label>
-                    <select id="assistant-task-preset">
-                        <option value="none">General chat</option>
-                        <option value="traceback-fix">Traceback auto-fix</option>
-                        <option value="memory-opt">Memory optimization advisor</option>
-                        <option value="cpython-port">CPython to MicroPython helper</option>
-                        <option value="board-bringup">Board bring-up checklist</option>
-                    </select>
-                    <button id="assistant-run-task" type="button">Run task</button>
-                </div>
-                <div class="assistant-quick-actions">
-                    <button id="assistant-explain-selection" type="button">Explain selection</button>
-                    <button id="assistant-fix-traceback" type="button">Fix traceback</button>
-                </div>
-                <textarea id="assistant-prompt" rows="5" placeholder="Ask about MicroPython, board behavior, APIs, or debugging..."></textarea>
-                <div class="assistant-actions">
-                    <button id="assistant-ask" type="button">Ask</button>
-                    <button id="assistant-stop" type="button">Stop</button>
-                    <span id="assistant-status" class="assistant-status">idle</span>
-                </div>
-                <details>
-                    <summary>Context preview</summary>
-                    <pre id="assistant-context-preview" class="assistant-output"></pre>
-                </details>
-                <div id="assistant-output" class="assistant-output"></div>
             </div>
             <div id="menu-about" class="tab-content">
                 <a class="github-fork-ribbon left-top" href="https://github.com/vshymanskyy/ViperIDE" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
@@ -269,6 +241,40 @@
                 </div>
             </div>
         </div>
+        <div id="assistant-resizer" title="Resize assistant sidebar"></div>
+        <aside id="assistant-sidebar">
+            <div class="assistant-header">
+                <div id="menu-assistant-title">Assistant</div>
+                <button id="assistant-collapse" type="button" title="Collapse assistant">Collapse</button>
+            </div>
+            <div id="assistant-provider-status" class="assistant-provider-status">Provider: idle</div>
+            <div class="assistant-task-row">
+                <label for="assistant-task-preset">Task:</label>
+                <select id="assistant-task-preset">
+                    <option value="none">General chat</option>
+                    <option value="traceback-fix">Traceback auto-fix</option>
+                    <option value="memory-opt">Memory optimization advisor</option>
+                    <option value="cpython-port">CPython to MicroPython helper</option>
+                    <option value="board-bringup">Board bring-up checklist</option>
+                </select>
+                <button id="assistant-run-task" type="button">Run task</button>
+            </div>
+            <div class="assistant-quick-actions">
+                <button id="assistant-explain-selection" type="button">Explain selection</button>
+                <button id="assistant-fix-traceback" type="button">Fix traceback</button>
+            </div>
+            <textarea id="assistant-prompt" rows="5" placeholder="Ask about MicroPython, board behavior, APIs, or debugging..."></textarea>
+            <div class="assistant-actions">
+                <button id="assistant-ask" type="button">Ask</button>
+                <button id="assistant-stop" type="button">Stop</button>
+                <span id="assistant-status" class="assistant-status">idle</span>
+            </div>
+            <details>
+                <summary>Context preview</summary>
+                <pre id="assistant-context-preview" class="assistant-output"></pre>
+            </details>
+            <div id="assistant-output" class="assistant-output"></div>
+        </aside>
     </div>
     <div id="dpi-ruler" style="position:absolute;height:1in;width:1in;left:-100%;top:-100%;"></div>
 

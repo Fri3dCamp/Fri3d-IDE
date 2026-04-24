@@ -61,6 +61,37 @@ body.loaded {
     width: 0;
 }
 
+#assistant-sidebar {
+    flex: 0 0 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background-color: var(--bg-color-menu);
+    border-left: 1px solid #444;
+    overflow-y: auto;
+}
+
+#assistant-resizer {
+    flex: 0 0 6px;
+    cursor: col-resize;
+    background: transparent;
+}
+
+#assistant-resizer:hover {
+    background: #444;
+}
+
+#container.assistant-collapsed #assistant-sidebar,
+#container.assistant-collapsed #assistant-resizer {
+    display: none;
+}
+
+#container.assistant-unavailable #assistant-sidebar,
+#container.assistant-unavailable #assistant-resizer {
+    display: none;
+}
+
 .editor {
     background: var(--bg-color-edit);
     height: 100%;
@@ -184,18 +215,17 @@ body.loaded {
 
 #menu-assistant-title {
     font-weight: bold;
-    margin-bottom: 8px;
+}
+
+.assistant-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 #menu-file-tree div, #menu-pkg-list div, #menu-settings-list div, #menu-tools-list div {
     margin: 5px 0;
     line-height: 1.2em;
-}
-
-#menu-assistant {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
 }
 
 #menu-settings-list input[type='text'],
@@ -343,6 +373,26 @@ body.loaded {
         background-color: transparent;
         overflow: hidden;
         visibility: hidden;
+    }
+
+    #container {
+        flex-direction: column;
+    }
+
+    #main-editor {
+        width: 100%;
+    }
+
+    #assistant-sidebar {
+        flex: 0 0 auto;
+        width: 100%;
+        max-height: 45vh;
+        border-left: 0;
+        border-top: 1px solid #444;
+    }
+
+    #assistant-resizer {
+        display: none;
     }
 
     #overlay.show {

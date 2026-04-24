@@ -33,7 +33,7 @@ import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
 import { UAParser } from 'ua-parser-js'
-import { initAssistantPanel } from './assistant/ui/panel.js'
+import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
 
 import { splitPath, sleep, fetchJSON, getUserUID, getScreenInfo, IdleMonitor,
          getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML, isRunningStandalone,
@@ -61,6 +61,70 @@ function getBuildDate() {
 }
 
 const T = i18next.t.bind(i18next)
+const ADVANCED_MODE_STORAGE_KEY = 'viper.settings.advanced-mode'
+const UI_SETTINGS_STORAGE_KEY = 'viper.settings.ui.v1'
+
+function loadUiSettings() {
+    try {
+        const raw = localStorage.getItem(UI_SETTINGS_STORAGE_KEY)
+        if (!raw) {
+            return {}
+        }
+        return JSON.parse(raw)
+    } catch (_err) {
+        return {}
+    }
+}
+
+function saveUiSettings(settings) {
+    localStorage.setItem(UI_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+}
+
+function restoreAndBindUiSettings() {
+    const stored = loadUiSettings()
+    const controls = QSA('#menu-settings-list input[id], #menu-settings-list select[id]')
+
+    // Backward compatibility for older advanced-mode-only persistence.
+    if (!Object.prototype.hasOwnProperty.call(stored, 'advanced-mode')) {
+        const legacy = localStorage.getItem(ADVANCED_MODE_STORAGE_KEY)
+        if (legacy != null) {
+            stored['advanced-mode'] = (legacy === '1')
+        }
+    }
+
+    for (const control of controls) {
+        const id = control.id
+        if (!id || id.startsWith('assistant-') || id === 'lang') {
+            continue
+        }
+
+        if (Object.prototype.hasOwnProperty.call(stored, id)) {
+            if (control.type === 'checkbox') {
+                control.checked = Boolean(stored[id])
+            } else {
+                control.value = String(stored[id])
+            }
+        }
+
+        control.addEventListener('change', () => {
+            const current = loadUiSettings()
+            current[id] = (control.type === 'checkbox') ? control.checked : control.value
+            saveUiSettings(current)
+
+            // Keep legacy key updated so existing users retain expected behavior.
+            if (id === 'advanced-mode') {
+                localStorage.setItem(ADVANCED_MODE_STORAGE_KEY, control.checked ? '1' : '0')
+            }
+        })
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(stored, 'zoom')) {
+        const zoomControl = QID('zoom')
+        if (zoomControl) {
+            zoomControl.value = '1.00'
+        }
+    }
+}
 
 /*
  * Device Management
@@ -1125,6 +1189,8 @@ export function applyTranslation() {
 
     const currentLang = i18next.resolvedLanguage || 'en';
 
+    restoreAndBindUiSettings()
+
     const lang_sel = QID('lang')
     lang_sel.value = currentLang
     lang_sel.addEventListener('change', async function() {
@@ -1199,12 +1265,17 @@ export function applyTranslation() {
     }
 
     const zoom_sel = QID('zoom')
-    zoom_sel.value = '1.00'
-    zoom_sel.addEventListener('change', async function() {
-        const size = 14 * parseFloat(this.value)
+    const applyZoom = (zoomValue) => {
+        const size = 14 * parseFloat(zoomValue)
         document.documentElement.style.setProperty('--font-size', (size).toFixed(1) + 'px')
-        term.options.fontSize = (size * 0.9).toFixed(1)
+        if (term) {
+            term.options.fontSize = (size * 0.9).toFixed(1)
+        }
+    }
+    zoom_sel.addEventListener('change', async function() {
+        applyZoom(this.value)
     })
+    applyZoom(zoom_sel.value)
 
     applyTranslation()
 
@@ -1504,4 +1575,5 @@ window.app = {
     applyTranslation,
     updateApp,
     initDrag,
+    toggleAssistantSidebar,
 }

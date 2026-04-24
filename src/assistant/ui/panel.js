@@ -17,11 +17,23 @@ import { getWebLLMStatus, runWebLLMChat, clearWebLLMCache } from '../providers/w
 import { getMicroPythonSystemPrompt, getTaskInstruction } from '../prompts/micropython_system_prompt.js'
 
 const STORAGE_KEY = 'assistant.settings.v1'
+const LAYOUT_STORAGE_KEY = 'assistant.layout.v1'
 const TASK_HELP = {
     'traceback-fix': 'Analyze the latest traceback and suggest the smallest safe fix.',
     'memory-opt': 'Optimize this code for MicroPython memory constraints.',
     'cpython-port': 'Port this CPython code to MicroPython-compatible code.',
     'board-bringup': 'Create a board bring-up checklist for the current connection problem.',
+}
+
+const DEFAULT_LAYOUT = {
+    width: 360,
+    collapsed: false,
+}
+
+let _toggleAssistantSidebar = () => {}
+
+export function toggleAssistantSidebar() {
+    _toggleAssistantSidebar()
 }
 
 const DEFAULTS = {
@@ -52,6 +64,22 @@ function loadSettings() {
 
 function saveSettings(settings) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+}
+
+function loadLayout() {
+    try {
+        const raw = localStorage.getItem(LAYOUT_STORAGE_KEY)
+        if (!raw) {
+            return { ...DEFAULT_LAYOUT }
+        }
+        return { ...DEFAULT_LAYOUT, ...JSON.parse(raw) }
+    } catch (_err) {
+        return { ...DEFAULT_LAYOUT }
+    }
+}
+
+function saveLayout(layout) {
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout))
 }
 
 function setStatus(text) {
@@ -131,7 +159,108 @@ async function callProvider(provider, payload, settings, onProviderStatus) {
 
 export function initAssistantPanel(runtime) {
     const settings = loadSettings()
+    const layout = loadLayout()
     let activeController = null
+
+    const container = QID('container')
+    const sidebar = QID('assistant-sidebar')
+    const resizer = QID('assistant-resizer')
+    const collapseBtn = QID('assistant-collapse')
+    const topToggleBtn = QID('assistant-toggle')
+    const advancedModeEl = QID('advanced-mode')
+    const providerSelectEl = QID('assistant-provider')
+    const assistantSettingsSection = QID('assistant-settings-section')
+
+    const applyLayout = () => {
+        const advancedEnabled = isAdvancedMode()
+
+        if (sidebar) {
+            const width = Math.min(700, Math.max(260, Number(layout.width || DEFAULT_LAYOUT.width)))
+            sidebar.style.flexBasis = `${width}px`
+        }
+
+        if (container) {
+            container.classList.toggle('assistant-unavailable', !advancedEnabled)
+            container.classList.toggle('assistant-collapsed', Boolean(layout.collapsed))
+        }
+
+        if (collapseBtn) {
+            collapseBtn.innerText = layout.collapsed ? 'Expand' : 'Collapse'
+            collapseBtn.title = layout.collapsed ? 'Expand assistant' : 'Collapse assistant'
+        }
+
+        if (topToggleBtn) {
+            topToggleBtn.style.display = advancedEnabled ? '' : 'none'
+            topToggleBtn.title = layout.collapsed ? 'Show Assistant' : 'Hide Assistant'
+        }
+
+        if (assistantSettingsSection) {
+            assistantSettingsSection.style.display = advancedEnabled ? '' : 'none'
+        }
+    }
+
+    const isAdvancedMode = () => Boolean(advancedModeEl && advancedModeEl.checked)
+
+    const updateProviderOptionsByAdvancedMode = () => {
+        if (!providerSelectEl) return
+
+        for (const option of providerSelectEl.options) {
+            if (option.value === 'chrome-prompt-api' || option.value === 'webllm') {
+                option.disabled = !isAdvancedMode()
+            }
+        }
+
+        if (!isAdvancedMode() && (settings.provider === 'chrome-prompt-api' || settings.provider === 'webllm')) {
+            settings.provider = 'openai-compatible'
+            providerSelectEl.value = settings.provider
+            saveSettings(settings)
+            toastr.info('Local LLM providers are available only in Advanced mode')
+        }
+    }
+
+    const toggleCollapsed = () => {
+        layout.collapsed = !layout.collapsed
+        saveLayout(layout)
+        applyLayout()
+    }
+
+    _toggleAssistantSidebar = toggleCollapsed
+
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', toggleCollapsed)
+    }
+
+    if (resizer) {
+        resizer.addEventListener('mousedown', (event) => {
+            if (window.innerWidth <= 768) {
+                return
+            }
+
+            event.preventDefault()
+            layout.collapsed = false
+
+            const startX = event.clientX
+            const startWidth = sidebar ? sidebar.getBoundingClientRect().width : DEFAULT_LAYOUT.width
+
+            const onMouseMove = (moveEvent) => {
+                const deltaX = startX - moveEvent.clientX
+                const nextWidth = Math.min(700, Math.max(260, Math.round(startWidth + deltaX)))
+                layout.width = nextWidth
+                applyLayout()
+            }
+
+            const onMouseUp = () => {
+                saveLayout(layout)
+                document.removeEventListener('mousemove', onMouseMove)
+                document.removeEventListener('mouseup', onMouseUp)
+            }
+
+            document.addEventListener('mousemove', onMouseMove)
+            document.addEventListener('mouseup', onMouseUp)
+        })
+    }
+
+    applyLayout()
 
     const mapping = [
         ['assistant-provider', 'provider', 'value'],
@@ -175,6 +304,12 @@ export function initAssistantPanel(runtime) {
 
     async function refreshProviderStatus() {
         const provider = settings.provider
+
+        if (!isAdvancedMode() && (provider === 'chrome-prompt-api' || provider === 'webllm')) {
+            setProviderStatus('local providers require Advanced mode')
+            return
+        }
+
         if (provider === 'openai-compatible') {
             setProviderStatus('cloud (openai-compatible)')
             return
@@ -233,6 +368,10 @@ export function initAssistantPanel(runtime) {
         let ungroundedWarning = ''
 
         try {
+            if (!isAdvancedMode() && (settings.provider === 'chrome-prompt-api' || settings.provider === 'webllm')) {
+                throw new Error('Local LLM providers are available only in Advanced mode')
+            }
+
             if (settings.provider === 'openai-compatible') {
                 requireCloudCredentials()
             }
@@ -350,8 +489,23 @@ export function initAssistantPanel(runtime) {
         }
 
         toastr.success('Assistant data cleared')
+        updateProviderOptionsByAdvancedMode()
         refreshProviderStatus()
     })
 
+    if (advancedModeEl) {
+        advancedModeEl.addEventListener('change', () => {
+            if (advancedModeEl.checked && layout.collapsed) {
+                layout.collapsed = false
+                saveLayout(layout)
+            }
+
+            applyLayout()
+            updateProviderOptionsByAdvancedMode()
+            refreshProviderStatus()
+        })
+    }
+
+    updateProviderOptionsByAdvancedMode()
     refreshProviderStatus()
 }
