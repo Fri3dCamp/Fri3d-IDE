@@ -44,29 +44,21 @@ const linkDecorator = ViewPlugin.fromClass(class {
     const builder = new RangeSetBuilder();
     const tree = syntaxTree(view.state);
     for (let {from, to} of view.visibleRanges) {
-      let text = view.state.sliceDoc(from, to);
-      urlRegex.lastIndex = 0;
-      let match;
-      while ((match = urlRegex.exec(text))) {
-        let start = from + match.index;
-        let end = start + match[0].length;
-        if (this.isInComment(tree, start)) {
-          builder.add(start, end, Decoration.mark({class: "cm-link"}));
+      tree.iterate({
+        from, to,
+        enter(node) {
+          if (!node.type.name.toLowerCase().includes('comment')) return
+          const text = view.state.sliceDoc(node.from, node.to)
+          urlRegex.lastIndex = 0
+          let match
+          while ((match = urlRegex.exec(text))) {
+            builder.add(node.from + match.index, node.from + match.index + match[0].length, Decoration.mark({class: 'cm-link'}))
+          }
+          return false
         }
-      }
+      })
     }
     return builder.finish();
-  }
-
-  isInComment(tree, pos) {
-    let node = tree.resolveInner(pos);
-    while (node) {
-      if (node.type.name.toLowerCase().includes("comment")) {
-        return true;
-      }
-      node = node.parent;
-    }
-    return false;
   }
 }, {
   decorations: v => v.decorations
