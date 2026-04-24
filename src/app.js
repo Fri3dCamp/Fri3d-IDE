@@ -43,7 +43,8 @@ import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
 import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
-         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight
+         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
+         faPen, faEye
        } from '@fortawesome/free-solid-svg-icons'
 import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
@@ -51,7 +52,8 @@ library.add(faUsb, faBluetoothB)
 library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
-         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight)
+         faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
+         faPen, faEye)
 library.add(faMessage, faCircleDown)
 dom.watch()
 
@@ -70,6 +72,7 @@ let editorFn = ''
 let isInRunMode = false
 let devInfo = null
 const openFolders = new Set()
+const _mdRawContent = new WeakMap()
 
 async function disconnectDevice() {
     if (port) {
@@ -664,13 +667,17 @@ async function _raw_loadFile(raw, fn) {
 
 async function _loadContent(fn, content, editorElement) {
     const willDisasm = fn.endsWith('.mpy') && QID('advanced-mode').checked
+    const paneEl = editorElement.closest('.editor-tab-pane')
 
     if (content instanceof Uint8Array && !willDisasm) {
         hexViewer(content.buffer, editorElement)
         editor = null
     } else if (fn.endsWith('.md') && QID('render-markdown').checked) {
+        _mdRawContent.set(paneEl, content)
         editorElement.innerHTML = `<div class="marked-viewer">` + marked(content) + `</div>`
+        paneEl.dataset.mdMode = 'view'
         editor = null
+        _setMdToggleButton(fn, 'view')
     } else {
         let readOnly = false
         if (fn.endsWith('.json') && QID('expand-minify-json').checked) {
@@ -699,9 +706,86 @@ async function _loadContent(fn, content, editorElement) {
             }
         })
 
+        if (fn.endsWith('.md')) {
+            _mdRawContent.set(paneEl, content)
+            paneEl.dataset.mdMode = 'edit'
+            _setMdToggleButton(fn, 'edit')
+        }
+
         editorFn = fn
     }
     autoHideSideMenu()
+}
+
+function _setMdToggleButton(fn, mode) {
+    const tabEl = QS(`#editor-tabs [data-fn="${fn}"]`)
+    if (!tabEl) return
+    let btn = tabEl.querySelector('.md-toggle-btn')
+    if (!btn) {
+        btn = document.createElement('a')
+        btn.className = 'menu-action md-toggle-btn'
+        btn.href = '#'
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            toggleMarkdownView(fn)
+        })
+        const closeBtn = tabEl.querySelector('.menu-action')
+        tabEl.insertBefore(btn, closeBtn)
+    }
+    if (mode === 'view') {
+        btn.title = T('editor.md-edit', 'Edit raw')
+        btn.innerHTML = '<i class="fa-solid fa-pen"></i>'
+    } else {
+        btn.title = T('editor.md-preview', 'Preview')
+        btn.innerHTML = '<i class="fa-solid fa-eye"></i>'
+    }
+}
+
+export async function toggleMarkdownView(fn) {
+    const tabEl = QS(`#editor-tabs [data-fn="${fn}"]`)
+    if (!tabEl) return
+    const paneEl = QS(`.editor-tab-pane[data-pane="${tabEl.dataset.tab}"]`)
+    if (!paneEl) return
+    const editorEl = paneEl.querySelector('.editor')
+    const isActive = paneEl.classList.contains('active')
+    const currentMode = paneEl.dataset.mdMode || 'view'
+
+    if (currentMode === 'view') {
+        // Switch to edit mode
+        const content = _mdRawContent.get(paneEl) || ''
+        editorEl.innerHTML = ''
+        const newEditor = await createNewEditor(editorEl, fn, content, {
+            wordWrap: QID('use-word-wrap').checked,
+            devInfo,
+        })
+        document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: newEditor, fn: fn}}))
+        addUpdateHandler(newEditor, (update) => {
+            if (update.docChanged) {
+                const fileEl = QS(`#menu-file-tree [data-fn="${fn}"]`)
+                if (fileEl) fileEl.classList.add("changed")
+            }
+        })
+        paneEl.dataset.mdMode = 'edit'
+        if (isActive) {
+            editor = newEditor
+            editorFn = fn
+        }
+        _setMdToggleButton(fn, 'edit')
+    } else {
+        // Switch to view mode
+        const currentEditor = getEditorFromElement(editorEl)
+        const content = currentEditor
+            ? currentEditor.state.doc.toString()
+            : (_mdRawContent.get(paneEl) || '')
+        _mdRawContent.set(paneEl, content)
+        editorEl.innerHTML = `<div class="marked-viewer">` + marked(content) + `</div>`
+        paneEl.dataset.mdMode = 'view'
+        if (isActive) {
+            editor = null
+        }
+        _setMdToggleButton(fn, 'view')
+    }
 }
 
 export async function saveCurrentFile() {
@@ -1449,4 +1533,5 @@ window.app = {
     applyTranslation,
     updateApp,
     initDrag,
+    toggleMarkdownView,
 }
