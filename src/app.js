@@ -32,8 +32,8 @@ import { parseStackTrace, validatePython, disassembleMPY, minifyPython, prettify
 import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
-import { splitPath, sleep, fetchJSON,
-         getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML,
+import { splitPath, sleep, fetchJSON, getCssPropertyValue,
+         QSA, QS, QID, iOS, sanitizeHTML,
          sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
