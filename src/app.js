@@ -494,10 +494,10 @@ function _updateFileTree(fs_tree, fs_stats)
     fileTree.insertAdjacentHTML('beforeend', buildTree(fs_tree, 1))
 
     for (let fn of changed_files) {
-        QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("changed")
+        QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("changed")
     }
     for (let fn of open_files) {
-        QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("open")
+        QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("open")
     }
 
     if (QID('advanced-mode').checked) {
@@ -687,7 +687,7 @@ async function _loadContent(fn, content, editorElement) {
         document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: editor, fn: fn}}))
         addUpdateHandler(editor, (update) => {
             if (update.docChanged) {
-                QS(`#menu-file-tree [data-fn="${fn}"]`).classList.add("changed")
+                QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("changed")
             }
         })
 
@@ -740,7 +740,7 @@ export async function saveCurrentFile() {
     toastr.success('File Saved')
 
     document.dispatchEvent(new CustomEvent("fileSaved", {detail: {fn: editorFn}}))
-    QS(`#menu-file-tree [data-fn="${editorFn}"]`).classList.remove("changed")
+    QS(`#menu-file-tree [data-fn="${editorFn}"]`)?.classList.remove("changed")
 }
 
 export function clearTerminal() {
