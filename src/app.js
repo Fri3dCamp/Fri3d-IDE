@@ -1335,7 +1335,7 @@ export function applyTranslation() {
 
     const fn = 'test.py'
     const content = `
-# ViperIDE - MicroPython Web IDE
+# Fri3d-IDE - MicroPython Web IDE
 # Read more: https://github.com/vshymanskyy/ViperIDE
 
 # Connect your device and start creating! 🤖👨‍💻🕹️
@@ -1526,7 +1526,7 @@ async function checkForUpdates() {
         return
     }
     if (current_version.localeCompare(manifest.version, undefined, {numeric: true, sensitivity: "base"}) < 0) {
-        toastr.info(`New ViperIDE version ${manifest.version} is available`)
+        toastr.info(`New Fri3d-IDE version ${manifest.version} is available`)
         QID('viper-ide-version').innerHTML = `${current_version} (<a href="javascript:app.updateApp()">update</a>)`
 
         // Automatically show about page

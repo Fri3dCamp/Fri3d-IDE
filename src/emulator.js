@@ -15,7 +15,7 @@ const T = i18next.t.bind(i18next)
 async function populateFS(vm)
 {
     vm.FS.writeFile('/main.py', `
-# ViperIDE - MicroPython Web IDE
+# Fri3d-IDE - MicroPython Web IDE
 # Read more: https://github.com/vshymanskyy/ViperIDE
 
 # 🚧 This is an experimental virtual device 🚧

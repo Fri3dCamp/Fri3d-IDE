@@ -1,8 +1,8 @@
-# ViperIDE — Copilot Cloud Agent Instructions
+# Fri3d-IDE — Copilot Cloud Agent Instructions
 
 ## Project Overview
 
-ViperIDE is a **browser-based IDE for MicroPython and CircuitPython** that runs entirely in the browser (no server side). It connects to physical microcontroller boards via WebUSB/Serial, WebBluetooth, WebREPL (WebSocket), or P2P/WebRTC, and also provides an in-browser MicroPython Virtual Machine powered by WebAssembly.
+Fri3d-IDE is a **browser-based IDE for MicroPython and CircuitPython** that runs entirely in the browser (no server side). It connects to physical microcontroller boards via WebUSB/Serial, WebBluetooth, WebREPL (WebSocket), or P2P/WebRTC, and also provides an in-browser MicroPython Virtual Machine powered by WebAssembly.
 
 The live deployment is at https://viper-ide.org, deployed from the `build/` directory to GitHub Pages.
 

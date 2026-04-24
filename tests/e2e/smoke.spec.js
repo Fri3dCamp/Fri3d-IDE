@@ -39,7 +39,7 @@ test('main app shell loads and renders key actions', async ({ page }) => {
     const errors = attachErrorCollectors(page)
 
     await page.goto('/')
-    await expect(page).toHaveTitle(/ViperIDE/)
+    await expect(page).toHaveTitle(/Fri3d-IDE/)
     await expect(page.locator('#btn-save')).toBeVisible()
     await expect(page.locator('#btn-run')).toBeVisible()
     await expect(page.locator('#menu-file-tree')).toBeVisible()
@@ -52,7 +52,7 @@ test('bridge page loads with bridge controls', async ({ page }) => {
     const errors = attachErrorCollectors(page)
 
     await page.goto('/bridge.html')
-    await expect(page).toHaveTitle(/ViperIDE P2P Bridge/)
+    await expect(page).toHaveTitle(/Fri3d-IDE P2P Bridge/)
     await expect(page.locator('#btn-conn-ws')).toBeVisible()
     await expect(page.locator('#bridge-id')).toBeVisible()
 
@@ -64,7 +64,7 @@ test('benchmark page loads with benchmark options', async ({ page }) => {
     const errors = attachErrorCollectors(page)
 
     await page.goto('/benchmark.html')
-    await expect(page).toHaveTitle(/ViperIDE Benchmark/)
+    await expect(page).toHaveTitle(/Fri3d-IDE Benchmark/)
     await expect(page.locator('#test-fs')).toBeChecked()
     await expect(page.locator('#test-cpu')).toBeChecked()
     await expect(page.locator('#btn-conn-usb')).toBeVisible()

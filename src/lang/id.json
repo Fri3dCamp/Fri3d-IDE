@@ -41,7 +41,7 @@
             "zoom": "Perbesar"
         },
         "about": {
-            "cta": "Jika Anda menyukai ViperIDE, silakan <a id='gh-star'>beri bintang di GitHub</a> ⭐ dan sebarkan berita di media sosial 📢",
+            "cta": "Jika Anda menyukai Fri3d-IDE, silakan <a id='gh-star'>beri bintang di GitHub</a> ⭐ dan sebarkan berita di media sosial 📢",
             "report-bug": "Anda juga dapat <a id='gh-issues'>melaporkan bug</a> 🐞"
         }
     }

@@ -1,4 +1,4 @@
-# ViperIDE
+# Fri3d-IDE
 
 <!--[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md) -->
 [![GitHub Repo stars](https://img.shields.io/github/stars/vshymanskyy/ViperIDE?style=flat-square&color=green)](https://github.com/vshymanskyy/ViperIDE/stargazers) 
@@ -8,6 +8,8 @@
 [![Support vshymanskyy](https://img.shields.io/static/v1?label=support&message=%E2%9D%A4&color=%23fe8e86)](https://quicknote.io/da0a7d50-bb49-11ec-936a-6d7fd5a2de08) 
 
 **An innovative [MicroPython](https://micropython.org) / [CircuitPython](https://circuitpython.org) IDE for Web and Mobile**
+
+Based on the original [ViperIDE](https://github.com/vshymanskyy/ViperIDE) project by vshymanskyy.
 
 [![image](docs/images/visual-main.png)](https://viper-ide.org)
 
@@ -31,7 +33,7 @@
 
 ## Links
 
-[ViperIDE Online ](https://viper-ide.org)  
+[Fri3d-IDE Online ](https://viper-ide.org)  
 [Feedback](./docs/Feedback.md)  
 [Documentation](./docs/)  
 [Discussion](https://github.com/orgs/micropython/discussions/15219)  

@@ -1,7 +1,7 @@
-# Feedback on ViperIDE
+# Feedback on Fri3d-IDE
 
 Instead of editing on my laptop, downloading, executing..... reset...  
-In my prototyping cycle, I just develop directly on the board using ViperIDE. Out of a click I can soft-reset.  
+In my prototyping cycle, I just develop directly on the board using Fri3d-IDE. Out of a click I can soft-reset.  
 I have a small script that via `mpremote` downloads my assets back to my computer for version control and snapshots.
 
 ---
@@ -21,7 +21,7 @@ Congrats and thank you!
 
 ---
 
-I mainly use Thonny on PiPico and ESP32 and I am still just starting to Test ViperIDE. So far it seems a worthy competitor to Thonny.
+I mainly use Thonny on PiPico and ESP32 and I am still just starting to Test Fri3d-IDE. So far it seems a worthy competitor to Thonny.
 It is lightweight with nothing to install and runs in the browser.
 I has a very nice option to use bluetooth as your serial interface which is what attracted me to it.
 

@@ -1,5 +1,5 @@
 {
-  "name": "ViperIDE",
+  "name": "Fri3d-IDE",
   "version": "0.5.2",
   "description": "An innovative MicroPython / CircuitPython IDE for Web and Mobile",
   "main": "index.js",

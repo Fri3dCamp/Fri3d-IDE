@@ -1,4 +1,4 @@
-# ViperIDE Features
+# Fri3d-IDE Features
 
 - No software installation required, works out of the box
 - Covers most of the functionality of tools like `Thonny`, `mpremote`, `ampy`, `rshell`
@@ -78,7 +78,7 @@
 
 - `WebUSB` and `WebBluetooth` require a Chrome-based browser like Edge, Opera, Chromium, Brave, etc.
 - Older MicroPython versions may or may not work. Keep your MicroPython up to date.
-  *That said, ViperIDE has been reported to work with MicroPython v1.13 back from Sep 2020* 🤠
+  *That said, Fri3d-IDE has been reported to work with MicroPython v1.13 back from Sep 2020* 🤠
 - Some USB devices require drivers installation.
 - Some boards are not detected by Android via USB OTG. In such cases, only `BLE`, `WebREPL`, `P2P` connection is possible.
 - On iOS, `WebUSB` and `WebBluetooth` are not available. Only `WebREPL` and `P2P` works.

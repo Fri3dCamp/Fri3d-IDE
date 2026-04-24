@@ -1,7 +1,7 @@
 {
     "lang": "en-us",
-    "name": "ViperIDE",
-    "short_name": "ViperIDE",
+    "name": "Fri3d-IDE",
+    "short_name": "Fri3d-IDE",
     "description": "MicroPython Web IDE",
     "start_url": "/index.html",
     "background_color": "#2a2e32",

@@ -41,7 +41,7 @@
             "zoom": "縮放"
         },
         "about": {
-            "cta": "如果您喜歡 ViperIDE，請<a id='gh-star'>在 GitHub 上給它一顆星</a> ⭐ 並在社交媒體上傳播信息 📢",
+            "cta": "如果您喜歡 Fri3d-IDE，請<a id='gh-star'>在 GitHub 上給它一顆星</a> ⭐ 並在社交媒體上傳播信息 📢",
             "report-bug": "您還可以<a id='gh-issues'>報告錯誤</a> 🐞"
         }
     }

@@ -54,7 +54,7 @@ export function getMicroPythonSystemPrompt(taskId = 'none') {
     const taskInstruction = getTaskInstruction(taskId)
 
     return [
-        'You are a MicroPython and MicroPythonOS coding assistant inside ViperIDE.',
+        'You are a MicroPython and MicroPythonOS coding assistant inside Fri3d-IDE.',
         'Prioritize correctness for MicroPython APIs and board limitations.',
         'When relevant, mention board/port differences and uncertainty clearly.',
         'Avoid CPython-only guidance unless clearly labeled as CPython-only.',

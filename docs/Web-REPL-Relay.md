@@ -6,7 +6,7 @@ A `Secure WebSocket Relay` can be used to connect to your device over the intern
 > [!WARNING]
 > **🚧 THIS IS EXPERIMENTAL, BEWARE OF BUGS 🚧**
 
-#### 1. Connect [ViperIDE](https://viper-ide.org) to your device using USB
+#### 1. Connect [Fri3d-IDE](https://viper-ide.org) to your device using USB
 
 #### 2. In the left panel: `Package Manager` -> install `viper-tools`
 
@@ -49,7 +49,7 @@ In the terminal, you should see something like:
 Secure WebREPL available on https://viper-ide.org?relay=YOUR-DEVICE-UID
 ```
 
-#### 5. Connect ViperIDE to your device using `WebREPL`
+#### 5. Connect Fri3d-IDE to your device using `WebREPL`
 
 Visit the specified link to open the IDE.
 
@@ -63,5 +63,5 @@ If you're running a [relay server](../src/websocket_relay.js), please specify th
 wss_repl.start(url='wss://your-server-url')
 ```
 
-1. Use WebREPL button in `ViperIDE` to connect to your device
+1. Use WebREPL button in `Fri3d-IDE` to connect to your device
 2. Your device address will look like this: `wss://your-server-url/YOUR-DEVICE-UID`

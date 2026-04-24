@@ -164,7 +164,7 @@ async function connectDevice(type) {
     QID('ide-link').textContent = 'https://viper-ide.org?rtc=' + rtc.info.id
 
     rtc.onConnect(() => {
-        toastr.info('ViperIDE connected')
+        toastr.info('Fri3d-IDE connected')
     })
 
     rtc.onReceive(async (data) => {
@@ -178,7 +178,7 @@ async function connectDevice(type) {
     })
 
     rtc.onDisconnect(() => {
-        toastr.warning('ViperIDE disconnected')
+        toastr.warning('Fri3d-IDE disconnected')
     })
 
     port.onDisconnect(() => {

@@ -10,7 +10,7 @@ This can be used on devices with native BLE support:
 > - It usually works on Windows, Linux, MacOS, Android
 > - Not available on iOS
 
-#### 1. Connect [ViperIDE](https://viper-ide.org) to your device using USB
+#### 1. Connect [Fri3d-IDE](https://viper-ide.org) to your device using USB
 
 #### 2. In the left panel: `Package Manager` -> install `viper-tools`
 
@@ -23,8 +23,8 @@ ble_repl.start()
 
 #### 4. Reset your device
 
-#### 5. Connect ViperIDE to your device using `BLE`
+#### 5. Connect Fri3d-IDE to your device using `BLE`
 
-Use Bluetooth button in `ViperIDE` to connect to your device.
+Use Bluetooth button in `Fri3d-IDE` to connect to your device.
 
 It will scan for nearby devices automatically.

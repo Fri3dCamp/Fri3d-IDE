@@ -1,7 +1,7 @@
 
-## Whitelist Domains for ViperIDE
+## Whitelist Domains for Fri3d-IDE
 
-To ensure the correct functionality of the ViperIDE web app, IT departments are advised to unblock or whitelist the following domains:
+To ensure the correct functionality of the Fri3d-IDE web app, IT departments are advised to unblock or whitelist the following domains:
 
 - `viper-ide.org` - the main IDE server (currently hosted on GitHub Pages)
 - `hub.viper-ide.org` - the collaborative features and remote device connection services

@@ -41,7 +41,7 @@
             "zoom": "줌"
         },
         "about": {
-            "cta": "ViperIDE가 마음에 들면 <a id='gh-star'>GitHub에서 별을 주세요</a> ⭐ 그리고 소셜 미디어에 소식을 전하세요 📢",
+            "cta": "Fri3d-IDE가 마음에 들면 <a id='gh-star'>GitHub에서 별을 주세요</a> ⭐ 그리고 소셜 미디어에 소식을 전하세요 📢",
             "report-bug": "또한 <a id='gh-issues'>버그를 보고할 수 있습니다</a> 🐞"
         }
     }
