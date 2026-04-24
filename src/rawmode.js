@@ -6,7 +6,6 @@
  * This includes no assurances about being fit for any specific purpose.
  */
 
-import { report } from "./utils"
 
 export class MpRawMode {
     constructor(port) {
@@ -36,8 +35,8 @@ export class MpRawMode {
                 }
                 await this.port.flushInput()
                 return
-            } catch (err) {
-                report("Error", err)
+            } catch (_err) {
+                // timeout is expected during retry, ignore
             }
         }
         throw new Error('Board is not responding')
@@ -48,8 +47,16 @@ export class MpRawMode {
         try {
             await this.interruptProgram()
 
-            await this.port.write('\r\x01')       // Ctrl-A: enter raw REPL
-            await this.port.readUntil('raw REPL; CTRL-B to exit\r\n')
+            for (let attempt = 0; attempt < 3; attempt++) {
+                await this.port.flushInput()
+                await this.port.write('\r\x01')       // Ctrl-A: enter raw REPL
+                try {
+                    await this.port.readUntil('raw REPL; CTRL-B to exit\r\n')
+                    break
+                } catch (_err) {
+                    if (attempt === 2) { throw _err }
+                }
+            }
 
             if (soft_reboot) {
                 await this.port.write('\x04\x03') // soft reboot in raw mode
