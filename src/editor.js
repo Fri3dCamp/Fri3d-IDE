@@ -14,6 +14,7 @@ import { indentWithTab } from '@codemirror/commands'
 import { python } from '@codemirror/lang-python'
 import { json as modeJSON, jsonParseLinter } from '@codemirror/lang-json'
 import { markdown as modeMD } from '@codemirror/lang-markdown'
+import { html as modeHTML } from '@codemirror/lang-html'
 import { simpleMode } from '@codemirror/legacy-modes/mode/simple-mode'
 import { toml } from '@codemirror/legacy-modes/mode/toml'
 import { monokaiInit } from '@uiw/codemirror-theme-monokai'
@@ -41,13 +42,15 @@ const linkDecorator = ViewPlugin.fromClass(class {
 
   buildDecorations(view) {
     const builder = new RangeSetBuilder();
+    const tree = syntaxTree(view.state);
     for (let {from, to} of view.visibleRanges) {
       let text = view.state.sliceDoc(from, to);
+      urlRegex.lastIndex = 0;
       let match;
       while ((match = urlRegex.exec(text))) {
         let start = from + match.index;
         let end = start + match[0].length;
-        if (this.isInComment(view, start)) {
+        if (this.isInComment(tree, start)) {
           builder.add(start, end, Decoration.mark({class: "cm-link"}));
         }
       }
@@ -55,8 +58,7 @@ const linkDecorator = ViewPlugin.fromClass(class {
     return builder.finish();
   }
 
-  isInComment(view, pos) {
-    let tree = syntaxTree(view.state);
+  isInComment(tree, pos) {
     let node = tree.resolveInner(pos);
     while (node) {
       if (node.type.name.toLowerCase().includes("comment")) {
@@ -328,6 +330,8 @@ export async function createNewEditor(editorElement, fn, content, options) {
         mode = [ modeTOML ]
     } else if (fn.endsWith('.md')) {
         mode = [ modeMD() ]
+    } else if (fn.endsWith('.html') || fn.endsWith('.htm')) {
+        mode = [ modeHTML() ]
     }
 
     if (options.wordWrap) {
