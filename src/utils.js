@@ -38,128 +38,6 @@ export async function fetchArrayBuffer(url) {
     return await response.arrayBuffer()
 }
 
-export function getUserUID() {
-    const localStorageKey = 'uuid';
-
-    // Check if UUID already exists in local storage
-    let uuid = localStorage.getItem(localStorageKey);
-    if (uuid) {
-        return uuid;
-    }
-
-    // Function to generate UUIDv4
-    function generateUUIDv4() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0,
-                  v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    // Generate and store new UUID
-    uuid = generateUUIDv4();
-    localStorage.setItem(localStorageKey, uuid);
-    return uuid;
-}
-
-export function getScreenInfo() {
-    function getScreenOrientation() {
-        if (window.matchMedia("(orientation: portrait)").matches) {
-            return "portrait";
-        } else if (window.matchMedia("(orientation: landscape)").matches) {
-            return "landscape";
-        }
-        return null;
-    }
-
-    function snapToGrid(x) {
-        x = Math.round(x)
-        const grid = [
-            240, 320, 360, 375, 414, 480, 540, 576, 600, 640, 667, 720, 768, 800, 810, 896, 900, 980,
-            1024, 1080, 1200, 1280, 1366, 1440, 1600, 1920, 2160, 2560, 3440, 3840, 4320, 5120, 7680,
-        ]
-        const closest = grid.reduce((prev, curr) => Math.abs(curr - x) < Math.abs(prev - x) ? curr : prev)
-        return (Math.abs(closest - x) <= 3) ? closest : x
-    }
-
-    const dpr = window.devicePixelRatio || 1
-    return {
-        dpr: parseFloat(dpr.toFixed(2)),
-        width: snapToGrid(window.screen.width),
-        height: snapToGrid(window.screen.height),
-        orientation: getScreenOrientation(),
-    }
-}
-
-export class IdleMonitor {
-    constructor(idleTimeout = 60000) {
-        this.idleTimeout = idleTimeout;
-        this.onIdle = () => {};
-        this.onActive = () => {};
-        this.idleTimer = null;
-        this.isIdle = false;
-        this.handleActivity = this.handleActivity.bind(this);
-        this.attachEventListeners();
-        this.startIdleTimer();
-    }
-
-    attachEventListeners() {
-        //window.addEventListener('mousemove', this.handleActivity);
-        window.addEventListener('keypress', this.handleActivity);
-        window.addEventListener('scroll', this.handleActivity);
-        window.addEventListener('click', this.handleActivity);
-        window.addEventListener('touchstart', this.handleActivity);
-        window.addEventListener('touchmove', this.handleActivity);
-    }
-
-    removeEventListeners() {
-        //window.removeEventListener('mousemove', this.handleActivity);
-        window.removeEventListener('keypress', this.handleActivity);
-        window.removeEventListener('scroll', this.handleActivity);
-        window.removeEventListener('click', this.handleActivity);
-        window.removeEventListener('touchstart', this.handleActivity);
-        window.removeEventListener('touchmove', this.handleActivity);
-    }
-
-    handleActivity() {
-        if (this.isIdle) {
-            this.isIdle = false;
-            this.onActive();
-        }
-        this.resetIdleTimer();
-    }
-
-    startIdleTimer() {
-        clearTimeout(this.idleTimer);
-        this.idleTimer = setTimeout(() => {
-            this.isIdle = true;
-            this.onIdle();
-        }, this.idleTimeout);
-    }
-
-    resetIdleTimer() {
-        clearTimeout(this.idleTimer);
-        this.startIdleTimer();
-    }
-
-    stopMonitoring() {
-        clearTimeout(this.idleTimer);
-        this.removeEventListeners();
-    }
-
-    setIdleCallback(callback) {
-        if (typeof callback === 'function') {
-            this.onIdle = callback;
-        }
-    }
-
-    setActiveCallback(callback) {
-        if (typeof callback === 'function') {
-            this.onActive = callback;
-        }
-    }
-}
-
 export function splitPath(path) {
     const parts = path.split('/').filter(part => part !== '')
     const filename = parts.pop()
@@ -185,10 +63,6 @@ export { addCss, getCssPropertyValue, QSA, QS, QID, iOS }
 export function sanitizeHTML(s) {
     //return '<pre>' + (new Option(s)).innerHTML + '</pre>'
     return (new Option(s)).innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>').replace(/ /g, '&nbsp;')
-}
-
-export function isRunningStandalone() {
-    return (window.matchMedia('(display-mode: standalone)').matches);
 }
 
 export function sizeFmt(size, places=1) {
@@ -269,12 +143,6 @@ if (navigator.appVersion.indexOf("Win") >= 0) {
 export function report(title, err) {
     console.error(err, err.stack)
     toastr.error(sanitizeHTML(err.message), title)
-    analytics.track('Error', {
-        title: title,
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-    })
 }
 
 window.addEventListener('error', (e) => {

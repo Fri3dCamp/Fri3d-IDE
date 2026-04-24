@@ -17,7 +17,7 @@ export { WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport } from './trans
 export { MpRawMode } from './rawmode.js'
 export { MicroPythonWASM } from './emulator.js'
 export { ConnectionUID } from './connection_uid.js'
-export { splitPath, sleep, getUserUID,
+export { splitPath, sleep,
          getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML,
          sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
 
