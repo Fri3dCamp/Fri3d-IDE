@@ -32,10 +32,8 @@ import { parseStackTrace, validatePython, disassembleMPY, minifyPython, prettify
 import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
-import { UAParser } from 'ua-parser-js'
-
-import { splitPath, sleep, fetchJSON, getUserUID, getScreenInfo, IdleMonitor,
-         getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML, isRunningStandalone,
+import { splitPath, sleep, fetchJSON,
+         getCssPropertyValue, QSA, QS, QID, iOS, sanitizeHTML,
          sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
@@ -91,8 +89,6 @@ let defaultWsPass = ''
 
 async function prepareNewPort(type) {
     let new_port;
-    analytics.track('Device Start Connection', { connection: type })
-
     if (type === 'ws') {
         let url
         if (typeof window.webrepl_url === 'undefined' || window.webrepl_url == '') {
@@ -230,8 +226,6 @@ export async function connectDevice(type) {
 
     QID(`btn-conn-${type}`).classList.add('connected')
 
-    analytics.track('Device Port Connected', Object.assign({ connection: type }, await port.getInfo()))
-
     if (QID('interrupt-device').checked) {
         // TODO: detect WDT and disable it temporarily
 
@@ -241,7 +235,6 @@ export async function connectDevice(type) {
             Object.assign(devInfo, { connection: type })
 
             toastr.success(sanitizeHTML(devInfo.machine + '\n' + devInfo.version), 'Device connected')
-            analytics.track('Device Connected', devInfo)
             console.log('Device info', devInfo)
 
             if (window.pkg_install_url) {
@@ -280,7 +273,6 @@ export async function connectDevice(type) {
         await port.write('\x02')
     } else {
         toastr.success('Device connected')
-        analytics.track('Device Connected')
     }
 }
 
@@ -745,7 +737,6 @@ export async function saveCurrentFile() {
         await raw.end()
     }
     // Success
-    analytics.track('File Saved')
     toastr.success('File Saved')
 
     document.dispatchEvent(new CustomEvent("fileSaved", {detail: {fn: editorFn}}))
@@ -816,7 +807,6 @@ export async function runCurrentFile() {
         term.write('\r\n>>> ')
     }
     // Success
-    analytics.track('Script Run')
 }
 
 /*
@@ -854,7 +844,6 @@ export async function loadAllPkgIndexes() {
 }
 
 async function _raw_installPkg(raw, pkg, { version=null } = {}) {
-    analytics.track('Package Install', { name: pkg })
     toastr.info(`Installing ${pkg}...`)
     const dev_info = await raw.getDeviceInfo()
     const pkg_info = await rawInstallPkg(raw, pkg, {
@@ -1102,72 +1091,6 @@ export function applyTranslation() {
         await i18next.changeLanguage(this.value)
         applyTranslation()
     })
-
-    try {
-        if (typeof window.analytics.track === 'undefined') {
-            throw new Error()
-        }
-
-        const ua = new UAParser()
-        const geo = await fetchJSON('https://freeipapi.com/api/json')
-        const scr = getScreenInfo()
-
-        let tz
-        try {
-            tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-        } catch (_e) {
-            tz = (new Date()).getTimezoneOffset()
-        }
-
-        //console.log(geo)
-        //console.log(ua.getResult())
-        //console.log(scr)
-
-        const userUID = getUserUID()
-
-        analytics.identify(userUID, {
-            email: userUID.split('-').pop() + '@vip.er',
-            version: VIPER_IDE_VERSION,
-            build: getBuildDate(),
-            browser: ua.getBrowser().name,
-            browser_version: ua.getBrowser().version,
-            os: ua.getOS().name,
-            os_version: ua.getOS().version,
-            cpu: ua.getCPU().architecture,
-            pwa: isRunningStandalone(),
-            screen: scr.width + 'x' + scr.height,
-            orientation: scr.orientation,
-            dpr: scr.dpr,
-            dpi: QID('dpi-ruler').offsetHeight,
-            lang: currentLang,
-            location: geo.latitude + ',' + geo.longitude,
-            continent: geo.continent,
-            country: geo.countryName,
-            region: geo.regionName,
-            city: geo.cityName,
-            tz: tz,
-        })
-
-        analytics.track('Visit', {
-            url: window.location.href,
-            referrer: document.referrer,
-        })
-
-        const idleMonitor = new IdleMonitor(3*60*1000);
-
-        idleMonitor.setIdleCallback(() => {
-            analytics.track('User Idle')
-        })
-
-        idleMonitor.setActiveCallback(() => {
-            analytics.track('User Active')
-        })
-
-    } catch (_err) {
-        window.analytics = {
-            track: function() {}
-        }
-    }
 
     const zoom_sel = QID('zoom')
     zoom_sel.value = '1.00'
