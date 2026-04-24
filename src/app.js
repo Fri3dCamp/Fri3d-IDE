@@ -32,6 +32,9 @@ import { parseStackTrace, validatePython, disassembleMPY, minifyPython, prettify
 import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
+import { UAParser } from 'ua-parser-js'
+import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
+
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
          QSA, QS, QID, iOS, sanitizeHTML,
          sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
@@ -60,6 +63,70 @@ function getBuildDate() {
 }
 
 const T = i18next.t.bind(i18next)
+const ADVANCED_MODE_STORAGE_KEY = 'viper.settings.advanced-mode'
+const UI_SETTINGS_STORAGE_KEY = 'viper.settings.ui.v1'
+
+function loadUiSettings() {
+    try {
+        const raw = localStorage.getItem(UI_SETTINGS_STORAGE_KEY)
+        if (!raw) {
+            return {}
+        }
+        return JSON.parse(raw)
+    } catch (_err) {
+        return {}
+    }
+}
+
+function saveUiSettings(settings) {
+    localStorage.setItem(UI_SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+}
+
+function restoreAndBindUiSettings() {
+    const stored = loadUiSettings()
+    const controls = QSA('#menu-settings-list input[id], #menu-settings-list select[id]')
+
+    // Backward compatibility for older advanced-mode-only persistence.
+    if (!Object.prototype.hasOwnProperty.call(stored, 'advanced-mode')) {
+        const legacy = localStorage.getItem(ADVANCED_MODE_STORAGE_KEY)
+        if (legacy != null) {
+            stored['advanced-mode'] = (legacy === '1')
+        }
+    }
+
+    for (const control of controls) {
+        const id = control.id
+        if (!id || id.startsWith('assistant-') || id === 'lang') {
+            continue
+        }
+
+        if (Object.prototype.hasOwnProperty.call(stored, id)) {
+            if (control.type === 'checkbox') {
+                control.checked = Boolean(stored[id])
+            } else {
+                control.value = String(stored[id])
+            }
+        }
+
+        control.addEventListener('change', () => {
+            const current = loadUiSettings()
+            current[id] = (control.type === 'checkbox') ? control.checked : control.value
+            saveUiSettings(current)
+
+            // Keep legacy key updated so existing users retain expected behavior.
+            if (id === 'advanced-mode') {
+                localStorage.setItem(ADVANCED_MODE_STORAGE_KEY, control.checked ? '1' : '0')
+            }
+        })
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(stored, 'zoom')) {
+        const zoomControl = QID('zoom')
+        if (zoomControl) {
+            zoomControl.value = '1.00'
+        }
+    }
+}
 
 /*
  * Device Management
@@ -69,8 +136,31 @@ let editor, term, port
 let editorFn = ''
 let isInRunMode = false
 let devInfo = null
+let lastTracebackText = ''
+const terminalLogLines = []
 const openFolders = new Set()
 const _mdRawContent = new WeakMap()
+
+function appendTerminalLog(data) {
+    const clean = String(data || '')
+        .replace(/\r/g, '')
+
+    for (const line of clean.split('\n')) {
+        if (line === '' && terminalLogLines.length === 0) {
+            continue
+        }
+        terminalLogLines.push(line)
+    }
+
+    while (terminalLogLines.length > 500) {
+        terminalLogLines.shift()
+    }
+}
+
+function writeTerminal(data) {
+    term.write(data)
+    appendTerminalLog(data)
+}
 
 async function disconnectDevice() {
     if (port) {
@@ -217,7 +307,7 @@ export async function connectDevice(type) {
     port.onActivity(indicateActivity)
 
     port.onReceive((data) => {
-        term.write(data)
+        writeTerminal(data)
     })
 
     port.onDisconnect(() => {
@@ -829,6 +919,7 @@ export async function saveCurrentFile() {
 
 export function clearTerminal() {
     term.clear()
+    terminalLogLines.length = 0
 }
 
 export async function reboot(mode = 'hard') {
@@ -861,7 +952,7 @@ export async function runCurrentFile() {
         return
     }
 
-    term.write('\r\n')
+    writeTerminal('\r\n')
 
     const soft_reboot = false
     const timeout = -1
@@ -879,8 +970,12 @@ export async function runCurrentFile() {
             const backtrace = parseStackTrace(err.message)
             if (backtrace) {
                 console.log(backtrace)
+                lastTracebackText = `${backtrace.type || 'Traceback'}\n${backtrace.summary || err.message}`
+                toastr.error(sanitizeHTML(backtrace.summary), backtrace.type)
+            } else {
+                lastTracebackText = String(err.message || err)
+                toastr.error(sanitizeHTML(lastTracebackText), 'Error')
             }
-            toastr.error(sanitizeHTML(backtrace.summary), backtrace.type)
             return
         }
     } finally {
@@ -888,7 +983,7 @@ export async function runCurrentFile() {
         await raw.end()
         QID('btn-run-icon').classList.replace('fa-circle-stop', 'fa-circle-play')
         isInRunMode = false
-        term.write('\r\n>>> ')
+        writeTerminal('\r\n>>> ')
     }
     // Success
 }
@@ -1169,6 +1264,8 @@ export function applyTranslation() {
 
     const currentLang = i18next.resolvedLanguage || 'en';
 
+    restoreAndBindUiSettings()
+
     const lang_sel = QID('lang')
     lang_sel.value = currentLang
     lang_sel.addEventListener('change', async function() {
@@ -1177,12 +1274,17 @@ export function applyTranslation() {
     })
 
     const zoom_sel = QID('zoom')
-    zoom_sel.value = '1.00'
-    zoom_sel.addEventListener('change', async function() {
-        const size = 14 * parseFloat(this.value)
+    const applyZoom = (zoomValue) => {
+        const size = 14 * parseFloat(zoomValue)
         document.documentElement.style.setProperty('--font-size', (size).toFixed(1) + 'px')
-        term.options.fontSize = (size * 0.9).toFixed(1)
+        if (term) {
+            term.options.fontSize = (size * 0.9).toFixed(1)
+        }
+    }
+    zoom_sel.addEventListener('change', async function() {
+        applyZoom(this.value)
     })
+    applyZoom(zoom_sel.value)
 
     applyTranslation()
 
@@ -1297,6 +1399,32 @@ export function applyTranslation() {
             fileElement.classList.remove("open")
             fileElement.classList.remove("changed")
         }
+    })
+
+    initAssistantPanel({
+        getEditorState() {
+            if (!editor) {
+                return null
+            }
+
+            const sel = editor.state.selection.main
+            const selected = editor.state.sliceDoc(sel.from, sel.to)
+
+            return {
+                filename: editorFn,
+                selection: selected,
+                content: editor.state.doc.toString(),
+            }
+        },
+        getTerminalLines() {
+            return [...terminalLogLines]
+        },
+        getTraceback() {
+            return lastTracebackText
+        },
+        getBoardInfo() {
+            return devInfo
+        },
     })
 
     setTimeout(() => {
@@ -1456,5 +1584,6 @@ window.app = {
     applyTranslation,
     updateApp,
     initDrag,
+    toggleAssistantSidebar,
     toggleMarkdownView,
 }
