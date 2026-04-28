@@ -506,8 +506,8 @@ body.loaded {
 .assistant-quick-actions button:hover,
 .assistant-actions button:hover,
 .assistant-settings-actions button:hover {
-    box-shadow: 2px 2px 0px var(--fri3d-black);
-    transform: translate(2px, 2px);
+    box-shadow: calc(var(--shadow-offset) / 2) calc(var(--shadow-offset) / 2) 0px var(--fri3d-black);
+    transform: translate(calc(var(--shadow-offset) / 2), calc(var(--shadow-offset) / 2));
 }
 
 .assistant-task-row button:active,
@@ -515,7 +515,7 @@ body.loaded {
 .assistant-actions button:active,
 .assistant-settings-actions button:active {
     box-shadow: none;
-    transform: translate(4px, 4px);
+    transform: translate(var(--shadow-offset), var(--shadow-offset));
 }
 
 /* ── Fri3d toolbar button hover ────────────────────────────────────────── */
