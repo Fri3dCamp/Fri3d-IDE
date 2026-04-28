@@ -46,6 +46,20 @@
     /* Tab active */
     --tab-active-bg: var(--fri3d-purple);
     --tab-active-fg: var(--fri3d-white);
+
+    /* Semantic icon colors (dark mode defaults) */
+    --icon-warning: #ffcc4d;   /* amber  — folder, power, gauge, bug, star */
+    --icon-success: #87c244;   /* green  — save/download */
+    --icon-info:    #5b9bd5;   /* blue   — run, info, file, connect */
+    --icon-danger:  #ff7272;   /* red    — stop */
+    --icon-error:   #ed4337;   /* red    — error file */
+    --icon-cert:    #e05555;   /* medium red — certificate (was #ba0311, near-invisible on dark) */
+    --icon-module:  #c8a07a;   /* tan    — .mpy / cube module */
+    --icon-neutral: #a8b8c4;   /* gray   — tools, sliders, trash */
+
+    /* Hex viewer token colors (dark mode defaults) */
+    --hexed-hex-color:   #f8f8f2;
+    --hexed-ascii-color: #e6db74;
 }
 
 @media (prefers-color-scheme: light) {
@@ -68,6 +82,20 @@
 
         --tab-active-bg: var(--fri3d-purple);
         --tab-active-fg: var(--fri3d-white);
+
+        /* Semantic icon colors (light mode overrides — darker for contrast on white/mint) */
+        --icon-warning: #b87c00;   /* darker amber */
+        --icon-success: #4a7a10;   /* darker green */
+        --icon-info:    #1565C0;   /* darker blue */
+        --icon-danger:  #c62828;   /* darker red */
+        --icon-error:   #c62828;   /* darker red */
+        --icon-cert:    #9b1b2a;   /* dark crimson */
+        --icon-module:  #7d5a3c;   /* darker brown */
+        --icon-neutral: #546E7A;   /* dark cool gray */
+
+        /* Hex viewer token colors (light mode overrides) */
+        --hexed-hex-color:   #1a1a2e;
+        --hexed-ascii-color: #7c5800;
     }
 }
 
@@ -190,24 +218,28 @@ button.connected {
     font-family: 'Open Sans', system-ui, Ubuntu, Droid Sans, sans-serif;
 }
 
-.fa-power-off { color: #ffcc4d; }
-.fa-bug { color: #ffcc4d; }
-.fa-download { color: #87c244; }
-.fa-circle-play { color: #3b88c3; }
-.fa-circle-stop { color: #ff7272; }
-.fa-circle-info { color: #3b88c3; }
-.fa-file { color: #3b88c3; }
-.fa-file-circle-exclamation { color: #ed4337; }
-.fa-folder { color: #ffcc4d; }
-.fa-certificate { color: #ba0311; }
-.fa-cube { color: #ba9066; }
-.fa-cubes { color: #ba9066; }
-.fa-gauge-high { color: #ffcc4d; }
-.fa-tools { color: #ccd6dd; }
-/*.fa-arrows-rotate { color: #3b88c3; }*/
-.fa-sliders { color: #ccd6dd }
-.fa-trash-can { color: #ccd6dd }
-.fa-star { color: #ffcc4d; }
+.fa-power-off               { color: var(--icon-warning); }
+.fa-bug                     { color: var(--icon-warning); }
+.fa-download                { color: var(--icon-success); }
+.fa-circle-play             { color: var(--icon-info); }
+.fa-circle-stop             { color: var(--icon-danger); }
+.fa-circle-info             { color: var(--icon-info); }
+.fa-file                    { color: var(--icon-info); }
+.fa-file-circle-exclamation { color: var(--icon-error); }
+.fa-folder                  { color: var(--icon-warning); }
+.fa-certificate             { color: var(--icon-cert); }
+.fa-cube                    { color: var(--icon-module); }
+.fa-cubes                   { color: var(--icon-module); }
+.fa-gauge-high              { color: var(--icon-warning); }
+.fa-tools                   { color: var(--icon-neutral); }
+.fa-arrows-rotate           { color: var(--icon-info); }
+.fa-sliders                 { color: var(--icon-neutral); }
+.fa-trash-can               { color: var(--icon-neutral); }
+.fa-star                    { color: var(--icon-warning); }
+/* Previously unstyled icons — given semantic colors */
+.fa-circle-down             { color: var(--icon-success); }
+.fa-plug                    { color: var(--icon-info); }
+.fa-gear                    { color: var(--icon-neutral); }
 
 .highlight {
     background: var(--bg-color-edit);
