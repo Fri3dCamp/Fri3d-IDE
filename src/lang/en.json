@@ -38,7 +38,8 @@
             "render-markdown": "Markdown viewer",
             "use-natural-sort": "Natural sorting",
             "lang": "Localization",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Theme"
         },
         "about": {
             "cta": "If you like Fri3d-IDE, please <a id='gh-star'>give it a GitHub star</a> ⭐ and spread the word on social media 📢",

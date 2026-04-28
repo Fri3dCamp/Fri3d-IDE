@@ -20,7 +20,7 @@ import { Terminal } from '@xterm/xterm'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import { FitAddon } from '@xterm/addon-fit'
 
-import { addUpdateHandler, createNewEditor, getEditorFromElement, unregisterEditor } from './editor.js'
+import { addUpdateHandler, createNewEditor, getEditorFromElement, unregisterEditor, setEditorTheme } from './editor.js'
 import { displayOpenFile, createTab } from './editor_tabs.js'
 import { serial as webSerialPolyfill } from 'web-serial-polyfill'
 import { WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport } from './transports.js'
@@ -1265,6 +1265,7 @@ export function applyTranslation() {
 
         QS('label[for=lang]').innerText = T('settings.lang')
         QS('label[for=zoom]').innerText = T('settings.zoom')
+        QS('label[for=color-theme]').innerText = T('settings.color-theme', 'Theme')
 
         QS('#about-cta').innerHTML = T('about.cta')
         QS('#report-bug').innerHTML = T('about.report-bug')
@@ -1403,9 +1404,30 @@ export function applyTranslation() {
     })
     term.open(QID('xterm'))
 
+    // ── Color-theme preference ─────────────────────────────────────────────
+    let _colorThemePref = QID('color-theme')?.value ?? 'system'
+
+    function applyColorTheme(pref) {
+        _colorThemePref = pref
+        const dark = pref === 'dark' || (pref === 'system' && darkTermMQ.matches)
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+        // null = revert to system-follow; true/false = forced
+        setEditorTheme(pref === 'system' ? null : dark)
+        const base = dark ? xtermThemeDark : xtermThemeLight
+        term.options.theme = { ...base, background: getCssPropertyValue('--bg-color-edit') }
+    }
+
+    QID('color-theme').addEventListener('change', function() {
+        applyColorTheme(this.value)
+    })
+    applyColorTheme(_colorThemePref)
+    // ── End color-theme ───────────────────────────────────────────────────
+
     darkTermMQ.addEventListener('change', (e) => {
+        if (_colorThemePref !== 'system') return
         const base = e.matches ? xtermThemeDark : xtermThemeLight
         term.options.theme = { ...base, background: getCssPropertyValue('--bg-color-edit') }
+        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light')
     })
     term.onData(async (data) => {
         if (!port) return;
