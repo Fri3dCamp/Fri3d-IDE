@@ -212,10 +212,10 @@ body.loaded {
     border-right: 1px solid var(--bg-color);
 }
 .hexed-hex-part {
-    color: #f8f8f2;
+    color: var(--hexed-hex-color);
 }
 .hexed-ascii-part {
-    color: #e6db74;
+    color: var(--hexed-ascii-color);
 }
 
 .cm-editor {
@@ -314,7 +314,7 @@ body.loaded {
 
 .assistant-warning {
     font-size: 0.8rem;
-    color: #e6c35c;
+    color: var(--icon-warning);
 }
 
 #menu-file-tree div .name {
