@@ -21,15 +21,21 @@ body.loaded {
 }
 
 .logo {
-    font-weight: normal;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 1.1rem;
 }
 
 #tool-panel {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1px 5px;
+    padding: 4px 8px;
     user-select: none;
+    background: var(--toolbar-bg);
+    border-bottom: 3px solid var(--toolbar-border);
 }
 
 #container {
@@ -62,7 +68,7 @@ body.loaded {
 }
 
 #side-menu-resizer:hover {
-    background: #444;
+    background: var(--accent-secondary);
 }
 
 #side-menu.hidden + #side-menu-resizer {
@@ -83,7 +89,7 @@ body.loaded {
     gap: 8px;
     padding: 10px;
     background-color: var(--bg-color-menu);
-    border-left: 1px solid #444;
+    border-left: 3px solid var(--border-color);
     overflow-y: auto;
 }
 
@@ -94,7 +100,7 @@ body.loaded {
 }
 
 #assistant-resizer:hover {
-    background: #444;
+    background: var(--accent-secondary);
 }
 
 #container.assistant-collapsed #assistant-sidebar,
@@ -225,11 +231,22 @@ body.loaded {
 }
 
 #menu-file-title, #menu-pkg-title, #menu-settings-title, #menu-tools-title {
-    font-weight: bold;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+    padding: 4px 0 6px;
+    color: var(--accent-secondary);
 }
 
 #menu-assistant-title {
-    font-weight: bold;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+    color: var(--accent-secondary);
 }
 
 .assistant-header {
@@ -250,7 +267,7 @@ body.loaded {
     width: 58%;
     background: var(--bg-color-edit);
     color: var(--fg-color);
-    border: 1px solid #666;
+    border: 2px solid var(--border-color);
 }
 
 .assistant-provider-status {
@@ -274,7 +291,8 @@ body.loaded {
     min-height: 90px;
     background: var(--bg-color-edit);
     color: var(--fg-color);
-    border: 1px solid #666;
+    border: 2px solid var(--border-color);
+    font-family: 'Open Sans', system-ui, sans-serif;
 }
 
 .assistant-status {
@@ -287,7 +305,7 @@ body.loaded {
     white-space: pre-wrap;
     word-break: break-word;
     background: var(--bg-color-edit);
-    border: 1px solid #444;
+    border: 2px solid var(--border-color);
     padding: 8px;
     min-height: 60px;
     max-height: 260px;
@@ -464,4 +482,43 @@ body.loaded {
     #editor-tabs {
         display: none;
     }
+}
+
+/* ── Fri3d action buttons ─────────────────────────────────────────────── */
+/* Applied to named action buttons (not bare icon buttons in the toolbar)  */
+.assistant-task-row button,
+.assistant-quick-actions button,
+.assistant-actions button,
+.assistant-settings-actions button {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    background: var(--accent-cta);
+    color: var(--fri3d-black);
+    border: var(--border-thick);
+    box-shadow: var(--shadow-std);
+    cursor: pointer;
+    transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+
+.assistant-task-row button:hover,
+.assistant-quick-actions button:hover,
+.assistant-actions button:hover,
+.assistant-settings-actions button:hover {
+    box-shadow: 2px 2px 0px var(--fri3d-black);
+    transform: translate(2px, 2px);
+}
+
+.assistant-task-row button:active,
+.assistant-quick-actions button:active,
+.assistant-actions button:active,
+.assistant-settings-actions button:active {
+    box-shadow: none;
+    transform: translate(4px, 4px);
+}
+
+/* ── Fri3d toolbar button hover ────────────────────────────────────────── */
+#tool-panel button:hover {
+    color: var(--accent-secondary);
 }
