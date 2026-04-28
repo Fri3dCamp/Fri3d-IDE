@@ -7,16 +7,67 @@
  */
 
 :root {
-    --fg-color: white;
-    --fg-color-highlight: orange;
-    --bg-color: #2a2e32;
-    --bg-color-menu: #2a2e32ee;
-    --bg-color-edit: #111314;
+    /* Fri3d brand palette */
+    --fri3d-purple: #8835C9;
+    --fri3d-orange: #FFAD64;
+    --fri3d-mint: #3CE8B3;
+    --fri3d-black: #000000;
+    --fri3d-white: #FFFFFF;
+
+    /* Dark mode (default) */
+    --fg-color: #F0F0F0;
+    --fg-color-highlight: var(--fri3d-orange);
+    --bg-color: #141418;
+    --bg-color-menu: #1c1c22;
+    --bg-color-edit: #0a0a0e;
     --font-size: 14px;
-    --connected-passive: #87c244;
-    --connected-active: orange;
+    --connected-passive: var(--fri3d-mint);
+    --connected-active: var(--fri3d-orange);
     --connected-color: var(--connected-passive);
     --animation: 0.3s ease-in-out;
+
+    /* Fri3d structural tokens */
+    --border-color: var(--fri3d-black);
+    --border-std: 2px solid var(--border-color);
+    --border-thick: 3px solid var(--border-color);
+    --shadow-std: 4px 4px 0px var(--fri3d-black);
+    --shadow-lg: 6px 6px 0px var(--fri3d-black);
+
+    /* Accent colors (dark mode) */
+    --accent-primary: var(--fri3d-purple);
+    --accent-secondary: var(--fri3d-mint);
+    --accent-cta: var(--fri3d-orange);
+
+    /* Toolbar */
+    --toolbar-bg: #1c1c22;
+    --toolbar-border: var(--fri3d-mint);
+
+    /* Tab active */
+    --tab-active-bg: var(--fri3d-purple);
+    --tab-active-fg: var(--fri3d-white);
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --fg-color: var(--fri3d-black);
+        --fg-color-highlight: var(--fri3d-purple);
+        --bg-color: var(--fri3d-mint);
+        --bg-color-menu: #2acca0;
+        --bg-color-edit: var(--fri3d-white);
+        --connected-passive: var(--fri3d-purple);
+        --connected-active: var(--fri3d-orange);
+
+        --border-color: var(--fri3d-black);
+        --accent-primary: var(--fri3d-orange);
+        --accent-secondary: var(--fri3d-purple);
+        --accent-cta: var(--fri3d-purple);
+
+        --toolbar-bg: var(--fri3d-orange);
+        --toolbar-border: var(--fri3d-black);
+
+        --tab-active-bg: var(--fri3d-purple);
+        --tab-active-fg: var(--fri3d-white);
+    }
 }
 
 /*
@@ -33,7 +84,7 @@ html, body {
     box-sizing: border-box;
     background: var(--bg-color);
     color: var(--fg-color);
-    font-family: system-ui;
+    font-family: 'Open Sans', system-ui, sans-serif;
     font-weight: normal;
     font-size: var(--font-size);
     transition: font-size var(--animation),
@@ -115,6 +166,7 @@ button {
     color: unset;
     cursor: pointer;
     font-size: 1.3rem;
+    font-family: 'Open Sans', system-ui, sans-serif;
 }
 
 button.connected {
@@ -126,15 +178,15 @@ button.connected {
  */
 
 .windows {
-    font-family: Segoe WPC,Segoe UI,sans-serif;
+    font-family: 'Open Sans', Segoe WPC, Segoe UI, sans-serif;
 }
 
 .macos {
-    font-family: -apple-system,BlinkMacSystemFont,sans-serif;
+    font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .linux {
-    font-family: system-ui,Ubuntu,Droid Sans,sans-serif;
+    font-family: 'Open Sans', system-ui, Ubuntu, Droid Sans, sans-serif;
 }
 
 .fa-power-off { color: #ffcc4d; }
@@ -189,6 +241,13 @@ button.connected {
     z-index: 1;
     overflow: hidden;
     text-align: center;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-secondary);
+    margin: 6px 0;
 }
 
 .title-lines:before, .title-lines:after {
@@ -196,9 +255,10 @@ button.connected {
     top: 51%;
     overflow: hidden;
     width: 48%;
-    height: 1px;
+    height: 2px;
     content: '\a0';
-    background-color: #cccccc88;
+    background-color: var(--accent-secondary);
+    opacity: 0.4;
     margin-left: 2%;
 }
 
@@ -223,7 +283,9 @@ button.connected {
 }
 
 .tab.active {
-    background: #666;
+    background: var(--tab-active-bg);
+    color: var(--tab-active-fg);
+    font-weight: 700;
 }
 
 .tab-content {
