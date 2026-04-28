@@ -18,7 +18,7 @@ import { html as modeHTML } from '@codemirror/lang-html'
 import { simpleMode } from '@codemirror/legacy-modes/mode/simple-mode'
 import { toml } from '@codemirror/legacy-modes/mode/toml'
 import { monokaiInit } from '@uiw/codemirror-theme-monokai'
-import { materialLightInit } from '@uiw/codemirror-theme-material'
+import { vsCodeLight } from '@fsegurai/codemirror-theme-vscode-light'
 import { tags } from '@lezer/highlight'
 import { linter } from '@codemirror/lint'
 
@@ -296,15 +296,15 @@ function buildSyntaxTheme(dark) {
             ]
         })
     }
-    return materialLightInit({
-        settings: {
-            fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace',
-            background: 'var(--bg-color-edit)',
-            gutterBackground: 'var(--bg-color-edit)',
-            lineHighlight: '#e8f4f8',
-            selection: '#80CBC440',
-        },
-    })
+    return [
+        vsCodeLight,
+        EditorView.theme({
+            '&': { fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace' },
+            '.cm-content':        { fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace' },
+            '.cm-gutters':        { background: 'var(--bg-color-edit)', fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace' },
+            '.cm-scroller':       { background: 'var(--bg-color-edit)' },
+        }),
+    ]
 }
 
 // When the OS theme changes, reconfigure every open editor — unless a theme is forced
