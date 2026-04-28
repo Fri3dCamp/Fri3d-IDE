@@ -8,7 +8,7 @@
 
 import { basicSetup } from 'codemirror'
 import { EditorView, ViewPlugin, keymap, Decoration, MatchDecorator } from '@codemirror/view'
-import { EditorState, RangeSetBuilder, Prec, StateEffect } from '@codemirror/state'
+import { EditorState, RangeSetBuilder, Prec, StateEffect, Compartment } from '@codemirror/state'
 import { StreamLanguage, indentUnit, syntaxTree } from '@codemirror/language'
 import { indentWithTab } from '@codemirror/commands'
 import { python } from '@codemirror/lang-python'
@@ -18,6 +18,7 @@ import { html as modeHTML } from '@codemirror/lang-html'
 import { simpleMode } from '@codemirror/legacy-modes/mode/simple-mode'
 import { toml } from '@codemirror/legacy-modes/mode/toml'
 import { monokaiInit } from '@uiw/codemirror-theme-monokai'
+import { materialLightInit } from '@uiw/codemirror-theme-material'
 import { tags } from '@lezer/highlight'
 import { linter } from '@codemirror/lint'
 
@@ -237,8 +238,60 @@ function ruffLinter(ruff) {
 }
 
 /*
- * Theme helpers
+ * System-aware editor theme (dark = Monokai, light = Material Light)
  */
+
+const darkMQ = window.matchMedia('(prefers-color-scheme: dark)')
+
+/** Registry of active editors: view → its theme Compartment */
+const _activeViews = new Map()
+
+/** View plugin that registers/unregisters a view in _activeViews */
+const viewRegistryPlugin = ViewPlugin.fromClass(class {
+    constructor(view) { _activeViews.set(view, view._themeCompartment) }
+    destroy(view)     { _activeViews.delete(view) }
+})
+
+function buildSyntaxTheme(dark) {
+    if (dark) {
+        return monokaiInit({
+            settings: {
+                fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace',
+                background: 'var(--bg-color-edit)',
+                gutterBackground: 'var(--bg-color-edit)',
+            },
+            styles: [
+                {
+                    tag: [tags.name, tags.deleted, tags.character, tags.macroName],
+                    color: 'white'
+                }, {
+                    tag: [tags.meta, tags.comment],
+                    color: '#afac99',
+                    fontStyle: 'italic',
+                }
+            ]
+        })
+    }
+    return materialLightInit({
+        settings: {
+            fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace',
+            background: 'var(--bg-color-edit)',
+            gutterBackground: 'var(--bg-color-edit)',
+            lineHighlight: '#e8f4f8',
+            selection: '#80CBC440',
+        },
+    })
+}
+
+// When the OS theme changes, reconfigure every open editor
+darkMQ.addEventListener('change', (e) => {
+    const theme = buildSyntaxTheme(e.matches)
+    for (const [view, compartment] of _activeViews) {
+        view.dispatch({ effects: compartment.reconfigure(theme) })
+    }
+})
+
+
 
 
 function svg(content, attrs = `viewBox="0 0 40 40"`) {
@@ -336,40 +389,27 @@ export async function createNewEditor(editorElement, fn, content, options) {
 
     devInfo = options.devInfo
 
+    const themeCompartment = new Compartment()
     const view = new EditorView({
         parent: editorElement,
         state: EditorState.create({
             doc: content,
             extensions: [
                 basicSetup,
-                //closedText: '▶',
-                //openText: '▼',
-                monokaiInit({
-                    settings: {
-                        fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace',
-                        background: 'var(--bg-color-edit)',
-                        gutterBackground: 'var(--bg-color-edit)',
-                    },
-                    styles: [
-                        {
-                            tag: [tags.name, tags.deleted, tags.character, tags.macroName],
-                            color: 'white'
-                        }, {
-                            tag: [tags.meta, tags.comment],
-                            color: '#afac99',
-                            fontStyle: 'italic',
-                            //fontWeight: '300',
-                        }
-                    ]
-                }),
+                themeCompartment.of(buildSyntaxTheme(darkMQ.matches)),
                 keymap.of([indentWithTab]),
                 mode,
                 linkCommentExtensions,
                 specialCommentExtensions,
                 extraTheme,
+                viewRegistryPlugin,
             ],
         })
     })
+
+    // Store the compartment on the view so the registry plugin can access it
+    view._themeCompartment = themeCompartment
+    _activeViews.set(view, themeCompartment)
 
     return view
 }

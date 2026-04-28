@@ -1345,7 +1345,7 @@ export function applyTranslation() {
 `
     await _loadContent(fn, content, createTab(fn))
 
-    const xtermTheme = {
+    const xtermThemeDark = {
         foreground: '#F8F8F8',
         background: getCssPropertyValue('--bg-color-edit'),
         selection: '#5DA5D533',
@@ -1367,6 +1367,32 @@ export function applyTranslation() {
         brightWhite: '#FFFFFF'
     }
 
+    const xtermThemeLight = {
+        foreground: '#212121',
+        background: getCssPropertyValue('--bg-color-edit'),
+        selection: '#80CBC440',
+        cursor: '#212121',
+        black: '#212121',
+        brightBlack: '#546E7A',
+        red: '#B71C1C',
+        brightRed: '#E53935',
+        green: '#1B5E20',
+        brightGreen: '#43A047',
+        yellow: '#E65100',
+        brightYellow: '#FB8C00',
+        blue: '#0D47A1',
+        brightBlue: '#1E88E5',
+        magenta: '#880E4F',
+        brightMagenta: '#D81B60',
+        cyan: '#006064',
+        brightCyan: '#00ACC1',
+        white: '#90A4AE',
+        brightWhite: '#ECEFF1'
+    }
+
+    const darkTermMQ = window.matchMedia('(prefers-color-scheme: dark)')
+    const xtermTheme = darkTermMQ.matches ? xtermThemeDark : xtermThemeLight
+
     term = new Terminal({
         fontFamily: '"Hack", "Droid Sans Mono", "monospace", monospace',
         fontSize: (14 * 0.9).toFixed(1),
@@ -1376,6 +1402,12 @@ export function applyTranslation() {
         allowProposedApi: true,
     })
     term.open(QID('xterm'))
+
+    darkTermMQ.addEventListener('change', (e) => {
+        const newTheme = e.matches ? xtermThemeDark : xtermThemeLight
+        newTheme.background = getCssPropertyValue('--bg-color-edit')
+        term.options.theme = newTheme
+    })
     term.onData(async (data) => {
         if (!port) return;
         if (isInRunMode) {

@@ -30,7 +30,8 @@
     --border-color: var(--fri3d-black);
     --border-std: 2px solid var(--border-color);
     --border-thick: 3px solid var(--border-color);
-    --shadow-std: 4px 4px 0px var(--fri3d-black);
+    --shadow-offset: 4px;
+    --shadow-std: var(--shadow-offset) var(--shadow-offset) 0px var(--fri3d-black);
     --shadow-lg: 6px 6px 0px var(--fri3d-black);
 
     /* Accent colors (dark mode) */
@@ -53,7 +54,7 @@
         --fg-color-highlight: var(--fri3d-purple);
         --bg-color: var(--fri3d-mint);
         --bg-color-menu: #2acca0;
-        --bg-color-edit: var(--fri3d-white);
+        --bg-color-edit: #FAFAFA;
         --connected-passive: var(--fri3d-purple);
         --connected-active: var(--fri3d-orange);
 
