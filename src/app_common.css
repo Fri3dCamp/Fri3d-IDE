@@ -62,8 +62,7 @@
     --hexed-ascii-color: #e6db74;
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
+:root[data-theme="light"] {
         --fg-color: var(--fri3d-black);
         --fg-color-highlight: var(--fri3d-purple);
         --bg-color: var(--fri3d-mint);
@@ -83,21 +82,20 @@
         --tab-active-bg: var(--fri3d-purple);
         --tab-active-fg: var(--fri3d-white);
 
-        /* Semantic icon colors (light mode overrides — darker for contrast on white/mint) */
-        --icon-warning: #b87c00;   /* darker amber */
-        --icon-success: #4a7a10;   /* darker green */
-        --icon-info:    #1565C0;   /* darker blue */
-        --icon-danger:  #c62828;   /* darker red */
-        --icon-error:   #c62828;   /* darker red */
-        --icon-cert:    #9b1b2a;   /* dark crimson */
-        --icon-module:  #7d5a3c;   /* darker brown */
-        --icon-neutral: #546E7A;   /* dark cool gray */
+        /* Plain black icons in light mode for maximum clarity */
+        --icon-warning: var(--fg-color);
+        --icon-success: var(--fg-color);
+        --icon-info:    var(--fg-color);
+        --icon-danger:  var(--fg-color);
+        --icon-error:   var(--fg-color);
+        --icon-cert:    var(--fg-color);
+        --icon-module:  var(--fg-color);
+        --icon-neutral: var(--fg-color);
 
         /* Hex viewer token colors (light mode overrides) */
         --hexed-hex-color:   #1a1a2e;
         --hexed-ascii-color: #7c5800;
     }
-}
 
 /*
  * Sensible defaults

@@ -255,6 +255,27 @@ export function unregisterEditor(view) {
     _activeViews.delete(view)
 }
 
+/**
+ * null  = follow system preference (default)
+ * true  = force dark
+ * false = force light
+ * @type {boolean|null}
+ */
+let _forcedDark = null
+
+/**
+ * Override the editor syntax theme for all open and future editors.
+ * Pass null to revert to following the system preference.
+ * @param {boolean|null} dark
+ */
+export function setEditorTheme(dark) {
+    _forcedDark = dark
+    const theme = buildSyntaxTheme(dark ?? darkMQ.matches)
+    for (const [view, compartment] of _activeViews) {
+        view.dispatch({ effects: compartment.reconfigure(theme) })
+    }
+}
+
 function buildSyntaxTheme(dark) {
     if (dark) {
         return monokaiInit({
@@ -286,8 +307,9 @@ function buildSyntaxTheme(dark) {
     })
 }
 
-// When the OS theme changes, reconfigure every open editor
+// When the OS theme changes, reconfigure every open editor — unless a theme is forced
 darkMQ.addEventListener('change', (e) => {
+    if (_forcedDark !== null) return
     const theme = buildSyntaxTheme(e.matches)
     for (const [view, compartment] of _activeViews) {
         view.dispatch({ effects: compartment.reconfigure(theme) })
@@ -399,7 +421,7 @@ export async function createNewEditor(editorElement, fn, content, options) {
             doc: content,
             extensions: [
                 basicSetup,
-                themeCompartment.of(buildSyntaxTheme(darkMQ.matches)),
+                themeCompartment.of(buildSyntaxTheme(_forcedDark ?? darkMQ.matches)),
                 keymap.of([indentWithTab]),
                 mode,
                 linkCommentExtensions,
