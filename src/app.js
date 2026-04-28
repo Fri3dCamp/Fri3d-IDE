@@ -20,7 +20,7 @@ import { Terminal } from '@xterm/xterm'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import { FitAddon } from '@xterm/addon-fit'
 
-import { addUpdateHandler, createNewEditor, getEditorFromElement } from './editor.js'
+import { addUpdateHandler, createNewEditor, getEditorFromElement, unregisterEditor } from './editor.js'
 import { displayOpenFile, createTab } from './editor_tabs.js'
 import { serial as webSerialPolyfill } from 'web-serial-polyfill'
 import { WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport } from './transports.js'
@@ -1465,6 +1465,10 @@ export function applyTranslation() {
         }
     })
     document.addEventListener("tabClosed", (event) => {
+        const closedView = getEditorFromElement(event.detail.editorElement)
+        if (closedView) {
+            unregisterEditor(closedView)
+        }
         const fileElement = QS(`#menu-file-tree [data-fn="${event.detail.fn}"]`)
         if (fileElement) {
             fileElement.classList.remove("open")
