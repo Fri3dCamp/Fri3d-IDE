@@ -258,6 +258,7 @@ button.connected {
     width: 48%;
     height: 2px;
     content: '\a0';
+    background-color: rgba(60, 232, 179, 0.4);
     background-color: color-mix(in srgb, var(--accent-secondary) 40%, transparent);
     margin-left: 2%;
 }

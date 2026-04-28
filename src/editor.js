@@ -246,11 +246,14 @@ const darkMQ = window.matchMedia('(prefers-color-scheme: dark)')
 /** Registry of active editors: view → its theme Compartment */
 const _activeViews = new Map()
 
-/** View plugin that registers/unregisters a view in _activeViews */
-const viewRegistryPlugin = ViewPlugin.fromClass(class {
-    constructor(view) { _activeViews.set(view, view._themeCompartment) }
-    destroy(view)     { _activeViews.delete(view) }
-})
+/**
+ * Remove an editor view from the theme-update registry.
+ * Call this when a tab / editor is destroyed.
+ * @param {EditorView} view
+ */
+export function unregisterEditor(view) {
+    _activeViews.delete(view)
+}
 
 function buildSyntaxTheme(dark) {
     if (dark) {
@@ -402,13 +405,10 @@ export async function createNewEditor(editorElement, fn, content, options) {
                 linkCommentExtensions,
                 specialCommentExtensions,
                 extraTheme,
-                viewRegistryPlugin,
             ],
         })
     })
 
-    // Store the compartment on the view so the registry plugin can access it
-    view._themeCompartment = themeCompartment
     _activeViews.set(view, themeCompartment)
 
     return view
