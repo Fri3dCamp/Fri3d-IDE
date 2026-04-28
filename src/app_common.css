@@ -290,6 +290,7 @@ button.connected {
     width: 48%;
     height: 2px;
     content: '\a0';
+    /* Fallback for browsers that don't support color-mix() (Chrome <111, FF <113, Safari <16.2) */
     background-color: rgba(60, 232, 179, 0.4);
     background-color: color-mix(in srgb, var(--accent-secondary) 40%, transparent);
     margin-left: 2%;
