@@ -1404,9 +1404,8 @@ export function applyTranslation() {
     term.open(QID('xterm'))
 
     darkTermMQ.addEventListener('change', (e) => {
-        const newTheme = e.matches ? xtermThemeDark : xtermThemeLight
-        newTheme.background = getCssPropertyValue('--bg-color-edit')
-        term.options.theme = newTheme
+        const base = e.matches ? xtermThemeDark : xtermThemeLight
+        term.options.theme = { ...base, background: getCssPropertyValue('--bg-color-edit') }
     })
     term.onData(async (data) => {
         if (!port) return;
