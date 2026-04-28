@@ -1405,7 +1405,8 @@ export function applyTranslation() {
     term.open(QID('xterm'))
 
     // ── Color-theme preference ─────────────────────────────────────────────
-    let _colorThemePref = QID('color-theme')?.value ?? 'system'
+    // restoreAndBindUiSettings() has already run, so #color-theme is populated.
+    let _colorThemePref = QID('color-theme').value
 
     function applyColorTheme(pref) {
         _colorThemePref = pref
@@ -1423,11 +1424,11 @@ export function applyTranslation() {
     applyColorTheme(_colorThemePref)
     // ── End color-theme ───────────────────────────────────────────────────
 
-    darkTermMQ.addEventListener('change', (e) => {
+    // When OS theme changes, re-apply only if the user is tracking the system.
+    // applyColorTheme() updates data-theme, editors (via setEditorTheme), and terminal.
+    darkTermMQ.addEventListener('change', () => {
         if (_colorThemePref !== 'system') return
-        const base = e.matches ? xtermThemeDark : xtermThemeLight
-        term.options.theme = { ...base, background: getCssPropertyValue('--bg-color-edit') }
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light')
+        applyColorTheme('system')
     })
     term.onData(async (data) => {
         if (!port) return;
