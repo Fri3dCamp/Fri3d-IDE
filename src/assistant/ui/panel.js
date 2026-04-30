@@ -23,6 +23,7 @@ const TASK_HELP = {
     'memory-opt': 'Optimize this code for MicroPython memory constraints.',
     'cpython-port': 'Port this CPython code to MicroPython-compatible code.',
     'board-bringup': 'Create a board bring-up checklist for the current connection problem.',
+    'app-bootstrap': 'Generate a minimal MicroPythonOS app scaffold or improve assets/main.py from requirements.',
 }
 
 const DEFAULT_LAYOUT = {
