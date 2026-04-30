@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Barra de herramientas principal",
-                    "text": "Esta es tu barra de herramientas principal. Guarda archivos, ejecuta tu código en la placa y conecta tu dispositivo Fri3d desde aquí."
+                    "text": "Esta es tu barra de herramientas principal. Guarda archivos, ejecuta tu código en el badge y conecta tu dispositivo Fri3d desde aquí."
                 },
                 "connect": {
                     "title": "Conectar por USB",
-                    "text": "Haz clic en este botón para conectar tu placa Fri3d a través de USB/Serie. ¡También puedes usar Bluetooth 🦷 o WebREPL 🌐!"
+                    "text": "Haz clic en este botón para conectar tu badge Fri3d a través de USB/Serie. ¡También puedes usar Bluetooth 🦷 o WebREPL 🌐!"
                 },
                 "side-menu": {
                     "title": "Menú lateral",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Administrador de archivos",
-                    "text": "Navega y gestiona archivos en tu placa conectada. ¡Conecta primero un dispositivo para ver y editar sus archivos!"
+                    "text": "Navega y gestiona archivos en tu badge conectado. ¡Conecta primero un dispositivo para ver y editar sus archivos!"
                 },
                 "editor": {
                     "title": "Editor de código",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "El terminal muestra la salida de tu placa. También puedes escribir comandos directamente en el REPL cuando estés conectado."
+                    "text": "El terminal muestra la salida de tu badge. También puedes escribir comandos directamente en el REPL cuando estés conectado."
                 },
                 "done": {
                     "title": "¡Todo listo! 🚀",
-                    "text": "¡Eso es el tour! Conecta tu placa Fri3d y empieza a construir cosas increíbles. ¡Feliz programación!"
+                    "text": "¡Eso es el tour! Conecta tu badge Fri3d y empieza a construir cosas increíbles. ¡Feliz programación!"
                 }
             }
         }

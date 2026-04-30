@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Bara de instrumente principală",
-                    "text": "Aceasta este bara ta de instrumente principală. Salvează fișiere, rulează codul pe placă și conectează dispozitivul tău Fri3d de aici."
+                    "text": "Aceasta este bara ta de instrumente principală. Salvează fișiere, rulează codul pe badge și conectează dispozitivul tău Fri3d de aici."
                 },
                 "connect": {
                     "title": "Conectare prin USB",
-                    "text": "Apasă acest buton pentru a conecta placa Fri3d prin USB/Serial. Poți folosi și Bluetooth 🦷 sau WebREPL 🌐!"
+                    "text": "Apasă acest buton pentru a conecta badge-ul Fri3d prin USB/Serial. Poți folosi și Bluetooth 🦷 sau WebREPL 🌐!"
                 },
                 "side-menu": {
                     "title": "Meniu lateral",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Manager de fișiere",
-                    "text": "Navighează și gestionează fișierele de pe placa conectată. Conectează mai întâi un dispozitiv pentru a vedea și edita fișierele!"
+                    "text": "Navighează și gestionează fișierele de pe badge-ul conectat. Conectează mai întâi un dispozitiv pentru a vedea și edita fișierele!"
                 },
                 "editor": {
                     "title": "Editor de cod",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "Terminalul afișează ieșirea plăcii. Poți introduce și comenzi direct în REPL când ești conectat."
+                    "text": "Terminalul afișează ieșirea badge-ului. Poți introduce și comenzi direct în REPL când ești conectat."
                 },
                 "done": {
                     "title": "Totul e gata! 🚀",
-                    "text": "Acesta a fost turul! Conectează placa Fri3d și începe să construiești lucruri uimitoare. Programare plăcută!"
+                    "text": "Acesta a fost turul! Conectează badge-ul Fri3d și începe să construiești lucruri uimitoare. Programare plăcută!"
                 }
             }
         }

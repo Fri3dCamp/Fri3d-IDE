@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Barra degli strumenti principale",
-                    "text": "Questa è la tua barra degli strumenti principale. Salva file, esegui il codice sulla scheda e connetti il tuo dispositivo Fri3d da qui."
+                    "text": "Questa è la tua barra degli strumenti principale. Salva file, esegui il codice sul badge e connetti il tuo dispositivo Fri3d da qui."
                 },
                 "connect": {
                     "title": "Connetti tramite USB",
-                    "text": "Clicca questo pulsante per connettere la tua scheda Fri3d tramite USB/Seriale. Puoi anche usare Bluetooth 🦷 o WebREPL 🌐!"
+                    "text": "Clicca questo pulsante per connettere il tuo badge Fri3d tramite USB/Seriale. Puoi anche usare Bluetooth 🦷 o WebREPL 🌐!"
                 },
                 "side-menu": {
                     "title": "Menu laterale",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Gestore file",
-                    "text": "Sfoglia e gestisci i file sulla tua scheda connessa. Connetti prima un dispositivo per vedere e modificare i suoi file!"
+                    "text": "Sfoglia e gestisci i file sul tuo badge connesso. Connetti prima un dispositivo per vedere e modificare i suoi file!"
                 },
                 "editor": {
                     "title": "Editor di codice",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminale",
-                    "text": "Il terminale mostra l'output della tua scheda. Puoi anche digitare comandi direttamente nel REPL quando sei connesso."
+                    "text": "Il terminale mostra l'output del tuo badge. Puoi anche digitare comandi direttamente nel REPL quando sei connesso."
                 },
                 "done": {
                     "title": "Tutto pronto! 🚀",
-                    "text": "Questo è il tour! Connetti la tua scheda Fri3d e inizia a costruire cose fantastiche. Buona programmazione!"
+                    "text": "Questo è il tour! Connetti il tuo badge Fri3d e inizia a costruire cose fantastiche. Buona programmazione!"
                 }
             }
         }

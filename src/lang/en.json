@@ -57,11 +57,11 @@
                 },
                 "toolbar": {
                     "title": "Main Toolbar",
-                    "text": "This is your main toolbar. Save files, run your code on the board, and connect to your Fri3d device from here."
+                    "text": "This is your main toolbar. Save files, run your code on the badge, and connect to your Fri3d device from here."
                 },
                 "connect": {
                     "title": "Connect via USB",
-                    "text": "Click this button to connect your Fri3d board via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!"
+                    "text": "Click this button to connect your Fri3d badge via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!"
                 },
                 "side-menu": {
                     "title": "Side Menu",
@@ -69,7 +69,7 @@
                 },
                 "files": {
                     "title": "File Manager",
-                    "text": "Browse and manage files on your connected board here. Connect a device first to see and edit its files!"
+                    "text": "Browse and manage files on your connected badge here. Connect a device first to see and edit its files!"
                 },
                 "editor": {
                     "title": "Code Editor",
@@ -77,11 +77,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "The terminal shows output from your board. You can also type commands directly into the REPL when connected."
+                    "text": "The terminal shows output from your badge. You can also type commands directly into the REPL when connected."
                 },
                 "done": {
                     "title": "You're all set! 🚀",
-                    "text": "That's the tour! Connect your Fri3d board and start building amazing things. Happy coding!"
+                    "text": "That's the tour! Connect your Fri3d badge and start building amazing things. Happy coding!"
                 }
             }
         },

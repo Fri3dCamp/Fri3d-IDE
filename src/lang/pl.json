@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Główny pasek narzędzi",
-                    "text": "To jest twój główny pasek narzędzi. Zapisuj pliki, uruchamiaj kod na płytce i łącz urządzenie Fri3d stąd."
+                    "text": "To jest twój główny pasek narzędzi. Zapisuj pliki, uruchamiaj kod na badge i łącz urządzenie Fri3d stąd."
                 },
                 "connect": {
                     "title": "Podłącz przez USB",
-                    "text": "Kliknij ten przycisk, aby podłączyć płytkę Fri3d przez USB/Szeregowy. Możesz też użyć Bluetooth 🦷 lub WebREPL 🌐!"
+                    "text": "Kliknij ten przycisk, aby podłączyć badge Fri3d przez USB/Szeregowy. Możesz też użyć Bluetooth 🦷 lub WebREPL 🌐!"
                 },
                 "side-menu": {
                     "title": "Menu boczne",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Menedżer plików",
-                    "text": "Przeglądaj i zarządzaj plikami na podłączonej płytce. Najpierw podłącz urządzenie, aby zobaczyć i edytować jego pliki!"
+                    "text": "Przeglądaj i zarządzaj plikami na podłączonym badge. Najpierw podłącz urządzenie, aby zobaczyć i edytować jego pliki!"
                 },
                 "editor": {
                     "title": "Edytor kodu",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "Terminal wyświetla wyjście z twojej płytki. Możesz też pisać polecenia bezpośrednio do REPL, gdy jesteś podłączony."
+                    "text": "Terminal wyświetla wyjście z twojego badge. Możesz też pisać polecenia bezpośrednio do REPL, gdy jesteś podłączony."
                 },
                 "done": {
                     "title": "Wszystko gotowe! 🚀",
-                    "text": "To był przewodnik! Podłącz płytkę Fri3d i zacznij budować niesamowite rzeczy. Miłego kodowania!"
+                    "text": "To był przewodnik! Podłącz badge Fri3d i zacznij budować niesamowite rzeczy. Miłego kodowania!"
                 }
             }
         }

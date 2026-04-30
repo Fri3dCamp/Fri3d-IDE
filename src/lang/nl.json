@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Hoofdwerkbalk",
-                    "text": "Dit is je hoofdwerkbalk. Sla bestanden op, voer je code uit op het board en verbind je Fri3d-apparaat vanaf hier."
+                    "text": "Dit is je hoofdwerkbalk. Sla bestanden op, voer je code uit op de badge en verbind je Fri3d-apparaat vanaf hier."
                 },
                 "connect": {
                     "title": "Verbinden via USB",
-                    "text": "Klik op deze knop om je Fri3d-board te verbinden via USB/Serieel. Je kunt ook Bluetooth 🦷 of WebREPL 🌐 gebruiken!"
+                    "text": "Klik op deze knop om je Fri3d-badge te verbinden via USB/Serieel. Je kunt ook Bluetooth 🦷 of WebREPL 🌐 gebruiken!"
                 },
                 "side-menu": {
                     "title": "Zijmenu",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Bestandsbeheer",
-                    "text": "Blader en beheer bestanden op je verbonden board. Verbind eerst een apparaat om de bestanden te bekijken en te bewerken!"
+                    "text": "Blader en beheer bestanden op je verbonden badge. Verbind eerst een apparaat om de bestanden te bekijken en te bewerken!"
                 },
                 "editor": {
                     "title": "Code-editor",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "De terminal toont de uitvoer van je board. Je kunt ook direct opdrachten invoeren in de REPL wanneer je verbonden bent."
+                    "text": "De terminal toont de uitvoer van je badge. Je kunt ook direct opdrachten invoeren in de REPL wanneer je verbonden bent."
                 },
                 "done": {
                     "title": "Alles klaar! 🚀",
-                    "text": "Dat was de tour! Verbind je Fri3d-board en begin met het bouwen van geweldige dingen. Veel plezier met coderen!"
+                    "text": "Dat was de tour! Verbind je Fri3d-badge en begin met het bouwen van geweldige dingen. Veel plezier met coderen!"
                 }
             }
         }

@@ -35,7 +35,7 @@ const STEPS = [
     {
         target: '#tool-panel',
         title: () => T('onboarding.steps.toolbar.title', 'Main Toolbar'),
-        text: () => T('onboarding.steps.toolbar.text', 'This is your main toolbar. Save files, run your code on the board, and connect to your Fri3d device from here.'),
+        text: () => T('onboarding.steps.toolbar.text', 'This is your main toolbar. Save files, run your code on the badge, and connect to your Fri3d device from here.'),
     },
     {
         // The button lives inside #tool-panel, so we elevate the toolbar too
@@ -43,7 +43,7 @@ const STEPS = [
         target: '#btn-conn-usb',
         containers: ['#tool-panel'],
         title: () => T('onboarding.steps.connect.title', 'Connect via USB'),
-        text: () => T('onboarding.steps.connect.text', 'Click this button to connect your Fri3d board via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!'),
+        text: () => T('onboarding.steps.connect.text', 'Click this button to connect your Fri3d badge via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!'),
     },
     {
         target: '#side-menu',
@@ -53,7 +53,7 @@ const STEPS = [
     {
         target: '#menu-file-tree',
         title: () => T('onboarding.steps.files.title', 'File Manager'),
-        text: () => T('onboarding.steps.files.text', 'Browse and manage files on your connected board here. Connect a device first to see and edit its files!'),
+        text: () => T('onboarding.steps.files.text', 'Browse and manage files on your connected badge here. Connect a device first to see and edit its files!'),
     },
     {
         target: '#main-editor',
@@ -63,12 +63,12 @@ const STEPS = [
     {
         target: '#terminal-container',
         title: () => T('onboarding.steps.terminal.title', 'Terminal'),
-        text: () => T('onboarding.steps.terminal.text', 'The terminal shows output from your board. You can also type commands directly into the REPL when connected.'),
+        text: () => T('onboarding.steps.terminal.text', 'The terminal shows output from your badge. You can also type commands directly into the REPL when connected.'),
     },
     {
         target: null,
         title: () => T('onboarding.steps.done.title', "You're all set! 🚀"),
-        text: () => T('onboarding.steps.done.text', "That's the tour! Connect your Fri3d board and start building amazing things. Happy coding!"),
+        text: () => T('onboarding.steps.done.text', "That's the tour! Connect your Fri3d badge and start building amazing things. Happy coding!"),
     }
 ]
 

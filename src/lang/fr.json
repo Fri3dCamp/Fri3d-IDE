@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Barre d'outils principale",
-                    "text": "C'est ta barre d'outils principale. Enregistre des fichiers, exécute ton code sur la carte et connecte ton appareil Fri3d depuis ici."
+                    "text": "C'est ta barre d'outils principale. Enregistre des fichiers, exécute ton code sur le badge et connecte ton appareil Fri3d depuis ici."
                 },
                 "connect": {
                     "title": "Connecter via USB",
-                    "text": "Clique sur ce bouton pour connecter ta carte Fri3d via USB/Série. Tu peux aussi utiliser Bluetooth 🦷 ou WebREPL 🌐 !"
+                    "text": "Clique sur ce bouton pour connecter ton badge Fri3d via USB/Série. Tu peux aussi utiliser Bluetooth 🦷 ou WebREPL 🌐 !"
                 },
                 "side-menu": {
                     "title": "Menu latéral",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Gestionnaire de fichiers",
-                    "text": "Parcours et gère les fichiers sur ta carte connectée. Connecte d'abord un appareil pour voir et modifier ses fichiers !"
+                    "text": "Parcours et gère les fichiers sur ton badge connecté. Connecte d'abord un appareil pour voir et modifier ses fichiers !"
                 },
                 "editor": {
                     "title": "Éditeur de code",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "Le terminal affiche la sortie de ta carte. Tu peux aussi taper des commandes directement dans le REPL quand tu es connecté."
+                    "text": "Le terminal affiche la sortie de ton badge. Tu peux aussi taper des commandes directement dans le REPL quand tu es connecté."
                 },
                 "done": {
                     "title": "Tout est prêt ! 🚀",
-                    "text": "C'est la fin de la visite ! Connecte ta carte Fri3d et commence à créer des choses incroyables. Bon codage !"
+                    "text": "C'est la fin de la visite ! Connecte ton badge Fri3d et commence à créer des choses incroyables. Bon codage !"
                 }
             }
         }

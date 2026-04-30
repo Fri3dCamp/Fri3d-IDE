@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Toolbar Utama",
-                    "text": "Ini adalah toolbar utamamu. Simpan file, jalankan kode di board, dan hubungkan perangkat Fri3d-mu dari sini."
+                    "text": "Ini adalah toolbar utamamu. Simpan file, jalankan kode di badge, dan hubungkan perangkat Fri3d-mu dari sini."
                 },
                 "connect": {
                     "title": "Hubungkan melalui USB",
-                    "text": "Klik tombol ini untuk menghubungkan board Fri3d-mu melalui USB/Serial. Kamu juga bisa menggunakan Bluetooth 🦷 atau WebREPL 🌐!"
+                    "text": "Klik tombol ini untuk menghubungkan badge Fri3d-mu melalui USB/Serial. Kamu juga bisa menggunakan Bluetooth 🦷 atau WebREPL 🌐!"
                 },
                 "side-menu": {
                     "title": "Menu Samping",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Manajer File",
-                    "text": "Jelajahi dan kelola file di board yang terhubung. Hubungkan perangkat terlebih dahulu untuk melihat dan mengedit file-nya!"
+                    "text": "Jelajahi dan kelola file di badge yang terhubung. Hubungkan perangkat terlebih dahulu untuk melihat dan mengedit file-nya!"
                 },
                 "editor": {
                     "title": "Editor Kode",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "Terminal menampilkan output dari board-mu. Kamu juga bisa mengetikkan perintah langsung ke REPL saat terhubung."
+                    "text": "Terminal menampilkan output dari badge-mu. Kamu juga bisa mengetikkan perintah langsung ke REPL saat terhubung."
                 },
                 "done": {
                     "title": "Semua siap! 🚀",
-                    "text": "Itulah turnya! Hubungkan board Fri3d-mu dan mulai membangun hal-hal yang luar biasa. Selamat coding!"
+                    "text": "Itulah turnya! Hubungkan badge Fri3d-mu dan mulai membangun hal-hal yang luar biasa. Selamat coding!"
                 }
             }
         }

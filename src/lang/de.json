@@ -56,11 +56,11 @@
                 },
                 "toolbar": {
                     "title": "Hauptwerkzeugleiste",
-                    "text": "Das ist deine Hauptwerkzeugleiste. Speichere Dateien, führe Code auf der Platine aus und verbinde dein Fri3d-Gerät von hier aus."
+                    "text": "Das ist deine Hauptwerkzeugleiste. Speichere Dateien, führe Code auf dem Badge aus und verbinde dein Fri3d-Gerät von hier aus."
                 },
                 "connect": {
                     "title": "Über USB verbinden",
-                    "text": "Klicke diesen Button, um dein Fri3d-Board über USB/Seriell zu verbinden. Du kannst auch Bluetooth 🦷 oder WebREPL 🌐 nutzen!"
+                    "text": "Klicke diesen Button, um dein Fri3d-Badge über USB/Seriell zu verbinden. Du kannst auch Bluetooth 🦷 oder WebREPL 🌐 nutzen!"
                 },
                 "side-menu": {
                     "title": "Seitenmenü",
@@ -68,7 +68,7 @@
                 },
                 "files": {
                     "title": "Datei-Manager",
-                    "text": "Dateien auf der verbundenen Platine durchsuchen und verwalten. Verbinde zuerst ein Gerät, um seine Dateien zu sehen und zu bearbeiten!"
+                    "text": "Dateien auf der verbundenen Badge durchsuchen und verwalten. Verbinde zuerst ein Gerät, um seine Dateien zu sehen und zu bearbeiten!"
                 },
                 "editor": {
                     "title": "Code-Editor",
@@ -76,11 +76,11 @@
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "Das Terminal zeigt die Ausgabe deiner Platine. Du kannst auch direkt Befehle in das REPL eingeben, wenn du verbunden bist."
+                    "text": "Das Terminal zeigt die Ausgabe deines Badges. Du kannst auch direkt Befehle in das REPL eingeben, wenn du verbunden bist."
                 },
                 "done": {
                     "title": "Alles bereit! 🚀",
-                    "text": "Das war die Tour! Verbinde dein Fri3d-Board und fang an, tolle Dinge zu bauen. Viel Spaß beim Programmieren!"
+                    "text": "Das war die Tour! Verbinde dein Fri3d-Badge und fang an, tolle Dinge zu bauen. Viel Spaß beim Programmieren!"
                 }
             }
         }
