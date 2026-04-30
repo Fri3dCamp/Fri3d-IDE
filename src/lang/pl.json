@@ -43,6 +43,46 @@
         "about": {
             "cta": "Jeśli podoba ci się Fri3d-IDE, proszę <a id='gh-star'>daj mu gwiazdkę na GitHub</a> ⭐ i rozprzestrzeniaj informacje w mediach społecznościowych 📢",
             "report-bug": "Możesz także <a id='gh-issues'>zgłosić błąd</a> 🐞"
+        },
+        "onboarding": {
+            "step": "Krok {{current}} z {{total}}",
+            "skip": "Pomiń przewodnik",
+            "next": "Dalej →",
+            "get-started": "Zaczynamy! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Witamy w Fri3d-IDE! 👋",
+                    "text": "Cześć! Jestem twoim przewodnikiem po Fri3d. Pozwól, że oprowadzę cię, abyś mógł od razu zacząć kodować!"
+                },
+                "toolbar": {
+                    "title": "Główny pasek narzędzi",
+                    "text": "To jest twój główny pasek narzędzi. Zapisuj pliki, uruchamiaj kod na płytce i łącz urządzenie Fri3d stąd."
+                },
+                "connect": {
+                    "title": "Podłącz przez USB",
+                    "text": "Kliknij ten przycisk, aby podłączyć płytkę Fri3d przez USB/Szeregowy. Możesz też użyć Bluetooth 🦷 lub WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Menu boczne",
+                    "text": "Ten panel ma zakładki dla Menedżera plików, Menedżera pakietów, Narzędzi, Ustawień i O programie. Wszystko, czego potrzebujesz!"
+                },
+                "files": {
+                    "title": "Menedżer plików",
+                    "text": "Przeglądaj i zarządzaj plikami na podłączonej płytce. Najpierw podłącz urządzenie, aby zobaczyć i edytować jego pliki!"
+                },
+                "editor": {
+                    "title": "Edytor kodu",
+                    "text": "Pisz tutaj swój kod MicroPython! Podświetlanie składni, autouzupełnianie i linting są wbudowane. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Terminal wyświetla wyjście z twojej płytki. Możesz też pisać polecenia bezpośrednio do REPL, gdy jesteś podłączony."
+                },
+                "done": {
+                    "title": "Wszystko gotowe! 🚀",
+                    "text": "To był przewodnik! Podłącz płytkę Fri3d i zacznij budować niesamowite rzeczy. Miłego kodowania!"
+                }
+            }
         }
     }
 }

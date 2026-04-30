@@ -43,6 +43,46 @@
         "about": {
             "cta": "Dacă vă place Fri3d-IDE, vă rugăm <a id='gh-star'>dați-i o stea pe GitHub</a> ⭐ și răspândiți vestea pe rețelele sociale 📢",
             "report-bug": "Puteți de asemenea să <a id='gh-issues'>raportați o eroare</a> 🐞"
+        },
+        "onboarding": {
+            "step": "Pasul {{current}} din {{total}}",
+            "skip": "Sari peste tur",
+            "next": "Înainte →",
+            "get-started": "Să începem! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Bun venit în Fri3d-IDE! 👋",
+                    "text": "Salut! Eu sunt ghidul tău Fri3d. Lasă-mă să îți fac un tur rapid pentru a putea începe să programezi imediat!"
+                },
+                "toolbar": {
+                    "title": "Bara de instrumente principală",
+                    "text": "Aceasta este bara ta de instrumente principală. Salvează fișiere, rulează codul pe placă și conectează dispozitivul tău Fri3d de aici."
+                },
+                "connect": {
+                    "title": "Conectare prin USB",
+                    "text": "Apasă acest buton pentru a conecta placa Fri3d prin USB/Serial. Poți folosi și Bluetooth 🦷 sau WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Meniu lateral",
+                    "text": "Acest panou are file pentru Managerul de fișiere, Managerul de pachete, Instrumente, Setări și Despre. Tot ce ai nevoie!"
+                },
+                "files": {
+                    "title": "Manager de fișiere",
+                    "text": "Navighează și gestionează fișierele de pe placa conectată. Conectează mai întâi un dispozitiv pentru a vedea și edita fișierele!"
+                },
+                "editor": {
+                    "title": "Editor de cod",
+                    "text": "Scrie codul MicroPython aici! Evidențierea sintaxei, completarea automată și linting sunt toate integrate. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Terminalul afișează ieșirea plăcii. Poți introduce și comenzi direct în REPL când ești conectat."
+                },
+                "done": {
+                    "title": "Totul e gata! 🚀",
+                    "text": "Acesta a fost turul! Conectează placa Fri3d și începe să construiești lucruri uimitoare. Programare plăcută!"
+                }
+            }
         }
     }
 }

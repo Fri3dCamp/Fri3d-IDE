@@ -43,6 +43,46 @@
         "about": {
             "cta": "Se ti piace Fri3d-IDE, per favore <a id='gh-star'>dagli una stella su GitHub</a> ⭐ e spargi la voce sui social media 📢",
             "report-bug": "Puoi anche <a id='gh-issues'>segnalare un bug</a> 🐞"
+        },
+        "onboarding": {
+            "step": "Passo {{current}} di {{total}}",
+            "skip": "Salta il tour",
+            "next": "Avanti →",
+            "get-started": "Iniziamo! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Benvenuto in Fri3d-IDE! 👋",
+                    "text": "Ciao! Sono la tua guida Fri3d. Lasciami fare un breve tour per farti iniziare a programmare subito!"
+                },
+                "toolbar": {
+                    "title": "Barra degli strumenti principale",
+                    "text": "Questa è la tua barra degli strumenti principale. Salva file, esegui il codice sulla scheda e connetti il tuo dispositivo Fri3d da qui."
+                },
+                "connect": {
+                    "title": "Connetti tramite USB",
+                    "text": "Clicca questo pulsante per connettere la tua scheda Fri3d tramite USB/Seriale. Puoi anche usare Bluetooth 🦷 o WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Menu laterale",
+                    "text": "Questo pannello ha schede per il Gestore file, Gestore pacchetti, Strumenti, Impostazioni e Info. Tutto quello di cui hai bisogno!"
+                },
+                "files": {
+                    "title": "Gestore file",
+                    "text": "Sfoglia e gestisci i file sulla tua scheda connessa. Connetti prima un dispositivo per vedere e modificare i suoi file!"
+                },
+                "editor": {
+                    "title": "Editor di codice",
+                    "text": "Scrivi il tuo codice MicroPython qui! Evidenziazione della sintassi, completamento automatico e linting sono tutti integrati. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminale",
+                    "text": "Il terminale mostra l'output della tua scheda. Puoi anche digitare comandi direttamente nel REPL quando sei connesso."
+                },
+                "done": {
+                    "title": "Tutto pronto! 🚀",
+                    "text": "Questo è il tour! Connetti la tua scheda Fri3d e inizia a costruire cose fantastiche. Buona programmazione!"
+                }
+            }
         }
     }
 }

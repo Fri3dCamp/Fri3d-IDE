@@ -43,6 +43,46 @@
         "about": {
             "cta": "Si vous aimez Fri3d-IDE, veuillez <a id='gh-star'>lui donner une étoile sur GitHub</a> ⭐ et en parler sur les réseaux sociaux 📢",
             "report-bug": "Vous pouvez aussi <a id='gh-issues'>signaler un bug</a> 🐞"
+        },
+        "onboarding": {
+            "step": "Étape {{current}} sur {{total}}",
+            "skip": "Passer la visite",
+            "next": "Suivant →",
+            "get-started": "C'est parti ! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Bienvenue dans Fri3d-IDE ! 👋",
+                    "text": "Bonjour ! Je suis ton guide Fri3d. Laisse-moi te faire une visite rapide pour que tu puisses commencer à coder tout de suite !"
+                },
+                "toolbar": {
+                    "title": "Barre d'outils principale",
+                    "text": "C'est ta barre d'outils principale. Enregistre des fichiers, exécute ton code sur la carte et connecte ton appareil Fri3d depuis ici."
+                },
+                "connect": {
+                    "title": "Connecter via USB",
+                    "text": "Clique sur ce bouton pour connecter ta carte Fri3d via USB/Série. Tu peux aussi utiliser Bluetooth 🦷 ou WebREPL 🌐 !"
+                },
+                "side-menu": {
+                    "title": "Menu latéral",
+                    "text": "Ce panneau contient des onglets pour le Gestionnaire de fichiers, le Gestionnaire de paquets, les Outils, les Paramètres et À propos. Tout ce dont tu as besoin !"
+                },
+                "files": {
+                    "title": "Gestionnaire de fichiers",
+                    "text": "Parcours et gère les fichiers sur ta carte connectée. Connecte d'abord un appareil pour voir et modifier ses fichiers !"
+                },
+                "editor": {
+                    "title": "Éditeur de code",
+                    "text": "Écris ton code MicroPython ici ! Coloration syntaxique, auto-complétion et linting sont tous intégrés. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Le terminal affiche la sortie de ta carte. Tu peux aussi taper des commandes directement dans le REPL quand tu es connecté."
+                },
+                "done": {
+                    "title": "Tout est prêt ! 🚀",
+                    "text": "C'est la fin de la visite ! Connecte ta carte Fri3d et commence à créer des choses incroyables. Bon codage !"
+                }
+            }
         }
     }
 }

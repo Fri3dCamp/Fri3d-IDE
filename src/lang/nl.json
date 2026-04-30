@@ -43,6 +43,46 @@
         "about": {
             "cta": "Als je Fri3d-IDE leuk vindt, geef het dan alsjeblieft een <a id='gh-star'>ster op GitHub</a> ⭐ en vertel het verder op sociale media 📢",
             "report-bug": "Je kunt ook een <a id='gh-issues'>fout melden</a> 🐞"
+        },
+        "onboarding": {
+            "step": "Stap {{current}} van {{total}}",
+            "skip": "Tour overslaan",
+            "next": "Volgende →",
+            "get-started": "Beginnen! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Welkom bij Fri3d-IDE! 👋",
+                    "text": "Hallo! Ik ben je Fri3d-gids. Laat me je een korte rondleiding geven zodat je meteen kunt beginnen met coderen!"
+                },
+                "toolbar": {
+                    "title": "Hoofdwerkbalk",
+                    "text": "Dit is je hoofdwerkbalk. Sla bestanden op, voer je code uit op het board en verbind je Fri3d-apparaat vanaf hier."
+                },
+                "connect": {
+                    "title": "Verbinden via USB",
+                    "text": "Klik op deze knop om je Fri3d-board te verbinden via USB/Serieel. Je kunt ook Bluetooth 🦷 of WebREPL 🌐 gebruiken!"
+                },
+                "side-menu": {
+                    "title": "Zijmenu",
+                    "text": "Dit paneel heeft tabbladen voor Bestandsbeheer, Pakketbeheer, Hulpmiddelen, Instellingen en Info. Alles wat je nodig hebt!"
+                },
+                "files": {
+                    "title": "Bestandsbeheer",
+                    "text": "Blader en beheer bestanden op je verbonden board. Verbind eerst een apparaat om de bestanden te bekijken en te bewerken!"
+                },
+                "editor": {
+                    "title": "Code-editor",
+                    "text": "Schrijf je MicroPython-code hier! Syntaxmarkering, automatisch aanvullen en linting zijn allemaal ingebouwd. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "De terminal toont de uitvoer van je board. Je kunt ook direct opdrachten invoeren in de REPL wanneer je verbonden bent."
+                },
+                "done": {
+                    "title": "Alles klaar! 🚀",
+                    "text": "Dat was de tour! Verbind je Fri3d-board en begin met het bouwen van geweldige dingen. Veel plezier met coderen!"
+                }
+            }
         }
     }
 }

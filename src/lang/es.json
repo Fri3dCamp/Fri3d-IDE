@@ -43,6 +43,46 @@
         "about": {
             "cta": "Si te gusta Fri3d-IDE, por favor <a id='gh-star'>dale una estrella en GitHub</a> ⭐ y difúndelo en las redes sociales 📢",
             "report-bug": "También puedes <a id='gh-issues'>reportar un error</a> 🐞"
+        },
+        "onboarding": {
+            "step": "Paso {{current}} de {{total}}",
+            "skip": "Saltar el tour",
+            "next": "Siguiente →",
+            "get-started": "¡Empezar! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "¡Bienvenido a Fri3d-IDE! 👋",
+                    "text": "¡Hola! Soy tu guía Fri3d. ¡Déjame darte un rápido recorrido para que puedas empezar a programar de inmediato!"
+                },
+                "toolbar": {
+                    "title": "Barra de herramientas principal",
+                    "text": "Esta es tu barra de herramientas principal. Guarda archivos, ejecuta tu código en la placa y conecta tu dispositivo Fri3d desde aquí."
+                },
+                "connect": {
+                    "title": "Conectar por USB",
+                    "text": "Haz clic en este botón para conectar tu placa Fri3d a través de USB/Serie. ¡También puedes usar Bluetooth 🦷 o WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Menú lateral",
+                    "text": "Este panel tiene pestañas para el Administrador de archivos, Administrador de paquetes, Herramientas, Configuración y Acerca de. ¡Todo lo que necesitas!"
+                },
+                "files": {
+                    "title": "Administrador de archivos",
+                    "text": "Navega y gestiona archivos en tu placa conectada. ¡Conecta primero un dispositivo para ver y editar sus archivos!"
+                },
+                "editor": {
+                    "title": "Editor de código",
+                    "text": "¡Escribe tu código MicroPython aquí! Resaltado de sintaxis, autocompletado y linting están todos integrados. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "El terminal muestra la salida de tu placa. También puedes escribir comandos directamente en el REPL cuando estés conectado."
+                },
+                "done": {
+                    "title": "¡Todo listo! 🚀",
+                    "text": "¡Eso es el tour! Conecta tu placa Fri3d y empieza a construir cosas increíbles. ¡Feliz programación!"
+                }
+            }
         }
     }
 }
