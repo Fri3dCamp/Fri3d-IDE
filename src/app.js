@@ -469,6 +469,127 @@ export async function createNewFile(path) {
     })
 }
 
+function showConfirmDialog(message) {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div')
+        backdrop.className = 'fri3d-dialog-backdrop'
+
+        const dialog = document.createElement('div')
+        dialog.className = 'fri3d-dialog'
+
+        const msgEl = document.createElement('div')
+        msgEl.className = 'fri3d-dialog-message'
+        msgEl.textContent = message
+
+        const actions = document.createElement('div')
+        actions.className = 'fri3d-dialog-actions'
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.className = 'fri3d-btn-secondary'
+        cancelBtn.textContent = 'Cancel'
+
+        const confirmBtn = document.createElement('button')
+        confirmBtn.className = 'fri3d-btn-cta'
+        confirmBtn.textContent = 'Confirm'
+
+        actions.appendChild(cancelBtn)
+        actions.appendChild(confirmBtn)
+        dialog.appendChild(msgEl)
+        dialog.appendChild(actions)
+        backdrop.appendChild(dialog)
+        document.body.appendChild(backdrop)
+
+        function close(value) {
+            backdrop.remove()
+            resolve(value)
+        }
+
+        confirmBtn.addEventListener('click', () => close(true))
+        cancelBtn.addEventListener('click', () => close(false))
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(false) })
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); close(true) }
+            else if (e.key === 'Escape') close(false)
+        })
+        confirmBtn.focus()
+    })
+}
+
+function showAppWizardDialog() {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div')
+        backdrop.className = 'fri3d-dialog-backdrop'
+
+        const dialog = document.createElement('div')
+        dialog.className = 'fri3d-dialog'
+        dialog.innerHTML = `
+            <div class="fri3d-dialog-title"><i class="fa-solid fa-cubes fa-fw"></i> Create New App</div>
+            <div class="fri3d-dialog-form">
+                <label for="fri3d-app-fullname">App ID</label>
+                <input type="text" id="fri3d-app-fullname" placeholder="com.example.myapp" autocomplete="off" spellcheck="false"/>
+                <label for="fri3d-app-name">Display name</label>
+                <input type="text" id="fri3d-app-name" value="My App" autocomplete="off"/>
+                <label for="fri3d-app-version">Version</label>
+                <input type="text" id="fri3d-app-version" value="0.1.0" autocomplete="off"/>
+                <label for="fri3d-app-desc">Description</label>
+                <input type="text" id="fri3d-app-desc" placeholder="optional" autocomplete="off"/>
+                <label for="fri3d-app-template">Template</label>
+                <select id="fri3d-app-template">
+                    <option value="hello">Hello World</option>
+                    <option value="settings">Settings demo</option>
+                    <option value="blank">Blank</option>
+                </select>
+                <span class="fri3d-dialog-error" id="fri3d-app-error"></span>
+            </div>
+            <div class="fri3d-dialog-actions">
+                <button class="fri3d-btn-secondary" id="fri3d-wizard-cancel" type="button">Cancel</button>
+                <button class="fri3d-btn-cta" id="fri3d-wizard-create" type="button">Create</button>
+            </div>
+        `
+        backdrop.appendChild(dialog)
+        document.body.appendChild(backdrop)
+
+        const fullnameInput = dialog.querySelector('#fri3d-app-fullname')
+        const errorEl = dialog.querySelector('#fri3d-app-error')
+
+        fullnameInput.focus()
+
+        function tryCreate() {
+            const fullnameVal = fullnameInput.value.trim()
+            try {
+                validateAppFullname(fullnameVal)
+            } catch (err) {
+                errorEl.textContent = err.message
+                errorEl.classList.add('visible')
+                fullnameInput.focus()
+                return
+            }
+            errorEl.classList.remove('visible')
+            backdrop.remove()
+            resolve({
+                fullname: fullnameVal,
+                appName: dialog.querySelector('#fri3d-app-name').value,
+                version: dialog.querySelector('#fri3d-app-version').value,
+                description: dialog.querySelector('#fri3d-app-desc').value,
+                template: dialog.querySelector('#fri3d-app-template').value,
+            })
+        }
+
+        function cancel() {
+            backdrop.remove()
+            resolve(null)
+        }
+
+        dialog.querySelector('#fri3d-wizard-create').addEventListener('click', tryCreate)
+        dialog.querySelector('#fri3d-wizard-cancel').addEventListener('click', cancel)
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) cancel() })
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); tryCreate() }
+            else if (e.key === 'Escape') cancel()
+        })
+    })
+}
+
 function validateAppFullname(fullname) {
     if (!fullname || !fullname.trim()) {
         throw new Error('App fullname is required')
@@ -568,35 +689,14 @@ export async function createNewApp() {
         return
     }
 
-    const fullnameInput = prompt('New app fullname (e.g. com.example.myapp):', 'com.example.myapp')
-    if (fullnameInput == null) return
+    const input = await showAppWizardDialog()
+    if (input == null) return
 
-    const appNameInput = prompt('Display name:', 'My App')
-    if (appNameInput == null) return
-
-    const versionInput = prompt('Version:', '0.1.0')
-    if (versionInput == null) return
-
-    const descriptionInput = prompt('Description (optional):', '')
-    if (descriptionInput == null) return
-
-    const templateInput = prompt('Template [hello/settings/blank]:', 'hello')
-    if (templateInput == null) return
-
-    let fullname
-    try {
-        fullname = validateAppFullname(fullnameInput)
-    } catch (err) {
-        report('Invalid app fullname', err)
-        return
-    }
-
-    const appName = appNameInput.trim() || 'My App'
-    const version = versionInput.trim() || '0.1.0'
-    const description = descriptionInput.trim()
-    const template = ['hello', 'settings', 'blank'].includes(templateInput.trim().toLowerCase())
-        ? templateInput.trim().toLowerCase()
-        : 'hello'
+    const fullname = input.fullname
+    const appName = input.appName.trim() || 'My App'
+    const version = input.version.trim() || '0.1.0'
+    const description = input.description.trim()
+    const template = input.template
 
     const appRoot = `/apps/${fullname}`
     const manifestPath = `${appRoot}/META-INF/MANIFEST.JSON`
@@ -612,8 +712,9 @@ try:
 except:
  print('0')
 `)).trim().endsWith('1')
-        if (exists && !confirm(`App folder ${appRoot} already exists. Overwrite scaffold files?`)) {
-            return
+        if (exists) {
+            const confirmed = await showConfirmDialog(`App folder ${appRoot} already exists. Overwrite scaffold files?`)
+            if (!confirmed) return
         }
 
         await raw.makePath(`${appRoot}/META-INF`)
@@ -656,7 +757,8 @@ AppManager.restart_launcher()
 
     toastr.success(`Created app scaffold for ${fullname}`)
 
-    if (confirm('Prepare an Assistant prompt to bootstrap main.py with LLM?')) {
+    const useAssistant = await showConfirmDialog('Prepare an Assistant prompt to bootstrap main.py with LLM?')
+    if (useAssistant) {
         const taskPreset = QID('assistant-task-preset')
         if (taskPreset) {
             taskPreset.value = 'app-bootstrap'
