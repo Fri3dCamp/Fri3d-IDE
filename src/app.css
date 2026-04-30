@@ -522,3 +522,124 @@ body.loaded {
 #tool-panel button:hover {
     color: var(--accent-secondary);
 }
+
+/* ── Fri3d custom dialog overlay ──────────────────────────────────────── */
+.fri3d-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fri3d-dialog {
+    background: var(--bg-color-menu);
+    border: var(--border-thick);
+    box-shadow: var(--shadow-lg);
+    padding: 20px 24px;
+    min-width: 300px;
+    max-width: 480px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.fri3d-dialog-title {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.9rem;
+    color: var(--accent-secondary);
+}
+
+.fri3d-dialog-message {
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.fri3d-dialog-form {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 12px;
+    align-items: center;
+}
+
+.fri3d-dialog-form label {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.fri3d-dialog-form input[type="text"],
+.fri3d-dialog-form select {
+    background: var(--bg-color-edit);
+    color: var(--fg-color);
+    border: var(--border-std);
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.fri3d-dialog-error {
+    font-size: 0.8rem;
+    color: var(--icon-danger);
+    grid-column: 1 / -1;
+    display: none;
+}
+
+.fri3d-dialog-error.visible {
+    display: block;
+}
+
+.fri3d-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.fri3d-btn-cta {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    background: var(--accent-cta);
+    color: var(--fri3d-black);
+    border: var(--border-thick);
+    box-shadow: var(--shadow-std);
+    cursor: pointer;
+    transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+
+.fri3d-btn-cta:hover {
+    box-shadow: calc(var(--shadow-offset) / 2) calc(var(--shadow-offset) / 2) 0px var(--fri3d-black);
+    transform: translate(calc(var(--shadow-offset) / 2), calc(var(--shadow-offset) / 2));
+}
+
+.fri3d-btn-cta:active {
+    box-shadow: none;
+    transform: translate(var(--shadow-offset), var(--shadow-offset));
+}
+
+.fri3d-btn-secondary {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    background: transparent;
+    color: var(--fg-color);
+    border: var(--border-thick);
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+
+.fri3d-btn-secondary:hover {
+    background: var(--bg-color-edit);
+}
