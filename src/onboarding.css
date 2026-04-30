@@ -42,7 +42,7 @@
     flex: 0 0 64px;
     width: 64px;
     height: 64px;
-    color: var(--fri3d-mint);
+    color: var(--fg-color);
     animation: ob-bob 2s ease-in-out infinite;
 }
 
@@ -91,7 +91,7 @@
 
 .ob-title {
     font-weight: 700;
-    color: var(--fri3d-orange);
+    color: var(--fg-color-highlight);
     font-size: 1em;
     margin-bottom: 6px;
 }
