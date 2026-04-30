@@ -1337,12 +1337,12 @@ export function applyTranslation() {
     const fn = 'test.py'
     const content = `
 # Fri3d-IDE - MicroPython Web IDE
-# Read more: https://github.com/vshymanskyy/ViperIDE
+# Read more: https://github.com/DrSkunk/Fri3d-IDE/
 
 # Connect your device and start creating! 🤖👨‍💻🕹️
 
 # You can also open a virtual device and explore some examples:
-# https://viper-ide.org?vm=1
+# https://fri3d-programmer.vercel.app/?vm=1
 `
     await _loadContent(fn, content, createTab(fn))
 

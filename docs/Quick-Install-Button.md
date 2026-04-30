@@ -8,7 +8,7 @@ Fri3d-IDE makes it easy to distribute packages, including:
 
 For instance, you can install [`aiodns`](https://github.com/vshymanskyy/aiodns) using the following button:
 
-[<img src="https://raw.githubusercontent.com/vshymanskyy/ViperIDE/refs/heads/main/assets/btn_install.png" alt="Install using Fri3d-IDE" height="48"/>](https://viper-ide.org/?install=github:vshymanskyy/aiodns)
+[<img src="https://raw.githubusercontent.com/DrSkunk/Fri3d-IDE/refs/heads/main/assets/btn_install.png" alt="Install using Fri3d-IDE" height="48"/>](https://viper-ide.org/?install=github:vshymanskyy/aiodns)
 
 ## Creating a Quick Install Link
 
@@ -34,5 +34,5 @@ To create a quick install link, use the format `https://viper-ide.org/?install=Y
 To insert the install button into your `README.md`, use the following markdown code:
 
 ```md
-[<img src="https://raw.githubusercontent.com/vshymanskyy/ViperIDE/refs/heads/main/assets/btn_install.png" alt="Install using Fri3d-IDE" height="48"/>](https://viper-ide.org/?install=YOUR_LINK)
+[<img src="https://raw.githubusercontent.com/DrSkunk/Fri3d-IDE/refs/heads/main/assets/btn_install.png" alt="Install using Fri3d-IDE" height="48"/>](https://viper-ide.org/?install=YOUR_LINK)
 ```

@@ -8,7 +8,7 @@
   - [`WebREPL in local network`](Web-REPL-Server.md)
   - [`Bluetooth LE`](Bluetooth-REPL.md)
   - [`P2P/WebRTC Bridge`](https://viper-ide.org/bridge.html)
-  - [`Virtual Device`](https://viper-ide.org/?vm=1)
+  - [`Virtual Device`](https://fri3d-programmer.vercel.app/?vm=1)
 - **File Editor**
   - Syntax highlighting for `.py`, `.json`, `.inf`, `.toml`, `.pem`
   - Auto expand/minify of `.json` files

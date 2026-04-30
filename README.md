@@ -1,15 +1,15 @@
 # Fri3d-IDE
 
 <!--[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md) -->
-[![GitHub Repo stars](https://img.shields.io/github/stars/vshymanskyy/ViperIDE?style=flat-square&color=green)](https://github.com/vshymanskyy/ViperIDE/stargazers) 
-[![GitHub issues](https://img.shields.io/github/issues-raw/vshymanskyy/ViperIDE?style=flat-square&label=issues&color=green)](https://github.com/vshymanskyy/ViperIDE/issues) 
-[![Build status](https://img.shields.io/github/actions/workflow/status/vshymanskyy/ViperIDE/static.yml?branch=main&style=flat-square&logo=github&label=build)](https://github.com/vshymanskyy/ViperIDE/actions) 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/vshymanskyy/ViperIDE) 
+[![GitHub Repo stars](https://img.shields.io/github/stars/DrSkunk/Fri3d-IDE?style=flat-square&color=green)](https://github.com/DrSkunk/Fri3d-IDE/stargazers) 
+[![GitHub issues](https://img.shields.io/github/issues-raw/DrSkunk/Fri3d-IDE?style=flat-square&label=issues&color=green)](https://github.com/DrSkunk/Fri3d-IDE/issues) 
+[![Build status](https://img.shields.io/github/actions/workflow/status/DrSkunk/Fri3d-IDE/static.yml?branch=main&style=flat-square&logo=github&label=build)](https://github.com/DrSkunk/Fri3d-IDE/actions) 
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/DrSkunk/Fri3d-IDE) 
 [![Support vshymanskyy](https://img.shields.io/static/v1?label=support&message=%E2%9D%A4&color=%23fe8e86)](https://quicknote.io/da0a7d50-bb49-11ec-936a-6d7fd5a2de08) 
 
 **An innovative [MicroPython](https://micropython.org) / [CircuitPython](https://circuitpython.org) IDE for Web and Mobile**
 
-Based on the original [ViperIDE](https://github.com/vshymanskyy/ViperIDE) project by vshymanskyy.
+Based on the original [ViperIDE](https://github.com/DrSkunk/Fri3d-IDE) project by vshymanskyy.
 
 [![image](docs/images/visual-main.png)](https://viper-ide.org)
 
