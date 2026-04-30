@@ -70,6 +70,7 @@
 
                     <div class="title-lines" id="menu-line-pkg-mgr">package manager</div>
                     <div><a href="#" onclick="app.installPkgFromUrl()" id="install-via-url">📦 Install package via link</a></div>
+                    <div><a href="#" onclick="app.createNewAppFromTools();return false;" id="create-new-app">🧱 Create new app scaffold</a></div>
 
                     <div class="title-lines" id="menu-tools-python">Python</div>
                     <div><a href="#" onclick="app.pyPrettify()" id="py-prettify">🎀 Prettify current file</a></div>
@@ -268,6 +269,7 @@
                     <option value="memory-opt">Memory optimization advisor</option>
                     <option value="cpython-port">CPython to MicroPython helper</option>
                     <option value="board-bringup">Board bring-up checklist</option>
+                    <option value="app-bootstrap">New app bootstrap</option>
                 </select>
                 <button id="assistant-run-task" type="button">Run task</button>
             </div>

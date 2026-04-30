@@ -469,6 +469,213 @@ export async function createNewFile(path) {
     })
 }
 
+function validateAppFullname(fullname) {
+    if (!fullname || !fullname.trim()) {
+        throw new Error('App fullname is required')
+    }
+    const value = fullname.trim()
+    if (!value.includes('.')) {
+        throw new Error('App fullname should include at least one dot, e.g. com.example.myapp')
+    }
+    if (!/^[A-Za-z0-9_.-]+$/.test(value)) {
+        throw new Error('App fullname may only contain letters, numbers, dots, dashes and underscores')
+    }
+    return value
+}
+
+function makeMainPyBoilerplate(appName, template) {
+    if (template === 'settings') {
+        return `from mpos import Activity, Intent, SettingActivity, SharedPreferences
+import lvgl as lv
+
+
+class Main(Activity):
+    def onCreate(self):
+        self.prefs = SharedPreferences("${appName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}")
+        screen = lv.obj()
+
+        title = lv.label(screen)
+        title.set_text("${appName}")
+        title.align(lv.ALIGN.TOP_MID, 0, 12)
+
+        btn = lv.btn(screen)
+        btn.align(lv.ALIGN.CENTER, 0, 0)
+        lbl = lv.label(btn)
+        lbl.set_text("Open settings")
+        lbl.center()
+
+        def open_settings(_e):
+            intent = Intent(activity_class=SettingActivity)
+            intent.putExtra("title", "${appName} settings")
+            intent.putExtra("item", {
+                "type": "switch",
+                "title": "Enable feature",
+                "key": "enabled",
+                "default": True,
+            })
+            self.startActivity(intent)
+
+        btn.add_event_cb(open_settings, lv.EVENT.CLICKED, None)
+        self.setContentView(screen)
+`
+    }
+
+    if (template === 'blank') {
+        return `from mpos import Activity
+import lvgl as lv
+
+
+class Main(Activity):
+    def onCreate(self):
+        screen = lv.obj()
+        self.setContentView(screen)
+`
+    }
+
+    return `from mpos import Activity
+import lvgl as lv
+
+
+class Main(Activity):
+    def onCreate(self):
+        screen = lv.obj()
+        label = lv.label(screen)
+        label.set_text("Hello from ${appName}!")
+        label.center()
+        self.setContentView(screen)
+`
+}
+
+function makeAssistantBootstrapPrompt({ fullname, appName, description, template, version }) {
+    return [
+        `Create starter MicroPythonOS app code for ${fullname}.`,
+        'Output only Python code for assets/main.py in one code block.',
+        'Constraints:',
+        '- Must define class Main(Activity) with onCreate().',
+        '- Must call self.setContentView(screen).',
+        '- Keep dependencies to mpos and lvgl only.',
+        '- Keep it small and production-safe.',
+        `App name: ${appName}`,
+        `Version: ${version}`,
+        `Template preference: ${template}`,
+        `Description: ${description || 'No description provided'}`,
+    ].join('\n')
+}
+
+export async function createNewApp() {
+    if (!port) {
+        toastr.info('Connect your board first')
+        return
+    }
+
+    const fullnameInput = prompt('New app fullname (e.g. com.example.myapp):', 'com.example.myapp')
+    if (fullnameInput == null) return
+
+    const appNameInput = prompt('Display name:', 'My App')
+    if (appNameInput == null) return
+
+    const versionInput = prompt('Version:', '0.1.0')
+    if (versionInput == null) return
+
+    const descriptionInput = prompt('Description (optional):', '')
+    if (descriptionInput == null) return
+
+    const templateInput = prompt('Template [hello/settings/blank]:', 'hello')
+    if (templateInput == null) return
+
+    let fullname
+    try {
+        fullname = validateAppFullname(fullnameInput)
+    } catch (err) {
+        report('Invalid app fullname', err)
+        return
+    }
+
+    const appName = appNameInput.trim() || 'My App'
+    const version = versionInput.trim() || '0.1.0'
+    const description = descriptionInput.trim()
+    const template = ['hello', 'settings', 'blank'].includes(templateInput.trim().toLowerCase())
+        ? templateInput.trim().toLowerCase()
+        : 'hello'
+
+    const appRoot = `/apps/${fullname}`
+    const manifestPath = `${appRoot}/META-INF/MANIFEST.JSON`
+    const mainPath = `${appRoot}/assets/main.py`
+
+    const raw = await MpRawMode.begin(port)
+    try {
+        const exists = (await raw.exec(`
+import os
+try:
+ os.stat('${appRoot}')
+ print('1')
+except:
+ print('0')
+`)).trim().endsWith('1')
+        if (exists && !confirm(`App folder ${appRoot} already exists. Overwrite scaffold files?`)) {
+            return
+        }
+
+        await raw.makePath(`${appRoot}/META-INF`)
+        await raw.makePath(`${appRoot}/assets`)
+
+        const manifest = {
+            fullname,
+            name: appName,
+            version,
+            description,
+            main_launcher_activity: {
+                entrypoint: 'assets/main.py',
+                classname: 'Main',
+            },
+        }
+
+        await raw.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
+        await raw.writeFile(mainPath, makeMainPyBoilerplate(appName, template))
+
+        try {
+            await raw.exec(`
+from mpos import AppManager
+AppManager.refresh_apps()
+AppManager.restart_launcher()
+`)
+        } catch (err) {
+            console.warn(err)
+            toastr.warning('Scaffold created, but launcher refresh failed')
+        }
+
+        await _raw_updateFileTree(raw)
+        await _raw_loadFile(raw, manifestPath)
+        await _raw_loadFile(raw, mainPath)
+    } catch (err) {
+        report('Create app scaffold failed', err)
+        return
+    } finally {
+        await raw.end()
+    }
+
+    toastr.success(`Created app scaffold for ${fullname}`)
+
+    if (confirm('Prepare an Assistant prompt to bootstrap main.py with LLM?')) {
+        const taskPreset = QID('assistant-task-preset')
+        if (taskPreset) {
+            taskPreset.value = 'app-bootstrap'
+        }
+        const promptBox = QID('assistant-prompt')
+        if (promptBox) {
+            promptBox.value = makeAssistantBootstrapPrompt({
+                fullname,
+                appName,
+                description,
+                template,
+                version,
+            })
+        }
+        toggleAssistantSidebar()
+        toastr.info('Assistant prompt prepared. Click "Run task" to generate code.')
+    }
+}
+
 export async function removeFile(path) {
     if (!port) return;
     if (!confirm(`Remove ${path}?`)) return
@@ -535,6 +742,7 @@ function _updateFileTree(fs_tree, fs_stats)
         <span class="folder name"><i class="fa-solid fa-folder fa-fw"></i> /</span>
         <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
         <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
+        <a href="#" class="menu-action" title="Create App" onclick="app.createNewApp();return false;"><i class="fa-solid fa-cubes fa-fw"></i></a>
         <a href="#" class="menu-action" title="Expand all" onclick="app.expandAllFolders();return false;"><i class="fa-solid fa-folder-open fa-fw"></i></a>
         <a href="#" class="menu-action" title="Collapse all" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
         <span class="menu-action">${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}</span>
@@ -1061,6 +1269,10 @@ export async function installPkgFromUrl() {
     if (url) {
         await installPkg(url)
     }
+}
+
+export async function createNewAppFromTools() {
+    await createNewApp()
 }
 
 /*
@@ -1675,6 +1887,8 @@ window.app = {
     loadAllPkgIndexes,
     installPkg,
     installPkgFromUrl,
+    createNewApp,
+    createNewAppFromTools,
     toggleSideMenu,
     autoHideSideMenu,
     toggleFullScreen,

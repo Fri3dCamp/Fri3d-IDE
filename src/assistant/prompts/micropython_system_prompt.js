@@ -44,6 +44,16 @@ const TASK_PROMPTS = {
         '3) Firmware checks',
         '4) Minimal recovery actions',
     ].join('\n'),
+    'app-bootstrap': [
+        'Task mode: New app bootstrap for MicroPythonOS.',
+        'Produce runnable starter code first, then optional improvements.',
+        'If asked for file content, return code only for the requested file.',
+        'Return exactly these sections:',
+        '1) App shape',
+        '2) Starter code',
+        '3) Optional enhancements',
+        '4) Verification steps',
+    ].join('\n'),
 }
 
 export function getTaskInstruction(taskId = 'none') {
