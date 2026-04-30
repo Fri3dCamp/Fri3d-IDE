@@ -156,12 +156,7 @@
 
 /* ── Glow ring on elevated target ──────────────────────────────── */
 
-#tool-panel[style*="z-index: 9001"],
-#btn-conn-usb[style*="z-index: 9001"],
-#side-menu[style*="z-index: 9001"],
-#menu-file-tree[style*="z-index: 9001"],
-#main-editor[style*="z-index: 9001"],
-#terminal-container[style*="z-index: 9001"] {
+.ob-elevated {
     outline: 3px solid var(--fri3d-mint);
     outline-offset: 2px;
     box-shadow: 0 0 0 6px rgba(60, 232, 179, 0.25);

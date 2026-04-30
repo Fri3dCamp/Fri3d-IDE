@@ -9,6 +9,7 @@
 import './onboarding.css'
 
 const ONBOARDING_STORAGE_KEY = 'fri3d.onboarding.v1.done'
+const Z_INDEX_ELEVATED = 9001
 
 const FRI3D_LOGO_SVG = `<svg viewBox="0 0 230 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <path d="m 23.66,108.47 84.41,84.4 -45.92,-91.87 4.54,-1.87 48.31,96.62 48.29,-96.6 4.54,1.88 -45.9,91.81 84.4,-84.4 L 115,70.86 Z M 115,65.56 203.89,29 l -26.9,53.78 -4.54,-1.87 21.2,-42.4 -72.22,29.7 93.57,38.52 -100,100 v 0 L 15,106.73 108.53,68.21 36.34,38.47 57.53,80.81 52.98,82.68 26.11,29 Z" fill="currentColor"/>
@@ -73,8 +74,9 @@ function elevate(selector) {
 
     savedZIndex = el.style.zIndex
     savedPosition = el.style.position
-    el.style.zIndex = '9001'
+    el.style.zIndex = String(Z_INDEX_ELEVATED)
     el.style.position = 'relative'
+    el.classList.add('ob-elevated')
     elevatedEl = el
     return el.getBoundingClientRect()
 }
@@ -83,6 +85,7 @@ function restore() {
     if (!elevatedEl) return
     elevatedEl.style.zIndex = savedZIndex
     elevatedEl.style.position = savedPosition
+    elevatedEl.classList.remove('ob-elevated')
     elevatedEl = null
 }
 
@@ -156,7 +159,7 @@ function finish() {
     try {
         localStorage.setItem(ONBOARDING_STORAGE_KEY, '1')
     } catch (_e) {
-        // Ignore storage errors
+        console.debug('onboarding: localStorage write failed', _e)
     }
     restore()
     overlayEl.remove()
@@ -200,6 +203,7 @@ export function initOnboarding() {
     try {
         if (localStorage.getItem(ONBOARDING_STORAGE_KEY)) return
     } catch (_e) {
+        console.debug('onboarding: localStorage read failed', _e)
         return
     }
 
