@@ -33,6 +33,7 @@ import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
 import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
+import { initOnboarding } from './onboarding.js'
 
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
          QSA, QS, QID, iOS, sanitizeHTML,
@@ -1526,6 +1527,7 @@ export function applyTranslation() {
 
     setTimeout(() => {
         document.body.classList.add('loaded')
+        initOnboarding()
     }, 100)
 
     const urlParams = new URLSearchParams(window.location.search)
