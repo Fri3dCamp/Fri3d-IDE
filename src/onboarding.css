@@ -102,6 +102,27 @@
     line-height: 1.55;
 }
 
+/* ── Extra content area (e.g. language picker) ─────────────────── */
+
+.ob-extra {
+    margin-bottom: 12px;
+}
+
+.ob-extra:empty {
+    display: none;
+}
+
+.ob-lang-select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 0.9em;
+    font-family: inherit;
+    background: var(--bg-color);
+    color: var(--fg-color);
+    border: var(--border-std);
+    cursor: pointer;
+}
+
 /* ── Footer ─────────────────────────────────────────────────────── */
 
 .ob-footer {

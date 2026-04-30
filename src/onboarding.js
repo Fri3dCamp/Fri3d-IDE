@@ -22,12 +22,28 @@ const STEPS = [
         text: "Hi there! I'm your Fri3d guide. Let me give you a quick tour so you can start coding right away!"
     },
     {
+        target: null,
+        title: 'Choose your language 🌐',
+        text: "Pick the language you'd like to use for the interface.",
+        renderExtra() {
+            const appLang = document.getElementById('lang')
+            if (!appLang) return ''
+            const opts = [...appLang.options]
+                .map(o => `<option value="${o.value}"${o.value === appLang.value ? ' selected' : ''}>${o.text}</option>`)
+                .join('')
+            return `<select class="ob-lang-select">${opts}</select>`
+        }
+    },
+    {
         target: '#tool-panel',
         title: 'Main Toolbar',
         text: "This is your main toolbar. Save files, run your code on the board, and connect to your Fri3d device from here."
     },
     {
+        // The button lives inside #tool-panel, so we elevate the toolbar too
+        // to ensure the button's stacking context is above the overlay.
         target: '#btn-conn-usb',
+        containers: ['#tool-panel'],
         title: 'Connect via USB',
         text: "Click this button to connect your Fri3d board via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!"
     },
@@ -64,9 +80,25 @@ let cardEl = null
 let elevatedEl = null
 let savedZIndex = ''
 let savedPosition = ''
+let containerEls = []
 
-function elevate(selector) {
+function elevateContainer(selector) {
+    const el = document.querySelector(selector)
+    if (!el) return
+    containerEls.push({
+        el,
+        zIndex: el.style.zIndex,
+        position: el.style.position,
+    })
+    el.style.zIndex = String(Z_INDEX_ELEVATED)
+    el.style.position = 'relative'
+}
+
+function elevate(selector, containers = []) {
     restore()
+    for (const s of containers) {
+        elevateContainer(s)
+    }
     if (!selector) return null
 
     const el = document.querySelector(selector)
@@ -82,11 +114,17 @@ function elevate(selector) {
 }
 
 function restore() {
-    if (!elevatedEl) return
-    elevatedEl.style.zIndex = savedZIndex
-    elevatedEl.style.position = savedPosition
-    elevatedEl.classList.remove('ob-elevated')
-    elevatedEl = null
+    if (elevatedEl) {
+        elevatedEl.style.zIndex = savedZIndex
+        elevatedEl.style.position = savedPosition
+        elevatedEl.classList.remove('ob-elevated')
+        elevatedEl = null
+    }
+    for (const { el, zIndex, position } of containerEls) {
+        el.style.zIndex = zIndex
+        el.style.position = position
+    }
+    containerEls = []
 }
 
 function positionCard(rect) {
@@ -137,13 +175,27 @@ function showStep(index) {
     const nextBtn = cardEl.querySelector('.ob-next')
     nextBtn.textContent = isLast ? 'Get started! 🚀' : 'Next →'
 
-    // Elevate target and position card
-    const rect = elevate(step.target)
-    positionCard(rect)
+    // Render optional extra content (e.g. language picker)
+    const extraEl = cardEl.querySelector('.ob-extra')
+    if (step.renderExtra) {
+        extraEl.innerHTML = step.renderExtra()
+        const langSel = extraEl.querySelector('.ob-lang-select')
+        if (langSel) {
+            langSel.addEventListener('change', () => {
+                const appLang = document.getElementById('lang')
+                if (appLang) {
+                    appLang.value = langSel.value
+                    appLang.dispatchEvent(new Event('change'))
+                }
+            })
+        }
+    } else {
+        extraEl.innerHTML = ''
+    }
 
-    // Overlay needs to be behind elevated element (z-index 9000)
-    // but block clicks on everything else
-    overlayEl.style.background = 'rgba(0, 0, 0, 0.70)'
+    // Elevate target (and optional containers) then position card
+    const rect = elevate(step.target, step.containers || [])
+    positionCard(rect)
 }
 
 function nextStep() {
@@ -185,6 +237,7 @@ function buildUI() {
                 <div class="ob-text"></div>
             </div>
         </div>
+        <div class="ob-extra"></div>
         <div class="ob-footer">
             <span class="ob-step"></span>
             <div class="ob-actions">
