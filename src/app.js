@@ -486,11 +486,11 @@ function showConfirmDialog(message) {
 
         const cancelBtn = document.createElement('button')
         cancelBtn.className = 'fri3d-btn-secondary'
-        cancelBtn.textContent = 'Cancel'
+        cancelBtn.textContent = T('app.dialog.btn-cancel', 'Cancel')
 
         const confirmBtn = document.createElement('button')
         confirmBtn.className = 'fri3d-btn-cta'
-        confirmBtn.textContent = 'Confirm'
+        confirmBtn.textContent = T('app.dialog.btn-confirm', 'Confirm')
 
         actions.appendChild(cancelBtn)
         actions.appendChild(confirmBtn)
@@ -523,27 +523,27 @@ function showAppWizardDialog() {
         const dialog = document.createElement('div')
         dialog.className = 'fri3d-dialog'
         dialog.innerHTML = `
-            <div class="fri3d-dialog-title"><i class="fa-solid fa-cubes fa-fw"></i> Create New App</div>
+            <div class="fri3d-dialog-title"><i class="fa-solid fa-cubes fa-fw"></i> ${T('app.dialog.title', 'Create New App')}</div>
             <div class="fri3d-dialog-form">
-                <label for="fri3d-app-fullname">App ID</label>
+                <label for="fri3d-app-fullname">${T('app.dialog.field-id', 'App ID')}</label>
                 <input type="text" id="fri3d-app-fullname" placeholder="com.example.myapp" autocomplete="off" spellcheck="false"/>
-                <label for="fri3d-app-name">Display name</label>
+                <label for="fri3d-app-name">${T('app.dialog.field-name', 'Display name')}</label>
                 <input type="text" id="fri3d-app-name" value="My App" autocomplete="off"/>
-                <label for="fri3d-app-version">Version</label>
+                <label for="fri3d-app-version">${T('app.dialog.field-version', 'Version')}</label>
                 <input type="text" id="fri3d-app-version" value="0.1.0" autocomplete="off"/>
-                <label for="fri3d-app-desc">Description</label>
-                <input type="text" id="fri3d-app-desc" placeholder="optional" autocomplete="off"/>
-                <label for="fri3d-app-template">Template</label>
+                <label for="fri3d-app-desc">${T('app.dialog.field-desc', 'Description')}</label>
+                <input type="text" id="fri3d-app-desc" placeholder="${T('app.dialog.field-desc', 'optional')}" autocomplete="off"/>
+                <label for="fri3d-app-template">${T('app.dialog.field-template', 'Template')}</label>
                 <select id="fri3d-app-template">
-                    <option value="hello">Hello World</option>
-                    <option value="settings">Settings demo</option>
-                    <option value="blank">Blank</option>
+                    <option value="hello">${T('app.dialog.template-hello', 'Hello World')}</option>
+                    <option value="settings">${T('app.dialog.template-settings', 'Settings demo')}</option>
+                    <option value="blank">${T('app.dialog.template-blank', 'Blank')}</option>
                 </select>
                 <span class="fri3d-dialog-error" id="fri3d-app-error"></span>
             </div>
             <div class="fri3d-dialog-actions">
-                <button class="fri3d-btn-secondary" id="fri3d-wizard-cancel" type="button">Cancel</button>
-                <button class="fri3d-btn-cta" id="fri3d-wizard-create" type="button">Create</button>
+                <button class="fri3d-btn-secondary" id="fri3d-wizard-cancel" type="button">${T('app.dialog.btn-cancel', 'Cancel')}</button>
+                <button class="fri3d-btn-cta" id="fri3d-wizard-create" type="button">${T('app.dialog.btn-create', 'Create')}</button>
             </div>
         `
         backdrop.appendChild(dialog)

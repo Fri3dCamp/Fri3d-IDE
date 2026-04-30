@@ -48,6 +48,22 @@
         "editor": {
             "md-edit": "Edit raw",
             "md-preview": "Preview"
+        },
+        "app": {
+            "dialog": {
+                "title": "Create New App",
+                "field-id": "App ID",
+                "field-name": "Display name",
+                "field-version": "Version",
+                "field-desc": "Description",
+                "field-template": "Template",
+                "template-hello": "Hello World",
+                "template-settings": "Settings demo",
+                "template-blank": "Blank",
+                "btn-create": "Create",
+                "btn-cancel": "Cancel",
+                "btn-confirm": "Confirm"
+            }
         }
     }
 }
