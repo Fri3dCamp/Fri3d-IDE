@@ -7,6 +7,9 @@
  */
 
 import './onboarding.css'
+import i18next from 'i18next'
+
+const T = i18next.t.bind(i18next)
 
 const ONBOARDING_STORAGE_KEY = 'fri3d.onboarding.v1.done'
 const Z_INDEX_ELEVATED = 9001
@@ -18,13 +21,8 @@ const FRI3D_LOGO_SVG = `<svg viewBox="0 0 230 230" xmlns="http://www.w3.org/2000
 const STEPS = [
     {
         target: null,
-        title: 'Welcome to Fri3d-IDE! 👋',
-        text: "Hi there! I'm your Fri3d guide. Let me give you a quick tour so you can start coding right away!"
-    },
-    {
-        target: null,
-        title: 'Choose your language 🌐',
-        text: "Pick the language you'd like to use for the interface.",
+        title: () => T('onboarding.steps.welcome.title', 'Welcome to Fri3d-IDE! 👋'),
+        text: () => T('onboarding.steps.welcome.text', "Hi there! I'm your Fri3d guide. Let me give you a quick tour so you can start coding right away!"),
         renderExtra() {
             const appLang = document.getElementById('lang')
             if (!appLang) return ''
@@ -36,41 +34,41 @@ const STEPS = [
     },
     {
         target: '#tool-panel',
-        title: 'Main Toolbar',
-        text: "This is your main toolbar. Save files, run your code on the board, and connect to your Fri3d device from here."
+        title: () => T('onboarding.steps.toolbar.title', 'Main Toolbar'),
+        text: () => T('onboarding.steps.toolbar.text', 'This is your main toolbar. Save files, run your code on the board, and connect to your Fri3d device from here.'),
     },
     {
         // The button lives inside #tool-panel, so we elevate the toolbar too
         // to ensure the button's stacking context is above the overlay.
         target: '#btn-conn-usb',
         containers: ['#tool-panel'],
-        title: 'Connect via USB',
-        text: "Click this button to connect your Fri3d board via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!"
+        title: () => T('onboarding.steps.connect.title', 'Connect via USB'),
+        text: () => T('onboarding.steps.connect.text', 'Click this button to connect your Fri3d board via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!'),
     },
     {
         target: '#side-menu',
-        title: 'Side Menu',
-        text: "This panel has tabs for the File Manager, Package Manager, Tools, Settings, and About. Everything you need!"
+        title: () => T('onboarding.steps.side-menu.title', 'Side Menu'),
+        text: () => T('onboarding.steps.side-menu.text', 'This panel has tabs for the File Manager, Package Manager, Tools, Settings, and About. Everything you need!'),
     },
     {
         target: '#menu-file-tree',
-        title: 'File Manager',
-        text: "Browse and manage files on your connected board here. Connect a device first to see and edit its files!"
+        title: () => T('onboarding.steps.files.title', 'File Manager'),
+        text: () => T('onboarding.steps.files.text', 'Browse and manage files on your connected board here. Connect a device first to see and edit its files!'),
     },
     {
         target: '#main-editor',
-        title: 'Code Editor',
-        text: "Write your MicroPython code here! Syntax highlighting, auto-complete, and linting are all built in. 🐍"
+        title: () => T('onboarding.steps.editor.title', 'Code Editor'),
+        text: () => T('onboarding.steps.editor.text', 'Write your MicroPython code here! Syntax highlighting, auto-complete, and linting are all built in. 🐍'),
     },
     {
         target: '#terminal-container',
-        title: 'Terminal',
-        text: "The terminal shows output from your board. You can also type commands directly into the REPL when connected."
+        title: () => T('onboarding.steps.terminal.title', 'Terminal'),
+        text: () => T('onboarding.steps.terminal.text', 'The terminal shows output from your board. You can also type commands directly into the REPL when connected.'),
     },
     {
         target: null,
-        title: "You're all set! 🚀",
-        text: "That's the tour! Connect your Fri3d board and start building amazing things. Happy coding!"
+        title: () => T('onboarding.steps.done.title', "You're all set! 🚀"),
+        text: () => T('onboarding.steps.done.text', "That's the tour! Connect your Fri3d board and start building amazing things. Happy coding!"),
     }
 ]
 
@@ -169,11 +167,12 @@ function showStep(index) {
     const isLast = index === STEPS.length - 1
 
     // Update card text
-    cardEl.querySelector('.ob-title').textContent = step.title
-    cardEl.querySelector('.ob-text').textContent = step.text
-    cardEl.querySelector('.ob-step').textContent = `Step ${index + 1} of ${STEPS.length}`
+    cardEl.querySelector('.ob-title').textContent = step.title()
+    cardEl.querySelector('.ob-text').textContent = step.text()
+    cardEl.querySelector('.ob-step').textContent = T('onboarding.step', 'Step {{current}} of {{total}}', { current: index + 1, total: STEPS.length })
+    cardEl.querySelector('.ob-skip').textContent = T('onboarding.skip', 'Skip tour')
     const nextBtn = cardEl.querySelector('.ob-next')
-    nextBtn.textContent = isLast ? 'Get started! 🚀' : 'Next →'
+    nextBtn.textContent = isLast ? T('onboarding.get-started', 'Get started! 🚀') : T('onboarding.next', 'Next →')
 
     // Render optional extra content (e.g. language picker)
     const extraEl = cardEl.querySelector('.ob-extra')
@@ -263,4 +262,8 @@ export function initOnboarding() {
     buildUI()
     currentStep = 0
     showStep(currentStep)
+
+    i18next.on('languageChanged', () => {
+        if (cardEl) showStep(currentStep)
+    })
 }
