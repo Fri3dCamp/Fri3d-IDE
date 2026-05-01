@@ -38,6 +38,7 @@
     --accent-primary: var(--fri3d-purple);
     --accent-secondary: var(--fri3d-mint);
     --accent-cta: var(--fri3d-orange);
+    --accent-cta-fg: var(--fri3d-black);
 
     /* Toolbar */
     --toolbar-bg: #1c1c22;
@@ -75,6 +76,7 @@
         --accent-primary: var(--fri3d-orange);
         --accent-secondary: var(--fri3d-purple);
         --accent-cta: var(--fri3d-purple);
+        --accent-cta-fg: var(--fri3d-white);
 
         --toolbar-bg: var(--fri3d-orange);
         --toolbar-border: var(--fri3d-black);
