@@ -377,6 +377,7 @@ const extraTheme = EditorView.theme({
 
 export async function createNewEditor(editorElement, fn, content, options) {
     let mode = []
+    fn = fn.toLowerCase()
     if (fn.endsWith('.py')) {
         const ruff = await getRuffWorkspace()
         mode = [
