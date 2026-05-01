@@ -276,7 +276,7 @@ body.loaded {
     padding: 7px 12px;
     text-align: left;
     background: var(--accent-cta);
-    color: var(--fri3d-black);
+    color: var(--accent-cta-fg);
     border: var(--border-thick);
     box-shadow: var(--shadow-std);
     cursor: pointer;
@@ -548,7 +548,7 @@ body.loaded {
     font-weight: 600;
     padding: 5px 10px;
     background: var(--accent-cta);
-    color: var(--fri3d-black);
+    color: var(--accent-cta-fg);
     border: var(--border-thick);
     box-shadow: var(--shadow-std);
     cursor: pointer;
@@ -664,7 +664,7 @@ body.loaded {
     font-weight: 600;
     padding: 6px 14px;
     background: var(--accent-cta);
-    color: var(--fri3d-black);
+    color: var(--accent-cta-fg);
     border: var(--border-thick);
     box-shadow: var(--shadow-std);
     cursor: pointer;
