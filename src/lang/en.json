@@ -25,7 +25,10 @@
         "files": {
             "no-files": "no files",
             "connect": "connect",
-            "used": "used"
+            "used": "used",
+            "new-file": "New File",
+            "refresh": "Refresh",
+            "collapse-all": "Collapse All"
         },
         "settings": {
             "conn": "connection",
@@ -50,19 +53,30 @@
             "md-preview": "Preview"
         },
         "app": {
+            "scaffold-btn": "Create new app scaffold",
+            "connect-first": "Connect your board first",
             "dialog": {
                 "title": "Create New App",
                 "field-id": "App ID",
                 "field-name": "Display name",
                 "field-version": "Version",
                 "field-desc": "Description",
+                "field-desc-placeholder": "optional",
                 "field-template": "Template",
                 "template-hello": "Hello World",
                 "template-settings": "Settings demo",
                 "template-blank": "Blank",
                 "btn-create": "Create",
                 "btn-cancel": "Cancel",
-                "btn-confirm": "Confirm"
+                "btn-confirm": "Confirm",
+                "confirm-overwrite": "App folder {{path}} already exists. Overwrite scaffold files?",
+                "confirm-bootstrap": "Prepare an Assistant prompt to bootstrap main.py with LLM?",
+                "success-created": "Created app scaffold for {{fullname}}",
+                "warning-launcher": "Scaffold created, but launcher refresh failed",
+                "info-assistant-ready": "Assistant prompt prepared. Click \"Run task\" to generate code.",
+                "validate-required": "App fullname is required",
+                "validate-dot": "App fullname should include at least one dot, e.g. com.example.myapp",
+                "validate-chars": "App fullname may only contain letters, numbers, dots, dashes and underscores"
             }
         }
     }

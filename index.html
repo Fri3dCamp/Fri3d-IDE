@@ -45,17 +45,17 @@
 
             <div id="create-new-app-section">
                 <button onclick="app.createNewApp();return false;" id="create-new-app">
-                    <i class="fa-solid fa-cubes fa-fw"></i> Create new app scaffold
+                    <i class="fa-solid fa-cubes fa-fw"></i> <span id="create-new-app-label">Create new app scaffold</span>
                 </button>
             </div>
 
             <div id="menu-files" class="tab-content active">
                 <div id="menu-file-title">
-                    <span>File Manager</span>
+                    <span id="menu-file-title-text">File Manager</span>
                     <span class="menu-file-title-actions">
-                        <a href="#" class="menu-action" title="New File" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-file-circle-plus fa-fw"></i></a>
-                        <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
-                        <a href="#" class="menu-action" title="Collapse All" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
+                        <a href="#" class="menu-action" title="New File" id="btn-file-new" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-file-circle-plus fa-fw"></i></a>
+                        <a href="#" class="menu-action" title="Refresh" id="btn-file-refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
+                        <a href="#" class="menu-action" title="Collapse All" id="btn-file-collapse" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
                     </span>
                 </div>
                 <div id="menu-file-tree">
