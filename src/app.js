@@ -757,24 +757,27 @@ AppManager.restart_launcher()
 
     toastr.success(`Created app scaffold for ${fullname}`)
 
-    const useAssistant = await showConfirmDialog('Prepare an Assistant prompt to bootstrap main.py with LLM?')
-    if (useAssistant) {
-        const taskPreset = QID('assistant-task-preset')
-        if (taskPreset) {
-            taskPreset.value = 'app-bootstrap'
+    const assistantEnabled = QID('advanced-mode') && QID('advanced-mode').checked
+    if (assistantEnabled) {
+        const useAssistant = await showConfirmDialog('Prepare an Assistant prompt to bootstrap main.py with LLM?')
+        if (useAssistant) {
+            const taskPreset = QID('assistant-task-preset')
+            if (taskPreset) {
+                taskPreset.value = 'app-bootstrap'
+            }
+            const promptBox = QID('assistant-prompt')
+            if (promptBox) {
+                promptBox.value = makeAssistantBootstrapPrompt({
+                    fullname,
+                    appName,
+                    description,
+                    template,
+                    version,
+                })
+            }
+            toggleAssistantSidebar()
+            toastr.info('Assistant prompt prepared. Click "Run task" to generate code.')
         }
-        const promptBox = QID('assistant-prompt')
-        if (promptBox) {
-            promptBox.value = makeAssistantBootstrapPrompt({
-                fullname,
-                appName,
-                description,
-                template,
-                version,
-            })
-        }
-        toggleAssistantSidebar()
-        toastr.info('Assistant prompt prepared. Click "Run task" to generate code.')
     }
 }
 
