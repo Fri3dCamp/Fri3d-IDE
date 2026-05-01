@@ -25,7 +25,10 @@
         "files": {
             "no-files": "sem arquivos",
             "connect": "conectar",
-            "used": "usado"
+            "used": "usado",
+            "new-file": "Novo arquivo",
+            "refresh": "Atualizar",
+            "collapse-all": "Recolher tudo"
         },
         "settings": {
             "conn": "conexão",
@@ -38,11 +41,43 @@
             "render-markdown": "Visualizador de Markdown",
             "use-natural-sort": "Ordenação natural",
             "lang": "Localização",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Tema"
         },
         "about": {
             "cta": "Se você gosta do Fri3d-IDE, por favor <a id='gh-star'>dê uma estrela no GitHub</a> ⭐ e divulgue nas redes sociais 📢",
             "report-bug": "Você também pode <a id='gh-issues'>relatar um bug</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Editar fonte",
+            "md-preview": "Pré-visualização"
+        },
+        "app": {
+            "scaffold-btn": "Criar novo modelo de aplicação",
+            "connect-first": "Conecte sua placa primeiro",
+            "dialog": {
+                "title": "Criar nova aplicação",
+                "field-id": "ID da aplicação",
+                "field-name": "Nome de exibição",
+                "field-version": "Versão",
+                "field-desc": "Descrição",
+                "field-desc-placeholder": "opcional",
+                "field-template": "Modelo",
+                "template-hello": "Hello World",
+                "template-settings": "Demo de configurações",
+                "template-blank": "Em branco",
+                "btn-create": "Criar",
+                "btn-cancel": "Cancelar",
+                "btn-confirm": "Confirmar",
+                "confirm-overwrite": "A pasta da aplicação {{path}} já existe. Sobrescrever arquivos do modelo?",
+                "confirm-bootstrap": "Preparar um prompt do assistente para inicializar main.py com LLM?",
+                "success-created": "Modelo de aplicação criado para {{fullname}}",
+                "warning-launcher": "Modelo criado, mas a atualização do launcher falhou",
+                "info-assistant-ready": "Prompt do assistente preparado. Clique em \"Executar tarefa\" para gerar código.",
+                "validate-required": "O nome completo da aplicação é obrigatório",
+                "validate-dot": "O nome completo deve incluir pelo menos um ponto, ex. com.example.myapp",
+                "validate-chars": "O nome completo pode conter apenas letras, números, pontos, hífens e underscores"
+            }
         }
     }
 }

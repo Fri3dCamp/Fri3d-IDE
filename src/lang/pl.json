@@ -25,7 +25,10 @@
         "files": {
             "no-files": "brak plików",
             "connect": "połącz",
-            "used": "używane"
+            "used": "używane",
+            "new-file": "Nowy plik",
+            "refresh": "Odśwież",
+            "collapse-all": "Zwiń wszystko"
         },
         "settings": {
             "conn": "połączenie",
@@ -38,11 +41,43 @@
             "render-markdown": "Przeglądarka Markdown",
             "use-natural-sort": "Naturalne sortowanie",
             "lang": "Lokalizacja",
-            "zoom": "Powiększenie"
+            "zoom": "Powiększenie",
+            "color-theme": "Motyw"
         },
         "about": {
             "cta": "Jeśli podoba ci się Fri3d-IDE, proszę <a id='gh-star'>daj mu gwiazdkę na GitHub</a> ⭐ i rozprzestrzeniaj informacje w mediach społecznościowych 📢",
             "report-bug": "Możesz także <a id='gh-issues'>zgłosić błąd</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Edytuj źródło",
+            "md-preview": "Podgląd"
+        },
+        "app": {
+            "scaffold-btn": "Utwórz nowy szkielet aplikacji",
+            "connect-first": "Najpierw podłącz płytkę",
+            "dialog": {
+                "title": "Utwórz nową aplikację",
+                "field-id": "ID aplikacji",
+                "field-name": "Nazwa wyświetlana",
+                "field-version": "Wersja",
+                "field-desc": "Opis",
+                "field-desc-placeholder": "opcjonalne",
+                "field-template": "Szablon",
+                "template-hello": "Hello World",
+                "template-settings": "Demo ustawień",
+                "template-blank": "Pusty",
+                "btn-create": "Utwórz",
+                "btn-cancel": "Anuluj",
+                "btn-confirm": "Potwierdź",
+                "confirm-overwrite": "Folder aplikacji {{path}} już istnieje. Nadpisać pliki szablonu?",
+                "confirm-bootstrap": "Przygotować prompt asystenta do zainicjowania main.py przez LLM?",
+                "success-created": "Szkielet aplikacji utworzony dla {{fullname}}",
+                "warning-launcher": "Szkielet utworzony, ale odświeżenie launchera nie powiodło się",
+                "info-assistant-ready": "Prompt asystenta przygotowany. Kliknij \"Uruchom zadanie\", aby wygenerować kod.",
+                "validate-required": "Pełna nazwa aplikacji jest wymagana",
+                "validate-dot": "Pełna nazwa powinna zawierać co najmniej jedną kropkę, np. com.example.myapp",
+                "validate-chars": "Pełna nazwa może zawierać tylko litery, cyfry, kropki, myślniki i podkreślenia"
+            }
         }
     }
 }

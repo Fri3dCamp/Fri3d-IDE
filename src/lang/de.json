@@ -25,7 +25,10 @@
         "files": {
             "no-files": "keine Dateien",
             "connect": "verbinden",
-            "used": "benutzt"
+            "used": "benutzt",
+            "new-file": "Neue Datei",
+            "refresh": "Aktualisieren",
+            "collapse-all": "Alles einklappen"
         },
         "settings": {
             "conn": "verbindung",
@@ -38,11 +41,43 @@
             "render-markdown": "Markdown-Viewer",
             "use-natural-sort": "Natürliche Sortierung",
             "lang": "Lokalisierung",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Design"
         },
         "about": {
             "cta": "Wenn Ihnen Fri3d-IDE gefällt, geben Sie ihm bitte <a id='gh-star'>einen Stern auf GitHub</a> ⭐ und verbreiten Sie die Nachricht in den sozialen Medien 📢",
             "report-bug": "Sie können auch <a id='gh-issues'>einen Fehler melden</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Quelltext bearbeiten",
+            "md-preview": "Vorschau"
+        },
+        "app": {
+            "scaffold-btn": "Neue App-Vorlage erstellen",
+            "connect-first": "Zuerst Board verbinden",
+            "dialog": {
+                "title": "Neue App erstellen",
+                "field-id": "App-ID",
+                "field-name": "Anzeigename",
+                "field-version": "Version",
+                "field-desc": "Beschreibung",
+                "field-desc-placeholder": "optional",
+                "field-template": "Vorlage",
+                "template-hello": "Hello World",
+                "template-settings": "Einstellungen-Demo",
+                "template-blank": "Leer",
+                "btn-create": "Erstellen",
+                "btn-cancel": "Abbrechen",
+                "btn-confirm": "Bestätigen",
+                "confirm-overwrite": "App-Ordner {{path}} existiert bereits. Vorlage-Dateien überschreiben?",
+                "confirm-bootstrap": "Einen Assistenten-Prompt zum Bootstrappen von main.py mit LLM vorbereiten?",
+                "success-created": "App-Vorlage für {{fullname}} erstellt",
+                "warning-launcher": "Vorlage erstellt, aber Launcher-Aktualisierung fehlgeschlagen",
+                "info-assistant-ready": "Assistenten-Prompt vorbereitet. Klicke \"Aufgabe ausführen\" um Code zu generieren.",
+                "validate-required": "App-Vollname ist erforderlich",
+                "validate-dot": "App-Vollname sollte mindestens einen Punkt enthalten, z.B. com.example.myapp",
+                "validate-chars": "App-Vollname darf nur Buchstaben, Zahlen, Punkte, Bindestriche und Unterstriche enthalten"
+            }
         }
     }
 }

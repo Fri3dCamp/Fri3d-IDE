@@ -25,7 +25,10 @@
         "files": {
             "no-files": "inga filer",
             "connect": "ansluta",
-            "used": "används"
+            "used": "används",
+            "new-file": "Ny fil",
+            "refresh": "Uppdatera",
+            "collapse-all": "Fäll ihop alla"
         },
         "settings": {
             "conn": "anslutning",
@@ -38,11 +41,43 @@
             "render-markdown": "Markdown-visare",
             "use-natural-sort": "Naturlig sortering",
             "lang": "Lokalisering",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Tema"
         },
         "about": {
             "cta": "Om du gillar Fri3d-IDE, vänligen <a id='gh-star'>ge det en stjärna på GitHub</a> ⭐ och sprid ordet på sociala medier 📢",
             "report-bug": "Du kan också <a id='gh-issues'>rapportera ett fel</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Redigera källa",
+            "md-preview": "Förhandsvisning"
+        },
+        "app": {
+            "scaffold-btn": "Skapa nytt appmall",
+            "connect-first": "Anslut ditt kort först",
+            "dialog": {
+                "title": "Skapa ny app",
+                "field-id": "App-ID",
+                "field-name": "Visningsnamn",
+                "field-version": "Version",
+                "field-desc": "Beskrivning",
+                "field-desc-placeholder": "valfritt",
+                "field-template": "Mall",
+                "template-hello": "Hello World",
+                "template-settings": "Inställningsdemo",
+                "template-blank": "Tom",
+                "btn-create": "Skapa",
+                "btn-cancel": "Avbryt",
+                "btn-confirm": "Bekräfta",
+                "confirm-overwrite": "Appmappen {{path}} finns redan. Skriv över mallfiler?",
+                "confirm-bootstrap": "Förbered en assistentprompt för att bootstrapa main.py med LLM?",
+                "success-created": "Appmall skapad för {{fullname}}",
+                "warning-launcher": "Mall skapad, men uppdatering av startprogrammet misslyckades",
+                "info-assistant-ready": "Assistentprompt förberedd. Klicka på \"Kör uppgift\" för att generera kod.",
+                "validate-required": "Appens fullständiga namn krävs",
+                "validate-dot": "Fullständiga namnet måste innehålla minst en punkt, t.ex. com.example.myapp",
+                "validate-chars": "Fullständiga namnet får bara innehålla bokstäver, siffror, punkter, bindestreck och understreck"
+            }
         }
     }
 }

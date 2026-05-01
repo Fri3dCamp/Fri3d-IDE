@@ -25,7 +25,10 @@
         "files": {
             "no-files": "fără fișiere",
             "connect": "conectați",
-            "used": "folosit"
+            "used": "folosit",
+            "new-file": "Fişier nou",
+            "refresh": "Reîncarcă",
+            "collapse-all": "Restrânge tot"
         },
         "settings": {
             "conn": "conexiune",
@@ -38,11 +41,43 @@
             "render-markdown": "Vizualizator Markdown",
             "use-natural-sort": "Sortare naturală",
             "lang": "Localizare",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Temă"
         },
         "about": {
             "cta": "Dacă vă place Fri3d-IDE, vă rugăm <a id='gh-star'>dați-i o stea pe GitHub</a> ⭐ și răspândiți vestea pe rețelele sociale 📢",
             "report-bug": "Puteți de asemenea să <a id='gh-issues'>raportați o eroare</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Editează sursă",
+            "md-preview": "Previzualizare"
+        },
+        "app": {
+            "scaffold-btn": "Creează un nou schelet de aplicație",
+            "connect-first": "Conectați mai întâi placa",
+            "dialog": {
+                "title": "Creează aplicație nouă",
+                "field-id": "ID aplicație",
+                "field-name": "Nume afişat",
+                "field-version": "Versiune",
+                "field-desc": "Descriere",
+                "field-desc-placeholder": "opțional",
+                "field-template": "Şablon",
+                "template-hello": "Hello World",
+                "template-settings": "Demo setări",
+                "template-blank": "Gol",
+                "btn-create": "Creare",
+                "btn-cancel": "Anulare",
+                "btn-confirm": "Confirmare",
+                "confirm-overwrite": "Folderul aplicației {{path}} există deja. Suprascrieți fişierele schelet?",
+                "confirm-bootstrap": "Pregătiți un prompt de asistent pentru a inițializa main.py cu LLM?",
+                "success-created": "Schelet de aplicație creat pentru {{fullname}}",
+                "warning-launcher": "Schelet creat, dar reîncărcarea launcher-ului a eşuat",
+                "info-assistant-ready": "Promptul asistentului este pregătit. Faceți clic pe «Rulează sarcina» pentru a genera cod.",
+                "validate-required": "Numele complet al aplicației este obligatoriu",
+                "validate-dot": "Numele complet trebuie să conțină cel puțin un punct, ex. com.example.myapp",
+                "validate-chars": "Numele complet poate conține doar litere, cifre, puncte, liniute și liniute de subliniere"
+            }
         }
     }
 }

@@ -25,7 +25,10 @@
         "files": {
             "no-files": "geen bestanden",
             "connect": "verbinden",
-            "used": "gebruikt"
+            "used": "gebruikt",
+            "new-file": "Nieuw bestand",
+            "refresh": "Vernieuwen",
+            "collapse-all": "Alles inklappen"
         },
         "settings": {
             "conn": "verbinding",
@@ -38,11 +41,43 @@
             "render-markdown": "Markdown viewer",
             "use-natural-sort": "Natuurlijke sortering",
             "lang": "Lokalisatie",
-            "zoom": "Inzoomen"
+            "zoom": "Inzoomen",
+            "color-theme": "Thema"
         },
         "about": {
             "cta": "Als je Fri3d-IDE leuk vindt, geef het dan alsjeblieft een <a id='gh-star'>ster op GitHub</a> ⭐ en vertel het verder op sociale media 📢",
             "report-bug": "Je kunt ook een <a id='gh-issues'>fout melden</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Broncode bewerken",
+            "md-preview": "Voorbeeld"
+        },
+        "app": {
+            "scaffold-btn": "Nieuwe app-sjabloon maken",
+            "connect-first": "Verbind eerst je board",
+            "dialog": {
+                "title": "Nieuwe app maken",
+                "field-id": "App-ID",
+                "field-name": "Weergavenaam",
+                "field-version": "Versie",
+                "field-desc": "Beschrijving",
+                "field-desc-placeholder": "optioneel",
+                "field-template": "Sjabloon",
+                "template-hello": "Hello World",
+                "template-settings": "Instellingen demo",
+                "template-blank": "Leeg",
+                "btn-create": "Maken",
+                "btn-cancel": "Annuleren",
+                "btn-confirm": "Bevestigen",
+                "confirm-overwrite": "App-map {{path}} bestaat al. Sjabloonbestanden overschrijven?",
+                "confirm-bootstrap": "Een assistent-prompt voorbereiden om main.py te bootstrappen met LLM?",
+                "success-created": "App-sjabloon gemaakt voor {{fullname}}",
+                "warning-launcher": "Sjabloon gemaakt, maar vernieuwen van launcher mislukt",
+                "info-assistant-ready": "Assistent-prompt voorbereid. Klik op \"Taak uitvoeren\" om code te genereren.",
+                "validate-required": "App volledige naam is vereist",
+                "validate-dot": "App volledige naam moet ten minste een punt bevatten, bijv. com.example.myapp",
+                "validate-chars": "App volledige naam mag alleen letters, cijfers, punten, koppeltekens en underscores bevatten"
+            }
         }
     }
 }

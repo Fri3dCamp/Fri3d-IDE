@@ -25,7 +25,10 @@
         "files": {
             "no-files": "لا توجد ملفات",
             "connect": "اتصال",
-            "used": "مستخدم"
+            "used": "مستخدم",
+            "new-file": "ملف جديد",
+            "refresh": "تحديث",
+            "collapse-all": "طي الكل"
         },
         "settings": {
             "conn": "الاتصال",
@@ -38,11 +41,43 @@
             "render-markdown": "عارض Markdown",
             "use-natural-sort": "الفرز الطبيعي",
             "lang": "الموقع",
-            "zoom": "تكبير"
+            "zoom": "تكبير",
+            "color-theme": "السمة"
         },
         "about": {
             "cta": "إذا أعجبك Fri3d-IDE، من فضلك <a id='gh-star'>امنحه نجمة على GitHub</a> ⭐ وانشر الخبر على وسائل التواصل الاجتماعي 📢",
             "report-bug": "يمكنك أيضًا <a id='gh-issues'>الإبلاغ عن خطأ</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "تعديل المصدر",
+            "md-preview": "معاينة"
+        },
+        "app": {
+            "scaffold-btn": "إنشاء هيكل تطبيق جديد",
+            "connect-first": "قم بتوصيل لوحتك أولاً",
+            "dialog": {
+                "title": "إنشاء تطبيق جديد",
+                "field-id": "معرّف التطبيق",
+                "field-name": "اسم العرض",
+                "field-version": "الإصدار",
+                "field-desc": "الوصف",
+                "field-desc-placeholder": "اختياري",
+                "field-template": "القالب",
+                "template-hello": "Hello World",
+                "template-settings": "عرض الإعدادات",
+                "template-blank": "فارغ",
+                "btn-create": "إنشاء",
+                "btn-cancel": "إلغاء",
+                "btn-confirm": "تأكيد",
+                "confirm-overwrite": "مجلد التطبيق {{path}} موجود بالفعل. هل تريد الكتابة فوق ملفات الهيكل؟",
+                "confirm-bootstrap": "هل تريد تحضير موجّه المساعد لتهيئة main.py باستخدام LLM؟",
+                "success-created": "تم إنشاء هيكل التطبيق لـ {{fullname}}",
+                "warning-launcher": "تم إنشاء الهيكل، لكن تحديث المشغّل فشل",
+                "info-assistant-ready": "تم تحضير موجّه المساعد. انقر فوق «تشغيل المهمة» لإنشاء الكود.",
+                "validate-required": "الاسم الكامل للتطبيق مطلوب",
+                "validate-dot": "يجب أن يحتوي الاسم الكامل على نقطة واحدة على الأقل، مثل com.example.myapp",
+                "validate-chars": "يمكن أن يحتوي الاسم الكامل على حروف وأرقام ونقاط وشرطات وشرطات سفلية فقط"
+            }
         }
     }
 }

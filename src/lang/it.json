@@ -25,7 +25,10 @@
         "files": {
             "no-files": "nessun file",
             "connect": "connetti",
-            "used": "usato"
+            "used": "usato",
+            "new-file": "Nuovo file",
+            "refresh": "Aggiorna",
+            "collapse-all": "Comprimi tutto"
         },
         "settings": {
             "conn": "connessione",
@@ -38,11 +41,43 @@
             "render-markdown": "Visualizzatore di Markdown",
             "use-natural-sort": "Ordinamento naturale",
             "lang": "Localizzazione",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Tema"
         },
         "about": {
             "cta": "Se ti piace Fri3d-IDE, per favore <a id='gh-star'>dagli una stella su GitHub</a> ⭐ e spargi la voce sui social media 📢",
             "report-bug": "Puoi anche <a id='gh-issues'>segnalare un bug</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Modifica sorgente",
+            "md-preview": "Anteprima"
+        },
+        "app": {
+            "scaffold-btn": "Crea nuovo scaffold applicazione",
+            "connect-first": "Connetti prima la scheda",
+            "dialog": {
+                "title": "Crea nuova applicazione",
+                "field-id": "ID applicazione",
+                "field-name": "Nome visualizzato",
+                "field-version": "Versione",
+                "field-desc": "Descrizione",
+                "field-desc-placeholder": "opzionale",
+                "field-template": "Template",
+                "template-hello": "Hello World",
+                "template-settings": "Demo impostazioni",
+                "template-blank": "Vuoto",
+                "btn-create": "Crea",
+                "btn-cancel": "Annulla",
+                "btn-confirm": "Conferma",
+                "confirm-overwrite": "La cartella dell’app {{path}} esiste già. Sovrascrivere i file del template?",
+                "confirm-bootstrap": "Preparare un prompt dell’assistente per inizializzare main.py con LLM?",
+                "success-created": "Template app creato per {{fullname}}",
+                "warning-launcher": "Template creato, ma il refresh del launcher è fallito",
+                "info-assistant-ready": "Prompt dell’assistente preparato. Clicca \"Esegui attività\" per generare il codice.",
+                "validate-required": "Il nome completo dell’app è obbligatorio",
+                "validate-dot": "Il nome completo deve includere almeno un punto, es. com.example.myapp",
+                "validate-chars": "Il nome completo può contenere solo lettere, numeri, punti, trattini e underscore"
+            }
         }
     }
 }

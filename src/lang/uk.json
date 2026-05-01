@@ -25,7 +25,10 @@
         "files": {
             "no-files": "немає файлів",
             "connect": "підключити",
-            "used": "зайнято"
+            "used": "зайнято",
+            "new-file": "Новий файл",
+            "refresh": "Оновити",
+            "collapse-all": "Згорнути все"
         },
         "settings": {
             "conn": "підключення",
@@ -38,11 +41,43 @@
             "render-markdown": "Переглядач Markdown",
             "use-natural-sort": "Природне сортування",
             "lang": "Локалізація",
-            "zoom": "Масштаб"
+            "zoom": "Масштаб",
+            "color-theme": "Тема"
         },
         "about": {
             "cta": "Якщо вам подобається Fri3d-IDE, подаруйте йому <a id='gh-star'>зірку на GitHub</a> ⭐ і поширюйте відгук в соціальних мережах 📢",
             "report-bug": "Ви також можете <a id='gh-issues'>повідомити про ваду</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Редагувати джерело",
+            "md-preview": "Попередній перегляд"
+        },
+        "app": {
+            "scaffold-btn": "Створити шаблон нового застосунку",
+            "connect-first": "Спочатку підключіть плату",
+            "dialog": {
+                "title": "Створити новий застосунок",
+                "field-id": "ID застосунку",
+                "field-name": "Відображувана назва",
+                "field-version": "Версія",
+                "field-desc": "Опис",
+                "field-desc-placeholder": "необов’язково",
+                "field-template": "Шаблон",
+                "template-hello": "Hello World",
+                "template-settings": "Демо налаштувань",
+                "template-blank": "Порожній",
+                "btn-create": "Створити",
+                "btn-cancel": "Скасувати",
+                "btn-confirm": "Підтвердити",
+                "confirm-overwrite": "Тека застосунку {{path}} вже існує. Перезаписати файли шаблону?",
+                "confirm-bootstrap": "Підготувати запит асистента для ініціалізації main.py за допомогою LLM?",
+                "success-created": "Шаблон застосунку створено для {{fullname}}",
+                "warning-launcher": "Шаблон створено, але оновлення лаунчера не вдалось",
+                "info-assistant-ready": "Запит асистента підготовлено. Натисніть «Виконати завдання» для генерації коду.",
+                "validate-required": "Повна назва застосунку є обов’язковою",
+                "validate-dot": "Повна назва повинна містити принаймні одну крапку, напр. com.example.myapp",
+                "validate-chars": "Повна назва може містити лише літери, цифри, крапки, дефіси та підкреслення"
+            }
         }
     }
 }
