@@ -25,7 +25,10 @@
         "files": {
             "no-files": "нет файлов",
             "connect": "подключить",
-            "used": "используется"
+            "used": "используется",
+            "new-file": "Новый файл",
+            "refresh": "Обновить",
+            "collapse-all": "Свернуть всё"
         },
         "settings": {
             "conn": "соединение",
@@ -38,11 +41,43 @@
             "render-markdown": "Просмотр Markdown",
             "use-natural-sort": "Естественная сортировка",
             "lang": "Локализация",
-            "zoom": "Увеличение"
+            "zoom": "Увеличение",
+            "color-theme": "Тема"
         },
         "about": {
             "cta": "Если вам нравится Fri3d-IDE, <a id='gh-star'>поставьте ему звезду на GitHub</a> ⭐ и расскажите о нем в социальных сетях 📢",
             "report-bug": "Вы также можете <a id='gh-issues'>сообщить об ошибке</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Редактировать исходник",
+            "md-preview": "Предпросмотр"
+        },
+        "app": {
+            "scaffold-btn": "Создать шаблон нового приложения",
+            "connect-first": "Сначала подключите плату",
+            "dialog": {
+                "title": "Создать новое приложение",
+                "field-id": "ID приложения",
+                "field-name": "Отображаемое имя",
+                "field-version": "Версия",
+                "field-desc": "Описание",
+                "field-desc-placeholder": "необязательно",
+                "field-template": "Шаблон",
+                "template-hello": "Hello World",
+                "template-settings": "Демо настроек",
+                "template-blank": "Пустой",
+                "btn-create": "Создать",
+                "btn-cancel": "Отмена",
+                "btn-confirm": "Подтвердить",
+                "confirm-overwrite": "Папка приложения {{path}} уже существует. Перезаписать файлы шаблона?",
+                "confirm-bootstrap": "Подготовить запрос ассистента для инициализации main.py с LLM?",
+                "success-created": "Шаблон приложения создан для {{fullname}}",
+                "warning-launcher": "Шаблон создан, но обновление лаунчера не удалось",
+                "info-assistant-ready": "Запрос ассистента подготовлен. Нажмите «Выполнить задачу» для генерации кода.",
+                "validate-required": "Полное имя приложения обязательно",
+                "validate-dot": "Полное имя должно содержать хотя бы одну точку, напр. com.example.myapp",
+                "validate-chars": "Полное имя может содержать только буквы, цифры, точки, дефисы и подчёркивания"
+            }
         }
     }
 }

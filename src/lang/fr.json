@@ -25,7 +25,10 @@
         "files": {
             "no-files": "pas de fichiers",
             "connect": "connecter",
-            "used": "utilisé"
+            "used": "utilisé",
+            "new-file": "Nouveau fichier",
+            "refresh": "Actualiser",
+            "collapse-all": "Tout réduire"
         },
         "settings": {
             "conn": "connexion",
@@ -38,11 +41,43 @@
             "render-markdown": "Visionneuse Markdown",
             "use-natural-sort": "Tri naturel",
             "lang": "Localisation",
-            "zoom": "Zoom"
+            "zoom": "Zoom",
+            "color-theme": "Thème"
         },
         "about": {
             "cta": "Si vous aimez Fri3d-IDE, veuillez <a id='gh-star'>lui donner une étoile sur GitHub</a> ⭐ et en parler sur les réseaux sociaux 📢",
             "report-bug": "Vous pouvez aussi <a id='gh-issues'>signaler un bug</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "Modifier le source",
+            "md-preview": "Aperçu"
+        },
+        "app": {
+            "scaffold-btn": "Créer un nouveau modèle d’application",
+            "connect-first": "Connectez d’abord votre carte",
+            "dialog": {
+                "title": "Créer une nouvelle application",
+                "field-id": "ID de l’application",
+                "field-name": "Nom d’affichage",
+                "field-version": "Version",
+                "field-desc": "Description",
+                "field-desc-placeholder": "optionnel",
+                "field-template": "Modèle",
+                "template-hello": "Hello World",
+                "template-settings": "Démo des paramètres",
+                "template-blank": "Vide",
+                "btn-create": "Créer",
+                "btn-cancel": "Annuler",
+                "btn-confirm": "Confirmer",
+                "confirm-overwrite": "Le dossier de l’application {{path}} existe déjà. Écraser les fichiers du modèle ?",
+                "confirm-bootstrap": "Préparer un prompt d’assistant pour initialiser main.py avec LLM ?",
+                "success-created": "Modèle d’application créé pour {{fullname}}",
+                "warning-launcher": "Modèle créé, mais l’actualisation du lanceur a échoué",
+                "info-assistant-ready": "Prompt d’assistant préparé. Cliquez sur \"Exécuter la tâche\" pour générer du code.",
+                "validate-required": "Le nom complet de l’application est requis",
+                "validate-dot": "Le nom complet doit contenir au moins un point, ex. com.example.myapp",
+                "validate-chars": "Le nom complet ne peut contenir que des lettres, chiffres, points, tirets et underscores"
+            }
         }
     }
 }

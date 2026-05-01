@@ -25,7 +25,10 @@
         "files": {
             "no-files": "파일 없음",
             "connect": "연결",
-            "used": "사용 중"
+            "used": "사용 중",
+            "new-file": "새 파일",
+            "refresh": "새로 고침",
+            "collapse-all": "모두 접기"
         },
         "settings": {
             "conn": "연결",
@@ -38,11 +41,43 @@
             "render-markdown": "Markdown 뷰어",
             "use-natural-sort": "자연 정렬",
             "lang": "현지화",
-            "zoom": "줌"
+            "zoom": "줌",
+            "color-theme": "테마"
         },
         "about": {
             "cta": "Fri3d-IDE가 마음에 들면 <a id='gh-star'>GitHub에서 별을 주세요</a> ⭐ 그리고 소셜 미디어에 소식을 전하세요 📢",
             "report-bug": "또한 <a id='gh-issues'>버그를 보고할 수 있습니다</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "소스 편집",
+            "md-preview": "미리보기"
+        },
+        "app": {
+            "scaffold-btn": "새 앱 스캐폴드 생성",
+            "connect-first": "먼저 보드를 연결하세요",
+            "dialog": {
+                "title": "새 앱 만들기",
+                "field-id": "앱 ID",
+                "field-name": "표시 이름",
+                "field-version": "버전",
+                "field-desc": "설명",
+                "field-desc-placeholder": "선택 사항",
+                "field-template": "템플릿",
+                "template-hello": "Hello World",
+                "template-settings": "설정 데모",
+                "template-blank": "비어 있음",
+                "btn-create": "만들기",
+                "btn-cancel": "취소",
+                "btn-confirm": "확인",
+                "confirm-overwrite": "앱 폴더 {{path}} 이(가) 이미 존재합니다. 스캐폴드 파일을 덮어쓰시겠습니까?",
+                "confirm-bootstrap": "LLM으로 main.py를 부트스트랩할 어시스턴트 프롬프트를 준비하시겠습니까?",
+                "success-created": "{{fullname}} 에 대한 앱 스캐폴드가 생성되었습니다",
+                "warning-launcher": "스캐폴드가 생성되었지만 런청 새로 고침에 실패했습니다",
+                "info-assistant-ready": "어시스턴트 프롬프트가 준비되었습니다. \"작업 실행\"을 클릭하여 코드를 생성하세요.",
+                "validate-required": "앱 전체 이름은 필수입니다",
+                "validate-dot": "전체 이름에는 점이 하나 이상 포함되어야 합니다. 예: com.example.myapp",
+                "validate-chars": "전체 이름에는 문자, 숫자, 점, 대시, 밑줄만 사용할 수 있습니다"
+            }
         }
     }
 }

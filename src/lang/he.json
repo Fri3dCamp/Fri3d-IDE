@@ -25,7 +25,10 @@
         "files": {
             "no-files": "אין קבצים",
             "connect": "חבר",
-            "used": "בשימוש"
+            "used": "בשימוש",
+            "new-file": "קובץ חדש",
+            "refresh": "רענן",
+            "collapse-all": "כווץ הכל"
         },
         "settings": {
             "conn": "חיבור",
@@ -38,11 +41,43 @@
             "render-markdown": "צופה Markdown",
             "use-natural-sort": "מיון טבעי",
             "lang": "עברית",
-            "zoom": "התקרב"
+            "zoom": "התקרב",
+            "color-theme": "ערכת נושא"
         },
         "about": {
             "cta": "אם אתה אוהב את Fri3d-IDE, אנא <a id='gh-star'>תן לו כוכב ב-GitHub</a> ⭐ והפיץ את המילה ברשתות החברתיות 📢",
             "report-bug": "אתה יכול גם <a id='gh-issues'>לדווח על באג</a> 🐞"
+        },
+        "editor": {
+            "md-edit": "ערוך מקור",
+            "md-preview": "תצוגה מקדימה"
+        },
+        "app": {
+            "scaffold-btn": "צור פיגום אפליקציה חדש",
+            "connect-first": "חבר תחילה את הלוח",
+            "dialog": {
+                "title": "יצירת אפליקציה חדשה",
+                "field-id": "מזהה האפליקציה",
+                "field-name": "שם תצוגה",
+                "field-version": "גרסה",
+                "field-desc": "תיאור",
+                "field-desc-placeholder": "אופציונלי",
+                "field-template": "תבנית",
+                "template-hello": "Hello World",
+                "template-settings": "הדגמת הגדרות",
+                "template-blank": "ריק",
+                "btn-create": "צור",
+                "btn-cancel": "ביטול",
+                "btn-confirm": "אישור",
+                "confirm-overwrite": "תיקיית האפליקציה {{path}} כבר קיימת. להחליף קבצי פיגום?",
+                "confirm-bootstrap": "להכין פרומפט עוזר לאתחול main.py עם LLM?",
+                "success-created": "פיגום אפליקציה נוצר עבור {{fullname}}",
+                "warning-launcher": "פיגום נוצר, אך רענון המשגר נכשל",
+                "info-assistant-ready": "פרומפט העוזר הוכן. לחץ על «הפעל משימה» כדי ליצור קוד.",
+                "validate-required": "שם מלא של האפליקציה הוא שדה חובה",
+                "validate-dot": "השם המלא צריך לכלול לפחות נקודה אחת, למשל com.example.myapp",
+                "validate-chars": "השם המלא יכול להכיל רק אותיות, מספרים, נקודות, מקפים וקווים תחתונים"
+            }
         }
     }
 }

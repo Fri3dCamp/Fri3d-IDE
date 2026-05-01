@@ -25,7 +25,10 @@
         "files": {
             "no-files": "ファイルなし",
             "connect": "接続",
-            "used": "使用中"
+            "used": "使用中",
+            "new-file": "新しいファイル",
+            "refresh": "更新",
+            "collapse-all": "すべて折りたたむ"
         },
         "settings": {
             "conn": "接続",
@@ -38,11 +41,43 @@
             "render-markdown": "Markdownビューア",
             "use-natural-sort": "自然な並び替え",
             "lang": "ローカリゼーション",
-            "zoom": "ズーム"
+            "zoom": "ズーム",
+            "color-theme": "テーマ"
         },
         "about": {
             "cta": "Fri3d-IDEが気に入ったら、<a id='gh-star'>GitHubでスターを付けてください</a> ⭐ そして、ソーシャルメディアで広めてください 📢",
             "report-bug": "また、<a id='gh-issues'>バグを報告する</a> 🐞こともできます"
+        },
+        "editor": {
+            "md-edit": "ソースを編集",
+            "md-preview": "プレビュー"
+        },
+        "app": {
+            "scaffold-btn": "新しいアプリのひな形を作成",
+            "connect-first": "まずボードを接続してください",
+            "dialog": {
+                "title": "新しいアプリを作成",
+                "field-id": "アプリ ID",
+                "field-name": "表示名",
+                "field-version": "バージョン",
+                "field-desc": "説明",
+                "field-desc-placeholder": "任意",
+                "field-template": "テンプレート",
+                "template-hello": "Hello World",
+                "template-settings": "設定デモ",
+                "template-blank": "空白",
+                "btn-create": "作成",
+                "btn-cancel": "キャンセル",
+                "btn-confirm": "確認",
+                "confirm-overwrite": "アプリフォルダ {{path}} はすでに存在します。ひな形ファイルを上書きしますか？",
+                "confirm-bootstrap": "LLMで main.py を初期化するためのアシスタントプロンプトを準備しますか？",
+                "success-created": "{{fullname}} のアプリひな形を作成しました",
+                "warning-launcher": "ひな形を作成しましたが、ランチャーの更新に失敗しました",
+                "info-assistant-ready": "アシスタントプロンプトが準備できました。「タスクを実行」をクリックしてコードを生成してください。",
+                "validate-required": "アプリの完全名は必須です",
+                "validate-dot": "完全名には少なくとも1つのドットが必要です（例：com.example.myapp）",
+                "validate-chars": "完全名には文字、数字、ドット、ダッシュ、アンダースコアのみ使用できます"
+            }
         }
     }
 }
