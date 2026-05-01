@@ -340,6 +340,12 @@ body.loaded {
     margin-left: auto;
 }
 
+#menu-file-tree > div:not(.folder-content):hover,
+#menu-file-tree .folder-content > div:not(.folder-content):hover {
+    background-color: color-mix(in srgb, var(--fg-color) 8%, transparent);
+    border-radius: 2px;
+}
+
 #menu-file-tree .menu-action {
     float: none;
 }
