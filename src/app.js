@@ -495,6 +495,84 @@ export async function removeDir(path) {
     }
 }
 
+export async function renameEntry(path, isDir) {
+    if (!port) return;
+
+    // Remove any existing inline rename input
+    const existingContainer = QID('file-tree-rename-item')
+    if (existingContainer) existingContainer.remove()
+
+    const [parentPath, oldName] = splitPath(path)
+
+    // Find the entry element in the file tree to inline-replace it
+    const entryEl = isDir
+        ? QS(`#menu-file-tree .folder-content[data-folder-path="${path}"]`)?.previousElementSibling
+        : QS(`#menu-file-tree [data-fn="${path}"]`)?.closest('div')
+    if (!entryEl) return
+
+    const depth = path.split('/').filter(Boolean).length
+    const offset = '\u2003'.repeat(depth - 1)
+
+    const div = document.createElement('div')
+    div.id = 'file-tree-rename-item'
+    div.innerHTML = `${offset}<input type="text" id="file-tree-rename-input" class="file-tree-new-input" autocomplete="off" spellcheck="false" value="${sanitizeHTML(oldName)}" />`
+
+    entryEl.replaceWith(div)
+    if (isDir) {
+        // Re-hide the folder content so it stays below the input
+        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${path}"]`)
+        if (contentEl) div.after(contentEl)
+    }
+
+    const input = QID('file-tree-rename-input')
+    input.focus()
+    input.select()
+
+    let confirmed = false
+
+    async function confirmRename() {
+        confirmed = true
+        const newName = input.value.trim()
+        div.remove()
+        if (!newName || newName === oldName) {
+            await refreshFileTree()
+            return
+        }
+        const newPath = (parentPath ? '/' + parentPath : '') + '/' + newName
+        const raw = await MpRawMode.begin(port)
+        try {
+            await raw.renameEntry(path, newPath)
+            await _raw_updateFileTree(raw)
+            if (isDir) {
+                document.dispatchEvent(new CustomEvent("dirRenamed", {detail: {old: path, new: newPath}}))
+            } else {
+                document.dispatchEvent(new CustomEvent("fileRenamed", {detail: {old: path, new: newPath}}))
+            }
+        } finally {
+            await raw.end()
+        }
+    }
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            confirmRename()
+        } else if (e.key === 'Escape') {
+            div.remove()
+            refreshFileTree()
+        }
+    })
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            if (!confirmed) {
+                div.remove()
+                refreshFileTree()
+            }
+        }, 150)
+    })
+}
+
 async function execReplNoFollow(cmd) {
     await port.write('\r\x03\x03')
     //await port.flushInput()
@@ -547,6 +625,7 @@ function _updateFileTree(fs_tree, fs_stats)
                 const isOpen = openFolders.has(n.path)
                 html += `<div>
                     ${offset}<span class="folder name folder-toggleable" onclick="app.toggleFolder('${n.path}');return false;"><i class="fa-solid fa-chevron-right fa-fw folder-chevron${isOpen ? ' open' : ''}"></i><i class="fa-solid fa-folder fa-fw"></i> ${n.name}</span>
+                    <a href="#" class="menu-action" title="Rename" onclick="app.renameEntry('${n.path}',true);return false;"><i class="fa-solid fa-pen fa-fw"></i></a>
                     <a href="#" class="menu-action" title="Remove" onclick="app.removeDir('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
                     <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('${n.path}/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
                 </div>
@@ -575,6 +654,7 @@ function _updateFileTree(fs_tree, fs_stats)
                 } else {
                     html += `<div>
                         ${offset}<a href="#" class="name ${sel}" data-fn="${n.path}" onclick="app.fileClick('${n.path}');return false;">${icon} ${n.name}&nbsp;</a>
+                        <a href="#" class="menu-action" title="Rename" onclick="app.renameEntry('${n.path}',false);return false;"><i class="fa-solid fa-pen fa-fw"></i></a>
                         <a href="#" class="menu-action" title="Remove" onclick="app.removeFile('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
                         <span class="menu-action">${sizeFmt(n.size)}</span>
                     </div>`
@@ -1659,6 +1739,7 @@ window.app = {
     connectDevice,
     refreshFileTree,
     createNewFile,
+    renameEntry,
     removeFile,
     removeDir,
     fileTreeSelect,

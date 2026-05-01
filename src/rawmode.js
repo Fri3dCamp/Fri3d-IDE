@@ -256,6 +256,10 @@ except OSError as e:
 `)
     }
 
+    async renameEntry(oldPath, newPath) {
+        await this.exec(`os.rename('${oldPath}','${newPath}')`)
+    }
+
     async getFsStats(path='/') {
         const rsp = await this.exec(`
 s = os.statvfs('${path}')

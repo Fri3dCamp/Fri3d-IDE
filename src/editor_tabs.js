@@ -92,6 +92,14 @@ document.addEventListener("dirRemoved", (event) => {
     })
 })
 
+document.addEventListener("dirRenamed", (event) => {
+    QSA(`#editor-tabs [data-fn^="${event.detail.old}/"]`).forEach((tab) => {
+        const newFn = event.detail.new + tab.dataset.fn.slice(event.detail.old.length)
+        tab.dataset.fn = newFn
+        tab.querySelector(".tab-title").textContent = newFn.split("/").pop()
+    })
+})
+
 document.addEventListener("fileRenamed", (event) => {
     const editorTab = QS(`#editor-tabs [data-fn="${event.detail.old}"]`)
     editorTab.dataset.fn = event.detail.new
