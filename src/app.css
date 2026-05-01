@@ -240,6 +240,59 @@ body.loaded {
     color: var(--accent-secondary);
 }
 
+#menu-file-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.menu-file-title-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.menu-file-title-actions .menu-action {
+    float: none;
+    font-size: 1rem;
+    padding: 0 2px;
+    opacity: 0.65;
+}
+
+.menu-file-title-actions .menu-action:hover {
+    opacity: 1;
+}
+
+#create-new-app-section {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+#create-new-app-section #create-new-app {
+    width: 100%;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 7px 12px;
+    text-align: left;
+    background: var(--accent-cta);
+    color: var(--fri3d-black);
+    border: var(--border-thick);
+    box-shadow: var(--shadow-std);
+    cursor: pointer;
+    transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+
+#create-new-app-section #create-new-app:hover {
+    box-shadow: calc(var(--shadow-offset) / 2) calc(var(--shadow-offset) / 2) 0px var(--fri3d-black);
+    transform: translate(calc(var(--shadow-offset) / 2), calc(var(--shadow-offset) / 2));
+}
+
+#create-new-app-section #create-new-app:active {
+    box-shadow: none;
+    transform: translate(var(--shadow-offset), var(--shadow-offset));
+}
+
 #menu-assistant-title {
     font-family: 'Montserrat', system-ui, sans-serif;
     font-weight: 700;
