@@ -532,7 +532,7 @@ function showAppWizardDialog() {
                 <label for="fri3d-app-version">${T('app.dialog.field-version', 'Version')}</label>
                 <input type="text" id="fri3d-app-version" value="0.1.0" autocomplete="off"/>
                 <label for="fri3d-app-desc">${T('app.dialog.field-desc', 'Description')}</label>
-                <input type="text" id="fri3d-app-desc" placeholder="${T('app.dialog.field-desc', 'optional')}" autocomplete="off"/>
+                <input type="text" id="fri3d-app-desc" placeholder="${T('app.dialog.field-desc-placeholder', 'optional')}" autocomplete="off"/>
                 <label for="fri3d-app-template">${T('app.dialog.field-template', 'Template')}</label>
                 <select id="fri3d-app-template">
                     <option value="hello">${T('app.dialog.template-hello', 'Hello World')}</option>
@@ -592,14 +592,14 @@ function showAppWizardDialog() {
 
 function validateAppFullname(fullname) {
     if (!fullname || !fullname.trim()) {
-        throw new Error('App fullname is required')
+        throw new Error(T('app.dialog.validate-required', 'App fullname is required'))
     }
     const value = fullname.trim()
     if (!value.includes('.')) {
-        throw new Error('App fullname should include at least one dot, e.g. com.example.myapp')
+        throw new Error(T('app.dialog.validate-dot', 'App fullname should include at least one dot, e.g. com.example.myapp'))
     }
     if (!/^[A-Za-z0-9_.-]+$/.test(value)) {
-        throw new Error('App fullname may only contain letters, numbers, dots, dashes and underscores')
+        throw new Error(T('app.dialog.validate-chars', 'App fullname may only contain letters, numbers, dots, dashes and underscores'))
     }
     return value
 }
@@ -685,7 +685,7 @@ function makeAssistantBootstrapPrompt({ fullname, appName, description, template
 
 export async function createNewApp() {
     if (!port) {
-        toastr.info('Connect your board first')
+        toastr.info(T('app.connect-first', 'Connect your board first'))
         return
     }
 
@@ -713,7 +713,7 @@ except:
  print('0')
 `)).trim().endsWith('1')
         if (exists) {
-            const confirmed = await showConfirmDialog(`App folder ${appRoot} already exists. Overwrite scaffold files?`)
+            const confirmed = await showConfirmDialog(T('app.dialog.confirm-overwrite', 'App folder {{path}} already exists. Overwrite scaffold files?', { path: appRoot }))
             if (!confirmed) return
         }
 
@@ -742,7 +742,7 @@ AppManager.restart_launcher()
 `)
         } catch (err) {
             console.warn(err)
-            toastr.warning('Scaffold created, but launcher refresh failed')
+            toastr.warning(T('app.dialog.warning-launcher', 'Scaffold created, but launcher refresh failed'))
         }
 
         await _raw_updateFileTree(raw)
@@ -755,11 +755,11 @@ AppManager.restart_launcher()
         await raw.end()
     }
 
-    toastr.success(`Created app scaffold for ${fullname}`)
+    toastr.success(T('app.dialog.success-created', 'Created app scaffold for {{fullname}}', { fullname }))
 
     const assistantEnabled = QID('advanced-mode') && QID('advanced-mode').checked
     if (assistantEnabled) {
-        const useAssistant = await showConfirmDialog('Prepare an Assistant prompt to bootstrap main.py with LLM?')
+        const useAssistant = await showConfirmDialog(T('app.dialog.confirm-bootstrap', 'Prepare an Assistant prompt to bootstrap main.py with LLM?'))
         if (useAssistant) {
             const taskPreset = QID('assistant-task-preset')
             if (taskPreset) {
@@ -776,7 +776,7 @@ AppManager.restart_launcher()
                 })
             }
             toggleAssistantSidebar()
-            toastr.info('Assistant prompt prepared. Click "Run task" to generate code.')
+            toastr.info(T('app.dialog.info-assistant-ready', 'Assistant prompt prepared. Click "Run task" to generate code.'))
         }
     }
 }
@@ -1559,7 +1559,11 @@ export function applyTranslation() {
             el.setAttribute('title', T('tool.fullscreen'))
         })
 
-        QS('#menu-file-title').innerText = T('menu.file-mgr')
+        QS('#menu-file-title-text').innerText = T('menu.file-mgr')
+        QID('btn-file-new').setAttribute('title', T('files.new-file', 'New File'))
+        QID('btn-file-refresh').setAttribute('title', T('files.refresh', 'Refresh'))
+        QID('btn-file-collapse').setAttribute('title', T('files.collapse-all', 'Collapse All'))
+        QID('create-new-app-label').innerText = T('app.scaffold-btn', 'Create new app scaffold')
         QS('#menu-pkg-title').innerText = T('menu.package-mgr')
         QS('#menu-settings-title').innerText = T('menu.settings')
 
