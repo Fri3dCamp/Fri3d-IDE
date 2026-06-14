@@ -448,19 +448,6 @@ body.loaded {
     flex: 0 1 auto;
 }
 
-#menu-file-tree .file-tree-new-input {
-    background: transparent;
-    border: 1px solid var(--fg-color);
-    color: var(--fg-color);
-    outline: none;
-    padding: 1px 4px;
-    width: calc(100% - 2em);
-    max-width: 200px;
-    font-size: inherit;
-    font-family: inherit;
-    box-sizing: border-box;
-}
-
 .menu-action {
     font-weight: normal;
     float: right;
@@ -658,6 +645,32 @@ body.loaded {
     margin-top: 12px;
 }
 
+/* File/Folder segmented toggle in the "New item" dialog. */
+.fri3d-dialog-toggle {
+    display: flex;
+}
+
+.fri3d-dialog-toggle button {
+    flex: 1;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 7px 10px;
+    background: var(--bg-color-edit);
+    color: var(--fg-color);
+    border: var(--border-std);
+    cursor: pointer;
+}
+
+.fri3d-dialog-toggle button + button {
+    border-left: none;
+}
+
+.fri3d-dialog-toggle button.active {
+    background: var(--accent-secondary);
+    color: var(--accent-cta-fg);
+}
+
 .fri3d-dialog-error {
     font-size: 0.8rem;
     color: var(--icon-danger);
@@ -762,17 +775,22 @@ body.loaded {
 /* ── Toast notifications — Fri3d card styling ─────────────────────────────
    Override toastr's default coloured backgrounds (greenish success, etc.)
    so every toast matches the loader cards: neutral menu card + thick border
-   + hard shadow, with a coloured left accent strip per type. */
+   + hard shadow, with a coloured left accent strip + matching status icon.
+   The icons are inline SVGs (FontAwesome runs in SVG mode here, so the icon
+   webfont is unavailable) with semantic colours baked in so they stay
+   readable in both the dark and the light (mint) themes. */
 #toast-container > div {
     opacity: 1;
     border-radius: 0;
     background-color: var(--bg-color-menu);
-    background-image: none !important;
+    background-repeat: no-repeat;
+    background-position: 14px center;
+    background-size: 22px 22px;
     border: var(--border-thick);
     border-left-width: 7px;
     box-shadow: var(--shadow-std);
     color: var(--fg-color);
-    padding: 10px 14px;
+    padding: 12px 14px 12px 48px;
     width: 320px;
     font-family: 'Open Sans', system-ui, sans-serif;
 }
@@ -781,10 +799,22 @@ body.loaded {
     box-shadow: var(--shadow-lg);
 }
 
-#toast-container > .toast-success { border-left-color: var(--icon-success); }
-#toast-container > .toast-error   { border-left-color: var(--icon-error); }
-#toast-container > .toast-warning { border-left-color: var(--icon-warning); }
-#toast-container > .toast-info    { border-left-color: var(--icon-info); }
+#toast-container > .toast-success {
+    border-left-color: #1f9d3a;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%231f9d3a' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z'/%3E%3C/svg%3E") !important;
+}
+#toast-container > .toast-error {
+    border-left-color: #e0392b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23e0392b' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z'/%3E%3C/svg%3E") !important;
+}
+#toast-container > .toast-warning {
+    border-left-color: #d98e00;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23d98e00' d='M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z'/%3E%3C/svg%3E") !important;
+}
+#toast-container > .toast-info {
+    border-left-color: #2a6fb5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%232a6fb5' d='M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z'/%3E%3C/svg%3E") !important;
+}
 
 #toast-container > div .toast-title {
     font-weight: 700;

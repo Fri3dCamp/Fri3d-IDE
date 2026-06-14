@@ -401,89 +401,36 @@ export async function refreshFileTree() {
 export async function createNewFile(path) {
     if (!port) return;
 
-    // Remove any existing inline input before creating a new one
-    const existingContainer = QID('file-tree-new-item')
-    if (existingContainer) existingContainer.remove()
+    const result = await showCreateItemDialog(path)
+    if (!result) return
 
-    // Expand collapsed folder when "+" is clicked on it
-    if (path !== '/') {
-        const folderPath = path.slice(0, -1)
-        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${folderPath}"]`)
-        if (contentEl && contentEl.classList.contains('collapsed')) {
-            toggleFolder(folderPath)
-        }
-    }
+    let { name, isFolder } = result
+    name = name.trim().replace(/^\/+/, '')
+    if (isFolder) name = name.replace(/\/+$/, '')
+    if (!name) return
 
-    // Calculate indentation depth: root "/" → 1 emsp, "/dir/" → 2 emsp, etc.
-    // Uses em-space (\u2003) to match the &emsp; characters used in buildTree.
-    const depth = path.split('/').filter(Boolean).length + 1
-    const offset = '\u2003'.repeat(depth - 1)
+    // Keep the parent folder expanded so the freshly-created item is visible.
+    if (path !== '/') openFolders.add(path.slice(0, -1))
 
-    const div = document.createElement('div')
-    div.id = 'file-tree-new-item'
-    div.innerHTML = `${offset}<input type="text" id="file-tree-new-input" class="file-tree-new-input" placeholder="name or folder/" autocomplete="off" spellcheck="false" />`
-
-    if (path === '/') {
-        // Insert after the root header (first child of fileTree)
-        const fileTree = QID('menu-file-tree')
-        const rootHeader = fileTree.firstElementChild
-        fileTree.insertBefore(div, rootHeader ? rootHeader.nextSibling : null)
-    } else {
-        // Insert at the top of the folder's content element
-        const folderPath = path.slice(0, -1)
-        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${folderPath}"]`)
-        if (!contentEl) return
-        contentEl.insertBefore(div, contentEl.firstChild)
-    }
-
-    const input = QID('file-tree-new-input')
-    input.focus()
-
-    let confirmed = false
-
-    async function confirmCreate() {
-        confirmed = true
-        const fn = input.value.trim()
-        div.remove()
-        if (!fn) return
-        await withLoader(`Creating ${fn}…`, async () => {
-            const raw = await MpRawMode.begin(port)
-            try {
-                if (fn.endsWith('/')) {
-                    const full = path + fn.slice(0, -1)
-                    await raw.makePath(full)
-                } else {
-                    const full = path + fn
-                    if (fn.includes('/')) {
-                        // Ensure path exists
-                        const [dirname] = splitPath(full)
-                        await raw.makePath(dirname)
-                    }
-                    await raw.touchFile(full)
-                    await _raw_loadFile(raw, full)
+    await withLoader(T('files.creating', 'Creating {{name}}…', { name }), async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            if (isFolder) {
+                await raw.makePath(path + name)
+            } else {
+                const full = path + name
+                if (name.includes('/')) {
+                    // Ensure parent directories exist for nested file names.
+                    const [dirname] = splitPath(full)
+                    await raw.makePath(dirname)
                 }
-                await _raw_updateFileTree(raw)
-            } finally {
-                await raw.end()
+                await raw.touchFile(full)
+                await _raw_loadFile(raw, full)
             }
-        })
-    }
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault()
-            confirmCreate()
-        } else if (e.key === 'Escape') {
-            div.remove()
+            await _raw_updateFileTree(raw)
+        } finally {
+            await raw.end()
         }
-    })
-
-    input.addEventListener('blur', () => {
-        // Small delay so that a click on the input itself doesn't accidentally cancel.
-        // Skip removal if Enter was already pressed (confirmCreate handles cleanup).
-        setTimeout(() => {
-            if (!confirmed) div.remove()
-        }, 150)
     })
 }
 
@@ -638,6 +585,104 @@ function showPromptDialog(message, { value = '', placeholder = '', password = fa
         })
         input.focus()
         input.select()
+    })
+}
+
+// Unified, styled dialog for creating a file or folder. Resolves to
+// { name, isFolder } or null if cancelled. A File/Folder toggle makes folder
+// creation discoverable instead of relying on a trailing-slash convention.
+function showCreateItemDialog(parentPath) {
+    return new Promise((resolve) => {
+        const where = parentPath === '/' ? '/' : parentPath
+        const titleText = T('files.create-title', 'New in {{path}}', { path: where })
+
+        const backdrop = document.createElement('div')
+        backdrop.className = 'fri3d-dialog-backdrop'
+
+        const dialog = document.createElement('div')
+        dialog.className = 'fri3d-dialog'
+
+        const title = document.createElement('div')
+        title.className = 'fri3d-dialog-title'
+        title.innerHTML = `<i class="fa-solid fa-plus fa-fw"></i> ${escapeHtml(titleText)}`
+
+        const toggle = document.createElement('div')
+        toggle.className = 'fri3d-dialog-toggle'
+
+        const fileBtn = document.createElement('button')
+        fileBtn.type = 'button'
+        fileBtn.className = 'active'
+        fileBtn.innerHTML = `<i class="fa-solid fa-file fa-fw"></i> ${T('files.type-file', 'File')}`
+
+        const folderBtn = document.createElement('button')
+        folderBtn.type = 'button'
+        folderBtn.innerHTML = `<i class="fa-solid fa-folder fa-fw"></i> ${T('files.type-folder', 'Folder')}`
+
+        toggle.appendChild(fileBtn)
+        toggle.appendChild(folderBtn)
+
+        const input = document.createElement('input')
+        input.type = 'text'
+        input.className = 'fri3d-dialog-input'
+        input.placeholder = T('files.name-file', 'file name')
+        input.autocomplete = 'off'
+        input.spellcheck = false
+
+        const actions = document.createElement('div')
+        actions.className = 'fri3d-dialog-actions'
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.className = 'fri3d-btn-secondary'
+        cancelBtn.type = 'button'
+        cancelBtn.textContent = T('app.dialog.btn-cancel', 'Cancel')
+
+        const createBtn = document.createElement('button')
+        createBtn.className = 'fri3d-btn-cta'
+        createBtn.type = 'button'
+        createBtn.textContent = T('app.dialog.btn-create', 'Create')
+
+        actions.appendChild(cancelBtn)
+        actions.appendChild(createBtn)
+
+        dialog.appendChild(title)
+        dialog.appendChild(toggle)
+        dialog.appendChild(input)
+        dialog.appendChild(actions)
+        backdrop.appendChild(dialog)
+        document.body.appendChild(backdrop)
+
+        let isFolder = false
+        function setType(folder) {
+            isFolder = folder
+            fileBtn.classList.toggle('active', !folder)
+            folderBtn.classList.toggle('active', folder)
+            input.placeholder = folder ? T('files.name-folder', 'folder name') : T('files.name-file', 'file name')
+            input.focus()
+        }
+        fileBtn.addEventListener('click', () => setType(false))
+        folderBtn.addEventListener('click', () => setType(true))
+
+        const restoreFocus = setupModalA11y(dialog, titleText)
+
+        function close(result) {
+            backdrop.remove()
+            restoreFocus()
+            resolve(result)
+        }
+        function submit() {
+            const name = input.value.trim()
+            if (!name) { input.focus(); return }
+            close({ name, isFolder })
+        }
+
+        createBtn.addEventListener('click', submit)
+        cancelBtn.addEventListener('click', () => close(null))
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(null) })
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submit() }
+            else if (e.key === 'Escape') close(null)
+        })
+        input.focus()
     })
 }
 

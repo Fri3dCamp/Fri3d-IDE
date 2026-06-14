@@ -31,7 +31,13 @@
             "refresh": "Refresh",
             "collapse-all": "Collapse All",
             "confirm-remove": "Remove {{path}}?",
-            "prompt-new-name": "Please enter the file name:"
+            "prompt-new-name": "Please enter the file name:",
+            "create-title": "New in {{path}}",
+            "type-file": "File",
+            "type-folder": "Folder",
+            "name-file": "file name",
+            "name-folder": "folder name",
+            "creating": "Creating {{name}}…"
         },
         "settings": {
             "conn": "connection",
