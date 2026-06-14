@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  *
  * The software is provided 'as is', without any warranties or guarantees (explicit or implied).
- * This includes no assurances about being fit for any specific purposevent.
+ * This includes no assurances about being fit for any specific purpose.
  */
 
 const cacheName = `viper-${VIPER_IDE_VERSION}-${VIPER_IDE_BUILD}`;

@@ -36,7 +36,7 @@ import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel
 import { initOnboarding } from './onboarding.js'
 
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
-         QSA, QS, QID, iOS, sanitizeHTML,
+         QSA, QS, QID, iOS, sanitizeHTML, escapeHtml,
          sizeFmt, indicateActivity, setupTabs, report,
          withLoader, showLoader } from './utils.js'
 
@@ -487,6 +487,34 @@ export async function createNewFile(path) {
     })
 }
 
+// Make a modal dialog accessible: tag it with ARIA roles, trap Tab focus
+// inside it, and restore focus to the previously-focused element on close.
+// Returns a restoreFocus() function to call when the dialog is dismissed.
+function setupModalA11y(dialog, label) {
+    dialog.setAttribute('role', 'dialog')
+    dialog.setAttribute('aria-modal', 'true')
+    if (label) dialog.setAttribute('aria-label', label)
+    const prevFocus = document.activeElement
+    dialog.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return
+        const items = [...dialog.querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+            .filter(el => !el.disabled && el.offsetParent !== null)
+        if (!items.length) return
+        const first = items[0]
+        const last = items[items.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+        }
+    })
+    return function restoreFocus() {
+        if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus()
+    }
+}
+
 function showConfirmDialog(message) {
     return new Promise((resolve) => {
         const backdrop = document.createElement('div')
@@ -517,8 +545,11 @@ function showConfirmDialog(message) {
         backdrop.appendChild(dialog)
         document.body.appendChild(backdrop)
 
+        const restoreFocus = setupModalA11y(dialog, message)
+
         function close(value) {
             backdrop.remove()
+            restoreFocus()
             resolve(value)
         }
 
@@ -570,6 +601,8 @@ function showAppWizardDialog() {
         const fullnameInput = dialog.querySelector('#fri3d-app-fullname')
         const errorEl = dialog.querySelector('#fri3d-app-error')
 
+        const restoreFocus = setupModalA11y(dialog, T('app.dialog.title', 'Create New App'))
+
         fullnameInput.focus()
 
         function tryCreate() {
@@ -584,6 +617,7 @@ function showAppWizardDialog() {
             }
             errorEl.classList.remove('visible')
             backdrop.remove()
+            restoreFocus()
             resolve({
                 fullname: fullnameVal,
                 appName: dialog.querySelector('#fri3d-app-name').value,
@@ -595,6 +629,7 @@ function showAppWizardDialog() {
 
         function cancel() {
             backdrop.remove()
+            restoreFocus()
             resolve(null)
         }
 
@@ -869,6 +904,24 @@ function _updateFileTree(fs_tree, fs_stats)
 
     // Traverse file tree
     const fileTree = QID('menu-file-tree')
+    // Bind a single delegated click handler for dynamically-built rows so we
+    // never interpolate untrusted file/folder names into inline onclick JS.
+    if (!fileTree.dataset.delegationBound) {
+        fileTree.dataset.delegationBound = '1'
+        fileTree.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-act]')
+            if (!el || !fileTree.contains(el)) return
+            e.preventDefault()
+            const path = el.dataset.path
+            switch (el.dataset.act) {
+                case 'toggle-folder': toggleFolder(path); break
+                case 'remove-dir':    removeDir(path);    break
+                case 'new-file':      createNewFile(path); break
+                case 'remove-file':   removeFile(path);   break
+                case 'open-file':     fileClick(path);    break
+            }
+        })
+    }
     fileTree.innerHTML = `<div>
         <span class="folder name"><i class="fa-solid fa-folder fa-fw"></i> /</span>
         <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
@@ -882,14 +935,16 @@ function _updateFileTree(fs_tree, fs_stats)
         const offset = '&emsp;'.repeat(depth)
         let html = ''
         for (const n of sorted(node)) {
+            const ep = escapeHtml(n.path)
+            const en = escapeHtml(n.name)
             if ('content' in n) {
                 const isOpen = openFolders.has(n.path)
                 html += `<div>
-                    ${offset}<span class="folder name folder-toggleable" onclick="app.toggleFolder('${n.path}');return false;"><i class="fa-solid fa-chevron-right fa-fw folder-chevron${isOpen ? ' open' : ''}"></i><i class="fa-solid fa-folder fa-fw"></i> ${n.name}</span>
-                    <a href="#" class="menu-action" title="Remove" onclick="app.removeDir('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
-                    <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('${n.path}/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
+                    ${offset}<span class="folder name folder-toggleable" data-act="toggle-folder" data-path="${ep}"><i class="fa-solid fa-chevron-right fa-fw folder-chevron${isOpen ? ' open' : ''}"></i><i class="fa-solid fa-folder fa-fw"></i> ${en}</span>
+                    <a href="#" class="menu-action" title="Remove" data-act="remove-dir" data-path="${ep}"><i class="fa-solid fa-xmark fa-fw"></i></a>
+                    <a href="#" class="menu-action" title="Create" data-act="new-file" data-path="${ep}/"><i class="fa-solid fa-plus fa-fw"></i></a>
                 </div>
-                <div class="folder-content${isOpen ? '' : ' collapsed'}" data-folder-path="${n.path}">
+                <div class="folder-content${isOpen ? '' : ' collapsed'}" data-folder-path="${ep}">
                     ${buildTree(n.content, depth+1)}
                 </div>`
             } else {
@@ -909,12 +964,12 @@ function _updateFileTree(fs_tree, fs_stats)
                 if (n.path.startsWith("/proc/") || n.path.startsWith("/dev/")) {
                     icon = '<i class="fa-solid fa-gear fa-fw"></i>'
                     html += `<div>
-                        ${offset}<span>${icon} ${n.name}&nbsp;</span>
+                        ${offset}<span>${icon} ${en}&nbsp;</span>
                     </div>`
                 } else {
                     html += `<div>
-                        ${offset}<a href="#" class="name ${sel}" data-fn="${n.path}" onclick="app.fileClick('${n.path}');return false;">${icon} ${n.name}&nbsp;</a>
-                        <a href="#" class="menu-action" title="Remove" onclick="app.removeFile('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
+                        ${offset}<a href="#" class="name ${sel}" data-fn="${ep}" data-act="open-file" data-path="${ep}">${icon} ${en}&nbsp;</a>
+                        <a href="#" class="menu-action" title="Remove" data-act="remove-file" data-path="${ep}"><i class="fa-solid fa-xmark fa-fw"></i></a>
                         <span class="menu-action">${sizeFmt(n.size)}</span>
                     </div>`
                 }
@@ -1363,9 +1418,20 @@ export async function runCurrentFile() {
 export async function loadAllPkgIndexes() {
     const pkgList = QID('menu-pkg-list')
     pkgList.innerHTML = ''
+    // Bind a single delegated handler so remote package names are never
+    // interpolated into inline onclick JS.
+    if (!pkgList.dataset.delegationBound) {
+        pkgList.dataset.delegationBound = '1'
+        pkgList.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-act="install-pkg"]')
+            if (!el || !pkgList.contains(el)) return
+            e.preventDefault()
+            installPkg(el.dataset.pkg)
+        })
+    }
     await withLoader('Loading package index…', async () => {
         for (const i of await getPkgIndexes()) {
-            pkgList.insertAdjacentHTML('beforeend', `<div class="title-lines">${i.name}</div>`)
+            pkgList.insertAdjacentHTML('beforeend', `<div class="title-lines">${escapeHtml(i.name)}</div>`)
             for (const pkg of i.index.packages) {
                 let offset = ''
                 let icon = ''
@@ -1384,8 +1450,8 @@ export async function loadAllPkgIndexes() {
                     icon = ' <i class="fa-solid fa-gauge-high" title="Efficient native module"></i>'
                 }
                 pkgList.insertAdjacentHTML('beforeend', `<div>
-                    ${offset}<span><i class="fa-solid fa-cube fa-fw"></i> ${pkg.name}${icon}</span>
-                    <a href="#" class="menu-action" onclick="app.installPkg('${pkg.name}');return false;">${pkg.version} <i class="fa-regular fa-circle-down"></i></a>
+                    ${offset}<span><i class="fa-solid fa-cube fa-fw"></i> ${escapeHtml(pkg.name)}${icon}</span>
+                    <a href="#" class="menu-action" data-act="install-pkg" data-pkg="${escapeHtml(pkg.name)}">${escapeHtml(pkg.version)} <i class="fa-regular fa-circle-down"></i></a>
                 </div>`)
             }
         }
@@ -1409,7 +1475,7 @@ async function _raw_installPkg(raw, pkg, { version=null } = {}) {
 
 export async function installPkg(pkg, { version=null } = {}) {
     if (!port) {
-        toastr.info('Connect yout board first')
+        toastr.info(T('app.connect-first', 'Connect your board first'))
         return
     }
     await withLoader(`Installing ${pkg}…`, async () => {
@@ -1427,7 +1493,7 @@ export async function installPkg(pkg, { version=null } = {}) {
 
 export async function installPkgFromUrl() {
     if (!port) {
-        toastr.info('Connect yout board first')
+        toastr.info(T('app.connect-first', 'Connect your board first'))
         return
     }
     const url = prompt('Enter package name or URL:')

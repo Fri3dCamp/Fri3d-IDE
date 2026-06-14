@@ -65,6 +65,19 @@ export function sanitizeHTML(s) {
     return (new Option(s)).innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>').replace(/ /g, '&nbsp;')
 }
 
+// Escape a string for safe insertion into HTML text or a double-quoted
+// attribute. Unlike sanitizeHTML it does not mangle spaces/newlines, so it is
+// suitable for file names, package names and values stored in data-* attributes.
+export function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+    }[c]))
+}
+
 export function sizeFmt(size, places=1) {
     if (size == null) { return "unknown" }
     const suffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB']
