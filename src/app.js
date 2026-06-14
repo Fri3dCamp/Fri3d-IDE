@@ -295,11 +295,14 @@ export async function connectDevice(type) {
     const new_port = await prepareNewPort(type)
     if (!new_port) { return }
     // Connect new port
+    const connectLoader = showLoader('Connecting…')
     try {
         await new_port.connect()
     } catch (err) {
         report('Cannot connect', err)
         return
+    } finally {
+        connectLoader.hide()
     }
 
     port = new_port
@@ -1244,30 +1247,35 @@ export async function saveCurrentFile() {
     }
 
     let content = editor.state.doc.toString()
-    if (editorFn.endsWith('.json') && QID('expand-minify-json').checked) {
-        try {
-            // Minify JSON
-            content = JSON.stringify(JSON.parse(content))
-        } catch (_error) {
-            toastr.error('JSON is malformed')
-            return
-        }
-    } else if (editorFn.endsWith('.py')) {
-        const content = editor.state.doc.toString()
-        const backtrace = await validatePython(editorFn, content)
-        if (backtrace) {
-            console.log(backtrace)
-            toastr.warning(sanitizeHTML(backtrace.summary), backtrace.type)
-        }
-    }
-    const raw = await MpRawMode.begin(port)
+    const loader = showLoader(`Saving ${editorFn}…`)
     try {
-        await withLoader(`Saving ${editorFn}…`, async () => {
+        if (editorFn.endsWith('.json') && QID('expand-minify-json').checked) {
+            try {
+                // Minify JSON
+                content = JSON.stringify(JSON.parse(content))
+            } catch (_error) {
+                toastr.error('JSON is malformed')
+                return
+            }
+        } else if (editorFn.endsWith('.py')) {
+            loader.update(`Validating ${editorFn}…`)
+            const content = editor.state.doc.toString()
+            const backtrace = await validatePython(editorFn, content)
+            if (backtrace) {
+                console.log(backtrace)
+                toastr.warning(sanitizeHTML(backtrace.summary), backtrace.type)
+            }
+        }
+        loader.update(`Saving ${editorFn}…`)
+        const raw = await MpRawMode.begin(port)
+        try {
             await raw.writeFile(editorFn, content)
             await _raw_updateFileTree(raw)
-        })
+        } finally {
+            await raw.end()
+        }
     } finally {
-        await raw.end()
+        loader.hide()
     }
     // Success
     toastr.success('File Saved')
