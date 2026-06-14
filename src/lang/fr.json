@@ -78,6 +78,46 @@
                 "validate-dot": "Le nom complet doit contenir au moins un point, ex. com.example.myapp",
                 "validate-chars": "Le nom complet ne peut contenir que des lettres, chiffres, points, tirets et underscores"
             }
+        },
+        "onboarding": {
+            "step": "Étape {{current}} sur {{total}}",
+            "skip": "Passer la visite",
+            "next": "Suivant →",
+            "get-started": "C'est parti ! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Bienvenue dans Fri3d-IDE ! 👋",
+                    "text": "Bonjour ! Je suis ton guide Fri3d. Laisse-moi te faire une visite rapide pour que tu puisses commencer à coder tout de suite !"
+                },
+                "toolbar": {
+                    "title": "Barre d'outils principale",
+                    "text": "C'est ta barre d'outils principale. Enregistre des fichiers, exécute ton code sur le badge et connecte ton appareil Fri3d depuis ici."
+                },
+                "connect": {
+                    "title": "Connecter via USB",
+                    "text": "Clique sur ce bouton pour connecter ton badge Fri3d via USB/Série. Tu peux aussi utiliser Bluetooth 🦷 ou WebREPL 🌐 !"
+                },
+                "side-menu": {
+                    "title": "Menu latéral",
+                    "text": "Ce panneau contient des onglets pour le Gestionnaire de fichiers, le Gestionnaire de paquets, les Outils, les Paramètres et À propos. Tout ce dont tu as besoin !"
+                },
+                "files": {
+                    "title": "Gestionnaire de fichiers",
+                    "text": "Parcours et gère les fichiers sur ton badge connecté. Connecte d'abord un appareil pour voir et modifier ses fichiers !"
+                },
+                "editor": {
+                    "title": "Éditeur de code",
+                    "text": "Écris ton code MicroPython ici ! Coloration syntaxique, auto-complétion et linting sont tous intégrés. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Le terminal affiche la sortie de ton badge. Tu peux aussi taper des commandes directement dans le REPL quand tu es connecté."
+                },
+                "done": {
+                    "title": "Tout est prêt ! 🚀",
+                    "text": "C'est la fin de la visite ! Connecte ton badge Fri3d et commence à créer des choses incroyables. Bon codage !"
+                }
+            }
         }
     }
 }

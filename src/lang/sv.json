@@ -78,6 +78,46 @@
                 "validate-dot": "Fullständiga namnet måste innehålla minst en punkt, t.ex. com.example.myapp",
                 "validate-chars": "Fullständiga namnet får bara innehålla bokstäver, siffror, punkter, bindestreck och understreck"
             }
+        },
+        "onboarding": {
+            "step": "Steg {{current}} av {{total}}",
+            "skip": "Hoppa över rundturen",
+            "next": "Nästa →",
+            "get-started": "Kom igång! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Välkommen till Fri3d-IDE! 👋",
+                    "text": "Hej! Jag är din Fri3d-guide. Låt mig ge dig en snabb rundtur så att du kan börja koda direkt!"
+                },
+                "toolbar": {
+                    "title": "Huvudverktygsfält",
+                    "text": "Det här är ditt huvudverktygsfält. Spara filer, kör din kod på badget och anslut din Fri3d-enhet härifrån."
+                },
+                "connect": {
+                    "title": "Anslut via USB",
+                    "text": "Klicka på den här knappen för att ansluta ditt Fri3d-badge via USB/Seriell. Du kan också använda Bluetooth 🦷 eller WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Sidomeny",
+                    "text": "Den här panelen har flikar för Filhanterare, Pakethanterare, Verktyg, Inställningar och Om. Allt du behöver!"
+                },
+                "files": {
+                    "title": "Filhanterare",
+                    "text": "Bläddra och hantera filer på ditt anslutna badge. Anslut en enhet först för att se och redigera dess filer!"
+                },
+                "editor": {
+                    "title": "Kodredigerare",
+                    "text": "Skriv din MicroPython-kod här! Syntaxmarkering, autokomplettering och linting är alla inbyggda. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Terminalen visar utdata från ditt badge. Du kan också skriva kommandon direkt i REPL när du är ansluten."
+                },
+                "done": {
+                    "title": "Allt är klart! 🚀",
+                    "text": "Det var rundturen! Anslut ditt Fri3d-badge och börja bygga fantastiska saker. Trevlig kodning!"
+                }
+            }
         }
     }
 }

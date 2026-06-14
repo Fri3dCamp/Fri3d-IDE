@@ -78,6 +78,46 @@
                 "validate-dot": "Numele complet trebuie să conțină cel puțin un punct, ex. com.example.myapp",
                 "validate-chars": "Numele complet poate conține doar litere, cifre, puncte, liniute și liniute de subliniere"
             }
+        },
+        "onboarding": {
+            "step": "Pasul {{current}} din {{total}}",
+            "skip": "Sari peste tur",
+            "next": "Înainte →",
+            "get-started": "Să începem! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Bun venit în Fri3d-IDE! 👋",
+                    "text": "Salut! Eu sunt ghidul tău Fri3d. Lasă-mă să îți fac un tur rapid pentru a putea începe să programezi imediat!"
+                },
+                "toolbar": {
+                    "title": "Bara de instrumente principală",
+                    "text": "Aceasta este bara ta de instrumente principală. Salvează fișiere, rulează codul pe badge și conectează dispozitivul tău Fri3d de aici."
+                },
+                "connect": {
+                    "title": "Conectare prin USB",
+                    "text": "Apasă acest buton pentru a conecta badge-ul Fri3d prin USB/Serial. Poți folosi și Bluetooth 🦷 sau WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Meniu lateral",
+                    "text": "Acest panou are file pentru Managerul de fișiere, Managerul de pachete, Instrumente, Setări și Despre. Tot ce ai nevoie!"
+                },
+                "files": {
+                    "title": "Manager de fișiere",
+                    "text": "Navighează și gestionează fișierele de pe badge-ul conectat. Conectează mai întâi un dispozitiv pentru a vedea și edita fișierele!"
+                },
+                "editor": {
+                    "title": "Editor de cod",
+                    "text": "Scrie codul MicroPython aici! Evidențierea sintaxei, completarea automată și linting sunt toate integrate. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Terminalul afișează ieșirea badge-ului. Poți introduce și comenzi direct în REPL când ești conectat."
+                },
+                "done": {
+                    "title": "Totul e gata! 🚀",
+                    "text": "Acesta a fost turul! Conectează badge-ul Fri3d și începe să construiești lucruri uimitoare. Programare plăcută!"
+                }
+            }
         }
     }
 }

@@ -49,6 +49,46 @@
             "cta": "If you like Fri3d-IDE, please <a id='gh-star'>give it a GitHub star</a> ⭐ and spread the word on social media 📢",
             "report-bug": "You can also <a id='gh-issues'>report a bug</a> 🐞"
         },
+        "onboarding": {
+            "step": "Step {{current}} of {{total}}",
+            "skip": "Skip tour",
+            "next": "Next →",
+            "get-started": "Get started! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Welcome to Fri3d-IDE! 👋",
+                    "text": "Hi there! I'm your Fri3d guide. Let me give you a quick tour so you can start coding right away!"
+                },
+                "toolbar": {
+                    "title": "Main Toolbar",
+                    "text": "This is your main toolbar. Save files, run your code on the badge, and connect to your Fri3d device from here."
+                },
+                "connect": {
+                    "title": "Connect via USB",
+                    "text": "Click this button to connect your Fri3d badge via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Side Menu",
+                    "text": "This panel has tabs for the File Manager, Package Manager, Tools, Settings, and About. Everything you need!"
+                },
+                "files": {
+                    "title": "File Manager",
+                    "text": "Browse and manage files on your connected badge here. Connect a device first to see and edit its files!"
+                },
+                "editor": {
+                    "title": "Code Editor",
+                    "text": "Write your MicroPython code here! Syntax highlighting, auto-complete, and linting are all built in. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "The terminal shows output from your badge. You can also type commands directly into the REPL when connected."
+                },
+                "done": {
+                    "title": "You're all set! 🚀",
+                    "text": "That's the tour! Connect your Fri3d badge and start building amazing things. Happy coding!"
+                }
+            }
+        },
         "editor": {
             "md-edit": "Edit raw",
             "md-preview": "Preview"

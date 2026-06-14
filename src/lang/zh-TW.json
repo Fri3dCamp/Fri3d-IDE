@@ -78,6 +78,46 @@
                 "validate-dot": "全名應包含至少一個點，例如 com.example.myapp",
                 "validate-chars": "全名只能包含字母、數字、點、橫線和底線"
             }
+        },
+        "onboarding": {
+            "step": "第 {{current}} 步，共 {{total}} 步",
+            "skip": "跳過導覽",
+            "next": "下一步 →",
+            "get-started": "開始吧！ 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "歡迎使用 Fri3d-IDE！ 👋",
+                    "text": "你好！我是你的 Fri3d 嚮導。讓我帶你快速導覽，讓你立刻開始編程！"
+                },
+                "toolbar": {
+                    "title": "主工具列",
+                    "text": "這是你的主工具列。在這裡儲存檔案、在 Fri3d 徽章上執行程式碼並連接你的 Fri3d 裝置。"
+                },
+                "connect": {
+                    "title": "透過 USB 連接",
+                    "text": "點擊此按鈕透過 USB/序列埠連接你的 Fri3d 徽章。你也可以使用藍牙 🦷 或 WebREPL 🌐！"
+                },
+                "side-menu": {
+                    "title": "側邊選單",
+                    "text": "此面板包含檔案管理器、套件管理器、工具、設定和關於等標籤。你所需要的一切都在這裡！"
+                },
+                "files": {
+                    "title": "檔案管理器",
+                    "text": "在已連接的 Fri3d 徽章上瀏覽和管理檔案。先連接裝置，然後查看和編輯它的檔案！"
+                },
+                "editor": {
+                    "title": "程式碼編輯器",
+                    "text": "在這裡編寫你的 MicroPython 程式碼！語法高亮、自動補全和程式碼檢查都已內建。 🐍"
+                },
+                "terminal": {
+                    "title": "終端機",
+                    "text": "終端機顯示 Fri3d 徽章的輸出。連接後你也可以直接在 REPL 中輸入指令。"
+                },
+                "done": {
+                    "title": "一切就緒！ 🚀",
+                    "text": "導覽結束！連接你的 Fri3d 徽章，開始構建精彩的專案吧。編程愉快！"
+                }
+            }
         }
     }
 }

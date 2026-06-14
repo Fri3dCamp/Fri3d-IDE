@@ -1,0 +1,184 @@
+/*
+ * SPDX-FileCopyrightText: 2024 Volodymyr Shymanskyy
+ * SPDX-License-Identifier: MIT
+ *
+ * The software is provided "as is", without any warranties or guarantees (explicit or implied).
+ * This includes no assurances about being fit for any specific purpose.
+ */
+
+/* ── Onboarding overlay ────────────────────────────────────────── */
+
+#ob-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    pointer-events: all;
+    transition: background 0.3s ease;
+}
+
+/* ── Onboarding card ───────────────────────────────────────────── */
+
+#ob-card {
+    position: fixed;
+    z-index: 9002;
+    background: var(--bg-color-menu);
+    border: var(--border-std);
+    box-shadow: var(--shadow-lg);
+    padding: 16px;
+    max-width: calc(100vw - 40px);
+    transition: left 0.35s ease, top 0.35s ease, width 0.35s ease;
+}
+
+/* ── Mascot row ────────────────────────────────────────────────── */
+
+.ob-mascot {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ob-logo {
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--fg-color);
+    animation: ob-bob 2s ease-in-out infinite;
+}
+
+.ob-logo svg {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes ob-bob {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    40%       { transform: translateY(-7px) rotate(-4deg); }
+    60%       { transform: translateY(-5px) rotate(3deg); }
+}
+
+/* ── Speech bubble ─────────────────────────────────────────────── */
+
+.ob-bubble {
+    flex: 1;
+    position: relative;
+    background: var(--bg-color);
+    border: var(--border-std);
+    box-shadow: var(--shadow-std);
+    padding: 10px 14px;
+}
+
+/* Triangle pointing left (toward the logo) */
+.ob-bubble::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 14px;
+    border-right: 11px solid var(--border-color);
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+}
+
+.ob-bubble::after {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 15px;
+    border-right: 9px solid var(--bg-color);
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+}
+
+.ob-title {
+    font-weight: 700;
+    color: var(--fg-color-highlight);
+    font-size: 1em;
+    margin-bottom: 6px;
+}
+
+.ob-text {
+    color: var(--fg-color);
+    font-size: 0.88em;
+    line-height: 1.55;
+}
+
+/* ── Extra content area (e.g. language picker) ─────────────────── */
+
+.ob-extra {
+    margin-bottom: 12px;
+}
+
+.ob-extra:empty {
+    display: none;
+}
+
+.ob-lang-select {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 0.9em;
+    font-family: inherit;
+    background: var(--bg-color);
+    color: var(--fg-color);
+    border: var(--border-std);
+    cursor: pointer;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+
+.ob-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.ob-step {
+    font-size: 0.82em;
+    color: var(--fg-color);
+    opacity: 0.65;
+}
+
+.ob-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ob-skip {
+    background: transparent;
+    border: var(--border-std);
+    color: var(--fg-color);
+    cursor: pointer;
+    padding: 4px 12px;
+    font-size: 0.82em;
+    opacity: 0.65;
+    font-family: inherit;
+}
+
+.ob-skip:hover {
+    opacity: 1;
+}
+
+.ob-next {
+    background: var(--fri3d-mint);
+    border: var(--border-std);
+    color: var(--fri3d-black);
+    cursor: pointer;
+    padding: 5px 14px;
+    font-size: 0.88em;
+    font-weight: 700;
+    box-shadow: var(--shadow-std);
+    font-family: inherit;
+}
+
+.ob-next:hover {
+    background: var(--fri3d-orange);
+}
+
+/* ── Glow ring on elevated target ──────────────────────────────── */
+
+.ob-elevated {
+    outline: 3px solid var(--fri3d-mint);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px rgba(60, 232, 179, 0.25);
+}
