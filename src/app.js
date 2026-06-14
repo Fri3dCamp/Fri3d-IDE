@@ -515,6 +515,19 @@ function setupModalA11y(dialog, label) {
     }
 }
 
+// Toggle a small badge whenever the browser goes offline, so users understand
+// why network features (package install, docs fetch, updates) are unavailable.
+function initOfflineIndicator() {
+    const el = QID('offline-indicator')
+    if (!el) return
+    const label = QID('offline-indicator-text')
+    if (label) label.textContent = T('app.offline', 'Offline')
+    const sync = () => { el.hidden = navigator.onLine }
+    window.addEventListener('online', sync)
+    window.addEventListener('offline', sync)
+    sync()
+}
+
 function showConfirmDialog(message) {
     return new Promise((resolve) => {
         const backdrop = document.createElement('div')
@@ -1979,6 +1992,8 @@ export function applyTranslation() {
         document.body.classList.add('loaded')
         initOnboarding()
     }, 100)
+
+    initOfflineIndicator()
 
     const urlParams = new URLSearchParams(window.location.search)
     let urlID = null

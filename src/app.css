@@ -722,6 +722,31 @@ body.loaded {
     pointer-events: none;
 }
 
+/* Offline indicator — shown when the browser loses network connectivity, so
+   users understand why package installs / docs fetches fail. */
+#offline-indicator {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-color-menu);
+    border: var(--border-thick);
+    border-left-width: 7px;
+    border-left-color: var(--icon-warning);
+    box-shadow: var(--shadow-std);
+    padding: 6px 12px;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.8rem;
+    color: var(--fg-color);
+}
+
+#offline-indicator[hidden] {
+    display: none;
+}
+
 /* Push toastr notifications below the loader stack so they share the
    top-right corner without overlapping. */
 #toast-container.toast-top-right {

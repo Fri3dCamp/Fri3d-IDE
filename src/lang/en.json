@@ -96,6 +96,7 @@
         "app": {
             "scaffold-btn": "Create new app scaffold",
             "connect-first": "Connect your board first",
+            "offline": "Offline",
             "dialog": {
                 "title": "Create New App",
                 "field-id": "App ID",
