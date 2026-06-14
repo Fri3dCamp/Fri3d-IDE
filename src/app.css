@@ -729,6 +729,63 @@ body.loaded {
     transition: top 0.18s ease;
 }
 
+/* ── Toast notifications — Fri3d card styling ─────────────────────────────
+   Override toastr's default coloured backgrounds (greenish success, etc.)
+   so every toast matches the loader cards: neutral menu card + thick border
+   + hard shadow, with a coloured left accent strip per type. */
+#toast-container > div {
+    opacity: 1;
+    border-radius: 0;
+    background-color: var(--bg-color-menu);
+    background-image: none !important;
+    border: var(--border-thick);
+    border-left-width: 7px;
+    box-shadow: var(--shadow-std);
+    color: var(--fg-color);
+    padding: 10px 14px;
+    width: 320px;
+    font-family: 'Open Sans', system-ui, sans-serif;
+}
+
+#toast-container > div:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+#toast-container > .toast-success { border-left-color: var(--icon-success); }
+#toast-container > .toast-error   { border-left-color: var(--icon-error); }
+#toast-container > .toast-warning { border-left-color: var(--icon-warning); }
+#toast-container > .toast-info    { border-left-color: var(--icon-info); }
+
+#toast-container > div .toast-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--accent-secondary);
+    margin-bottom: 2px;
+}
+
+#toast-container > div .toast-message {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: var(--fg-color);
+}
+
+#toast-container > div .toast-close-button {
+    color: var(--fg-color);
+    opacity: 0.6;
+    text-shadow: none;
+    font-weight: 700;
+}
+
+#toast-container > div .toast-close-button:hover {
+    color: var(--fg-color);
+    opacity: 1;
+}
+
+#toast-container .toast-progress {
+    opacity: 0.5;
+    background-color: var(--accent-secondary);
+}
+
 .loader-item {
     display: flex;
     align-items: center;
