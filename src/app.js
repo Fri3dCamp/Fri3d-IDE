@@ -36,7 +36,8 @@ import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel
 
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
          QSA, QS, QID, iOS, sanitizeHTML,
-         sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
+         sizeFmt, indicateActivity, setupTabs, report,
+         withLoader, showLoader } from './utils.js'
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
@@ -321,6 +322,7 @@ export async function connectDevice(type) {
     if (QID('interrupt-device').checked) {
         // TODO: detect WDT and disable it temporarily
 
+        const loader = showLoader('Reading device\u2026')
         const raw = await MpRawMode.begin(port)
         try {
             devInfo = await raw.getDeviceInfo()
@@ -330,10 +332,12 @@ export async function connectDevice(type) {
             console.log('Device info', devInfo)
 
             if (window.pkg_install_url) {
+                loader.update('Installing package\u2026')
                 await _raw_installPkg(raw, window.pkg_install_url)
                 window.pkg_install_url = null
             }
 
+            loader.update('Loading files\u2026')
             let fs_stats = [null, null, null];
             try {
                 fs_stats = await raw.getFsStats()
@@ -360,6 +364,7 @@ export async function connectDevice(type) {
             }
         } finally {
             await raw.end()
+            loader.hide()
         }
         // Print banner. TODO: optimize
         await port.write('\x02')
@@ -374,12 +379,14 @@ export async function connectDevice(type) {
 
 export async function refreshFileTree() {
     if (!port) return;
-    const raw = await MpRawMode.begin(port)
-    try {
-        await _raw_updateFileTree(raw)
-    } finally {
-        await raw.end()
-    }
+    await withLoader('Loading files…', async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await _raw_updateFileTree(raw)
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 export async function createNewFile(path) {
@@ -430,25 +437,27 @@ export async function createNewFile(path) {
         const fn = input.value.trim()
         div.remove()
         if (!fn) return
-        const raw = await MpRawMode.begin(port)
-        try {
-            if (fn.endsWith('/')) {
-                const full = path + fn.slice(0, -1)
-                await raw.makePath(full)
-            } else {
-                const full = path + fn
-                if (fn.includes('/')) {
-                    // Ensure path exists
-                    const [dirname] = splitPath(full)
-                    await raw.makePath(dirname)
+        await withLoader(`Creating ${fn}…`, async () => {
+            const raw = await MpRawMode.begin(port)
+            try {
+                if (fn.endsWith('/')) {
+                    const full = path + fn.slice(0, -1)
+                    await raw.makePath(full)
+                } else {
+                    const full = path + fn
+                    if (fn.includes('/')) {
+                        // Ensure path exists
+                        const [dirname] = splitPath(full)
+                        await raw.makePath(dirname)
+                    }
+                    await raw.touchFile(full)
+                    await _raw_loadFile(raw, full)
                 }
-                await raw.touchFile(full)
-                await _raw_loadFile(raw, full)
+                await _raw_updateFileTree(raw)
+            } finally {
+                await raw.end()
             }
-            await _raw_updateFileTree(raw)
-        } finally {
-            await raw.end()
-        }
+        })
     }
 
     input.addEventListener('keydown', (e) => {
@@ -703,6 +712,7 @@ export async function createNewApp() {
     const mainPath = `${appRoot}/assets/main.py`
 
     const raw = await MpRawMode.begin(port)
+    let loader = null
     try {
         const exists = (await raw.exec(`
 import os
@@ -716,6 +726,8 @@ except:
             const confirmed = await showConfirmDialog(T('app.dialog.confirm-overwrite', 'App folder {{path}} already exists. Overwrite scaffold files?', { path: appRoot }))
             if (!confirmed) return
         }
+
+        loader = showLoader(T('app.dialog.loading-create', 'Creating app {{fullname}}\u2026', { fullname }))
 
         await raw.makePath(`${appRoot}/META-INF`)
         await raw.makePath(`${appRoot}/assets`)
@@ -752,6 +764,7 @@ AppManager.restart_launcher()
         report('Create app scaffold failed', err)
         return
     } finally {
+        if (loader) loader.hide()
         await raw.end()
     }
 
@@ -784,27 +797,31 @@ AppManager.restart_launcher()
 export async function removeFile(path) {
     if (!port) return;
     if (!confirm(`Remove ${path}?`)) return
-    const raw = await MpRawMode.begin(port)
-    try {
-        await raw.removeFile(path)
-        await _raw_updateFileTree(raw)
-        document.dispatchEvent(new CustomEvent("fileRemoved", {detail: {path: path}}))
-    } finally {
-        await raw.end()
-    }
+    await withLoader(`Removing ${path}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await raw.removeFile(path)
+            await _raw_updateFileTree(raw)
+            document.dispatchEvent(new CustomEvent("fileRemoved", {detail: {path: path}}))
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 export async function removeDir(path) {
     if (!port) return;
     if (!confirm(`Remove ${path}?`)) return
-    const raw = await MpRawMode.begin(port)
-    try {
-        await raw.removeDir(path)
-        await _raw_updateFileTree(raw)
-        document.dispatchEvent(new CustomEvent("dirRemoved", {detail: {path: path}}))
-    } finally {
-        await raw.end()
-    }
+    await withLoader(`Removing ${path}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await raw.removeDir(path)
+            await _raw_updateFileTree(raw)
+            document.dispatchEvent(new CustomEvent("dirRemoved", {detail: {path: path}}))
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 async function execReplNoFollow(cmd) {
@@ -1001,12 +1018,14 @@ export function expandAllFolders() {
 export async function fileClick(fn) {
     if (!port) return;
 
-    const raw = await MpRawMode.begin(port)
-    try {
-        await _raw_loadFile(raw, fn)
-    } finally {
-        await raw.end()
-    }
+    await withLoader(`Opening ${fn}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await _raw_loadFile(raw, fn)
+        } finally {
+            await raw.end()
+        }
+    })
 
     fileTreeSelect(fn)
 }
@@ -1018,7 +1037,7 @@ export async function pyMinify() {
     }
 
     const input = editor.state.doc.toString()
-    const res = await minifyPython(input)
+    const res = await withLoader('Minifying…', () => minifyPython(input))
 
     editor.dispatch({
       changes: { from: 0, to: editor.state.doc.length, insert: res }
@@ -1033,7 +1052,7 @@ export async function pyPrettify() {
         return
     }
 
-    const res = await prettifyPython(editor.state.doc.toString())
+    const res = await withLoader('Formatting…', () => prettifyPython(editor.state.doc.toString()))
 
     editor.dispatch({
       changes: { from: 0, to: editor.state.doc.length, insert: res }
@@ -1217,8 +1236,10 @@ export async function saveCurrentFile() {
     }
     const raw = await MpRawMode.begin(port)
     try {
-        await raw.writeFile(editorFn, content)
-        await _raw_updateFileTree(raw)
+        await withLoader(`Saving ${editorFn}…`, async () => {
+            await raw.writeFile(editorFn, content)
+            await _raw_updateFileTree(raw)
+        })
     } finally {
         await raw.end()
     }
@@ -1307,31 +1328,33 @@ export async function runCurrentFile() {
 export async function loadAllPkgIndexes() {
     const pkgList = QID('menu-pkg-list')
     pkgList.innerHTML = ''
-    for (const i of await getPkgIndexes()) {
-        pkgList.insertAdjacentHTML('beforeend', `<div class="title-lines">${i.name}</div>`)
-        for (const pkg of i.index.packages) {
-            let offset = ''
-            let icon = ''
-            if (pkg.name.includes('-')) {
-                const parent = pkg.name.split('-').slice(0, -1).join('-')
-                const exists = i.index.packages.some(pkg => (pkg.name === parent))
-                if (exists) {
-                    offset = '&emsp;'
+    await withLoader('Loading package index…', async () => {
+        for (const i of await getPkgIndexes()) {
+            pkgList.insertAdjacentHTML('beforeend', `<div class="title-lines">${i.name}</div>`)
+            for (const pkg of i.index.packages) {
+                let offset = ''
+                let icon = ''
+                if (pkg.name.includes('-')) {
+                    const parent = pkg.name.split('-').slice(0, -1).join('-')
+                    const exists = i.index.packages.some(pkg => (pkg.name === parent))
+                    if (exists) {
+                        offset = '&emsp;'
+                    }
                 }
+                const keywords = pkg.keywords ? pkg.keywords.split(',').map(x => x.trim()) : [];
+                if (keywords.includes('__hidden__')) {
+                    continue
+                }
+                if (keywords.includes('native')) {
+                    icon = ' <i class="fa-solid fa-gauge-high" title="Efficient native module"></i>'
+                }
+                pkgList.insertAdjacentHTML('beforeend', `<div>
+                    ${offset}<span><i class="fa-solid fa-cube fa-fw"></i> ${pkg.name}${icon}</span>
+                    <a href="#" class="menu-action" onclick="app.installPkg('${pkg.name}');return false;">${pkg.version} <i class="fa-regular fa-circle-down"></i></a>
+                </div>`)
             }
-            const keywords = pkg.keywords ? pkg.keywords.split(',').map(x => x.trim()) : [];
-            if (keywords.includes('__hidden__')) {
-                continue
-            }
-            if (keywords.includes('native')) {
-                icon = ' <i class="fa-solid fa-gauge-high" title="Efficient native module"></i>'
-            }
-            pkgList.insertAdjacentHTML('beforeend', `<div>
-                ${offset}<span><i class="fa-solid fa-cube fa-fw"></i> ${pkg.name}${icon}</span>
-                <a href="#" class="menu-action" onclick="app.installPkg('${pkg.name}');return false;">${pkg.version} <i class="fa-regular fa-circle-down"></i></a>
-            </div>`)
         }
-    }
+    })
 }
 
 async function _raw_installPkg(raw, pkg, { version=null } = {}) {
@@ -1354,15 +1377,17 @@ export async function installPkg(pkg, { version=null } = {}) {
         toastr.info('Connect yout board first')
         return
     }
-    const raw = await MpRawMode.begin(port)
-    try {
-        await _raw_installPkg(raw, pkg, { version })
-        await _raw_updateFileTree(raw)
-    } catch (err) {
-        report('Installing failed', err)
-    } finally {
-        await raw.end()
-    }
+    await withLoader(`Installing ${pkg}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await _raw_installPkg(raw, pkg, { version })
+            await _raw_updateFileTree(raw)
+        } catch (err) {
+            report('Installing failed', err)
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 export async function installPkgFromUrl() {

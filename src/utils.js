@@ -158,3 +158,83 @@ window.addEventListener('unhandledrejection', (ev) => {
     ev.preventDefault()
 });
 
+/*
+ * Loading indicators
+ *
+ * A stacked, non-blocking indicator shown while data is being
+ * loaded, processed or saved. Each concurrent operation gets its
+ * own row with a spinner, so several loaders can be visible at once.
+ */
+
+let _loaderContainer = null
+let _loaderSeq = 0
+
+function _ensureLoaderContainer() {
+    if (!_loaderContainer || !_loaderContainer.isConnected) {
+        _loaderContainer = document.createElement('div')
+        _loaderContainer.id = 'loader-stack'
+        _loaderContainer.setAttribute('aria-live', 'polite')
+        document.body.appendChild(_loaderContainer)
+    }
+    return _loaderContainer
+}
+
+function _hideLoaderItem(item) {
+    if (!item || item.dataset.hiding) return
+    item.dataset.hiding = '1'
+    item.classList.remove('visible')
+    const remove = () => {
+        item.remove()
+        if (_loaderContainer && !_loaderContainer.children.length) {
+            _loaderContainer.remove()
+            _loaderContainer = null
+        }
+    }
+    item.addEventListener('transitionend', remove, { once: true })
+    // Fallback in case the transition does not fire (e.g. reduced motion)
+    setTimeout(remove, 400)
+}
+
+// Show a loading indicator with a message.
+// Returns a handle with update(message) and hide() methods.
+export function showLoader(message) {
+    const container = _ensureLoaderContainer()
+    const id = 'loader-' + (++_loaderSeq)
+
+    const item = document.createElement('div')
+    item.className = 'loader-item'
+    item.id = id
+
+    const spinner = document.createElement('span')
+    spinner.className = 'loader-spinner'
+
+    const label = document.createElement('span')
+    label.className = 'loader-label'
+    label.textContent = message
+
+    item.appendChild(spinner)
+    item.appendChild(label)
+    container.appendChild(item)
+
+    // Trigger the entrance animation on the next frame
+    requestAnimationFrame(() => item.classList.add('visible'))
+
+    return {
+        id,
+        update(newMessage) { label.textContent = newMessage },
+        hide() { _hideLoaderItem(item) },
+    }
+}
+
+// Wrap an async operation with a loading indicator that is shown
+// while it runs and removed when it settles (resolve or reject).
+// The task receives the loader handle so it can update the message.
+export async function withLoader(message, task) {
+    const loader = showLoader(message)
+    try {
+        return await task(loader)
+    } finally {
+        loader.hide()
+    }
+}
+

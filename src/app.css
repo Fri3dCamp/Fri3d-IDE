@@ -696,3 +696,59 @@ body.loaded {
 .fri3d-btn-secondary:hover {
     background: var(--bg-color-edit);
 }
+
+/* ── Loading indicators ───────────────────────────────────────────────── */
+#loader-stack {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.loader-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-color-menu);
+    border: var(--border-thick);
+    box-shadow: var(--shadow-std);
+    padding: 8px 14px;
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.82rem;
+    color: var(--fg-color);
+    max-width: 320px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.loader-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.loader-spinner {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--accent-secondary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: loader-spin 0.7s linear infinite;
+}
+
+.loader-label {
+    flex: 1 1 auto;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@keyframes loader-spin {
+    to { transform: rotate(360deg); }
+}

@@ -73,6 +73,7 @@
                 "confirm-bootstrap": "Prepare an Assistant prompt to bootstrap main.py with LLM?",
                 "success-created": "Created app scaffold for {{fullname}}",
                 "warning-launcher": "Scaffold created, but launcher refresh failed",
+                "loading-create": "Creating app {{fullname}}…",
                 "info-assistant-ready": "Assistant prompt prepared. Click \"Run task\" to generate code.",
                 "validate-required": "App fullname is required",
                 "validate-dot": "App fullname should include at least one dot, e.g. com.example.myapp",
