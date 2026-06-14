@@ -642,7 +642,8 @@ body.loaded {
 }
 
 .fri3d-dialog-form input[type="text"],
-.fri3d-dialog-form select {
+.fri3d-dialog-form select,
+.fri3d-dialog-input {
     background: var(--bg-color-edit);
     color: var(--fg-color);
     border: var(--border-std);
@@ -651,6 +652,10 @@ body.loaded {
     width: 100%;
     box-sizing: border-box;
     font-family: inherit;
+}
+
+.fri3d-dialog-input {
+    margin-top: 12px;
 }
 
 .fri3d-dialog-error {

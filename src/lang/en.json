@@ -29,7 +29,9 @@
             "loading": "Loading files…",
             "new-file": "New File",
             "refresh": "Refresh",
-            "collapse-all": "Collapse All"
+            "collapse-all": "Collapse All",
+            "confirm-remove": "Remove {{path}}?",
+            "prompt-new-name": "Please enter the file name:"
         },
         "settings": {
             "conn": "connection",
@@ -97,6 +99,10 @@
             "scaffold-btn": "Create new app scaffold",
             "connect-first": "Connect your board first",
             "offline": "Offline",
+            "confirm-disconnect": "Disconnect current device?",
+            "prompt-webrepl-url": "Enter WebREPL device address.\nSupported protocols: ws wss rtc",
+            "prompt-webrepl-pass": "WebREPL password:",
+            "prompt-pkg-url": "Enter package name or URL:",
             "dialog": {
                 "title": "Create New App",
                 "field-id": "App ID",
@@ -111,6 +117,7 @@
                 "btn-create": "Create",
                 "btn-cancel": "Cancel",
                 "btn-confirm": "Confirm",
+                "btn-ok": "OK",
                 "confirm-overwrite": "App folder {{path}} already exists. Overwrite scaffold files?",
                 "confirm-bootstrap": "Prepare an Assistant prompt to bootstrap main.py with LLM?",
                 "success-created": "Created app scaffold for {{fullname}}",

@@ -186,7 +186,7 @@ async function prepareNewPort(type) {
     if (type === 'ws') {
         let url
         if (typeof window.webrepl_url === 'undefined' || window.webrepl_url == '') {
-            url = prompt('Enter WebREPL device address.\nSupported protocols: ws wss rtc', defaultWsURL)
+            url = await showPromptDialog(T('app.prompt-webrepl-url', 'Enter WebREPL device address.\nSupported protocols: ws wss rtc'), { value: defaultWsURL })
             if (!url) { return }
             defaultWsURL = url
 
@@ -223,7 +223,7 @@ async function prepareNewPort(type) {
 
             new_port = new WebSocketREPL(url)
             new_port.onPasswordRequest(async () => {
-                const pass = prompt('WebREPL password:', defaultWsPass)
+                const pass = await showPromptDialog(T('app.prompt-webrepl-pass', 'WebREPL password:'), { value: defaultWsPass, password: true })
                 if (pass == null) { return }
                 if (pass.length < 4) {
                     toastr.error('Password is too short')
@@ -288,7 +288,7 @@ async function prepareNewPort(type) {
 
 export async function connectDevice(type) {
     if (port) {
-        if (!confirm('Disconnect current device?')) { return }
+        if (!await showConfirmDialog(T('app.confirm-disconnect', 'Disconnect current device?'))) { return }
         await disconnectDevice()
         return
     }
@@ -577,6 +577,70 @@ function showConfirmDialog(message) {
     })
 }
 
+// Styled, translatable replacement for the native prompt(). Resolves to the
+// entered string, or null if the dialog is cancelled.
+function showPromptDialog(message, { value = '', placeholder = '', password = false } = {}) {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div')
+        backdrop.className = 'fri3d-dialog-backdrop'
+
+        const dialog = document.createElement('div')
+        dialog.className = 'fri3d-dialog'
+
+        const msgEl = document.createElement('div')
+        msgEl.className = 'fri3d-dialog-message'
+        msgEl.style.whiteSpace = 'pre-line'
+        msgEl.textContent = message
+
+        const input = document.createElement('input')
+        input.type = password ? 'password' : 'text'
+        input.className = 'fri3d-dialog-input'
+        input.value = value
+        input.placeholder = placeholder
+        input.autocomplete = 'off'
+        input.spellcheck = false
+
+        const actions = document.createElement('div')
+        actions.className = 'fri3d-dialog-actions'
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.className = 'fri3d-btn-secondary'
+        cancelBtn.type = 'button'
+        cancelBtn.textContent = T('app.dialog.btn-cancel', 'Cancel')
+
+        const okBtn = document.createElement('button')
+        okBtn.className = 'fri3d-btn-cta'
+        okBtn.type = 'button'
+        okBtn.textContent = T('app.dialog.btn-ok', 'OK')
+
+        actions.appendChild(cancelBtn)
+        actions.appendChild(okBtn)
+        dialog.appendChild(msgEl)
+        dialog.appendChild(input)
+        dialog.appendChild(actions)
+        backdrop.appendChild(dialog)
+        document.body.appendChild(backdrop)
+
+        const restoreFocus = setupModalA11y(dialog, message)
+
+        function close(result) {
+            backdrop.remove()
+            restoreFocus()
+            resolve(result)
+        }
+
+        okBtn.addEventListener('click', () => close(input.value))
+        cancelBtn.addEventListener('click', () => close(null))
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(null) })
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); close(input.value) }
+            else if (e.key === 'Escape') close(null)
+        })
+        input.focus()
+        input.select()
+    })
+}
+
 function showAppWizardDialog() {
     return new Promise((resolve) => {
         const backdrop = document.createElement('div')
@@ -853,7 +917,7 @@ AppManager.restart_launcher()
 
 export async function removeFile(path) {
     if (!port) return;
-    if (!confirm(`Remove ${path}?`)) return
+    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path }))) return
     await withLoader(`Removing ${path}…`, async () => {
         const raw = await MpRawMode.begin(port)
         try {
@@ -868,7 +932,7 @@ export async function removeFile(path) {
 
 export async function removeDir(path) {
     if (!port) return;
-    if (!confirm(`Remove ${path}?`)) return
+    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path }))) return
     await withLoader(`Removing ${path}…`, async () => {
         const raw = await MpRawMode.begin(port)
         try {
@@ -917,6 +981,10 @@ function _updateFileTree(fs_tree, fs_stats)
 
     // Traverse file tree
     const fileTree = QID('menu-file-tree')
+    // Preserve the scroll position across a full rebuild so saving/refreshing
+    // doesn't jump the file list back to the top.
+    const scrollParent = fileTree.closest('.tab-content')
+    const prevScrollTop = scrollParent ? scrollParent.scrollTop : 0
     // Bind a single delegated click handler for dynamically-built rows so we
     // never interpolate untrusted file/folder names into inline onclick JS.
     if (!fileTree.dataset.delegationBound) {
@@ -1005,6 +1073,8 @@ function _updateFileTree(fs_tree, fs_stats)
             <span class="menu-action">virtual</span>
         </div>`)
     }
+
+    if (scrollParent) scrollParent.scrollTop = prevScrollTop
 
 }
 
@@ -1309,7 +1379,7 @@ export async function saveCurrentFile() {
     }
 
     if (editorFn == "Untitled") {
-        const fn = prompt(`Creating new file inside /\nPlease enter the name:`)
+        const fn = await showPromptDialog(T('files.prompt-new-name', 'Please enter the file name:'))
         if (fn == null || fn == '') return
         editorFn = fn
         document.dispatchEvent(new CustomEvent("fileRenamed", {detail: {old: "Untitled", new: fn}}))
@@ -1509,7 +1579,7 @@ export async function installPkgFromUrl() {
         toastr.info(T('app.connect-first', 'Connect your board first'))
         return
     }
-    const url = prompt('Enter package name or URL:')
+    const url = await showPromptDialog(T('app.prompt-pkg-url', 'Enter package name or URL:'))
     if (url) {
         await installPkg(url)
     }
