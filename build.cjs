@@ -50,7 +50,8 @@ async function downloadAndExtract(url, subfolder, dest) {
 function buildServiceWorker() {
     const pkg = JSON.parse(readfile('package.json'));
     const src = readfile('src/app_worker.js')
-        .replace(/VIPER_IDE_VERSION/g, JSON.stringify(pkg.version));
+        .replace(/VIPER_IDE_VERSION/g, JSON.stringify(pkg.version))
+        .replace(/VIPER_IDE_BUILD/g, JSON.stringify(String(Date.now())));
     fs.writeFileSync('build/app_worker.js', src);
 }
 
