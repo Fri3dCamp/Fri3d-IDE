@@ -323,6 +323,7 @@ export async function connectDevice(type) {
         // TODO: detect WDT and disable it temporarily
 
         const loader = showLoader('Reading device\u2026')
+        let fileLoader = null
         const raw = await MpRawMode.begin(port)
         try {
             devInfo = await raw.getDeviceInfo()
@@ -337,7 +338,7 @@ export async function connectDevice(type) {
                 window.pkg_install_url = null
             }
 
-            loader.update('Loading files\u2026')
+            fileLoader = showFileTreeLoader()
             let fs_stats = [null, null, null];
             try {
                 fs_stats = await raw.getFsStats()
@@ -365,6 +366,7 @@ export async function connectDevice(type) {
         } finally {
             await raw.end()
             loader.hide()
+            if (fileLoader) fileLoader.hide()
         }
         // Print banner. TODO: optimize
         await port.write('\x02')
@@ -379,14 +381,17 @@ export async function connectDevice(type) {
 
 export async function refreshFileTree() {
     if (!port) return;
-    await withLoader('Loading files…', async () => {
+    const loader = showFileTreeLoader()
+    try {
         const raw = await MpRawMode.begin(port)
         try {
             await _raw_updateFileTree(raw)
         } finally {
             await raw.end()
         }
-    })
+    } finally {
+        loader.hide()
+    }
 }
 
 export async function createNewFile(path) {
@@ -929,6 +934,27 @@ function _updateFileTree(fs_tree, fs_stats)
         </div>`)
     }
 
+}
+
+// Show an inline loading indicator inside the file picker (file tree panel).
+// Returns a handle with a hide() method. The indicator is also removed
+// automatically when the tree is rebuilt by _updateFileTree().
+function showFileTreeLoader(message = T('files.loading', 'Loading files…')) {
+    const fileTree = QID('menu-file-tree')
+    if (!fileTree) return { update() {}, hide() {} }
+    let el = QID('file-tree-loader')
+    if (!el) {
+        el = document.createElement('div')
+        el.id = 'file-tree-loader'
+        el.className = 'file-tree-loader'
+        el.innerHTML = `<span class="loader-spinner"></span><span class="loader-label"></span>`
+        fileTree.insertBefore(el, fileTree.firstChild)
+    }
+    el.querySelector('.loader-label').textContent = message
+    return {
+        update(newMessage) { el.querySelector('.loader-label').textContent = newMessage },
+        hide() { el.remove() },
+    }
 }
 
 async function _raw_updateFileTree(raw) {

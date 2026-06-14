@@ -26,6 +26,7 @@
             "no-files": "no files",
             "connect": "connect",
             "used": "used",
+            "loading": "Loading files…",
             "new-file": "New File",
             "refresh": "Refresh",
             "collapse-all": "Collapse All"

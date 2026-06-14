@@ -169,6 +169,19 @@ window.addEventListener('unhandledrejection', (ev) => {
 let _loaderContainer = null
 let _loaderSeq = 0
 
+// Keep a CSS variable in sync with the loader stack height so that the
+// toastr notification container can be pushed down and the two share the
+// same top-right corner without overlapping.
+function _syncLoaderOffset() {
+    requestAnimationFrame(() => {
+        const h = (_loaderContainer && _loaderContainer.isConnected)
+            ? _loaderContainer.getBoundingClientRect().height
+            : 0
+        const offset = h ? `${Math.ceil(h) + 12}px` : '12px'
+        document.documentElement.style.setProperty('--loader-stack-offset', offset)
+    })
+}
+
 function _ensureLoaderContainer() {
     if (!_loaderContainer || !_loaderContainer.isConnected) {
         _loaderContainer = document.createElement('div')
@@ -183,12 +196,14 @@ function _hideLoaderItem(item) {
     if (!item || item.dataset.hiding) return
     item.dataset.hiding = '1'
     item.classList.remove('visible')
+    _syncLoaderOffset()
     const remove = () => {
         item.remove()
         if (_loaderContainer && !_loaderContainer.children.length) {
             _loaderContainer.remove()
             _loaderContainer = null
         }
+        _syncLoaderOffset()
     }
     item.addEventListener('transitionend', remove, { once: true })
     // Fallback in case the transition does not fire (e.g. reduced motion)
@@ -215,6 +230,7 @@ export function showLoader(message) {
     item.appendChild(spinner)
     item.appendChild(label)
     container.appendChild(item)
+    _syncLoaderOffset()
 
     // Trigger the entrance animation on the next frame
     requestAnimationFrame(() => item.classList.add('visible'))
