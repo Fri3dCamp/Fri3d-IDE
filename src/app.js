@@ -1729,7 +1729,9 @@ export function applyTranslation() {
     const xtermThemeDark = {
         foreground: '#F8F8F8',
         background: getCssPropertyValue('--bg-color-edit'),
-        selection: '#5DA5D533',
+        selectionBackground: '#5DA5D5',
+        selectionForeground: '#1E1E1D',
+        selectionInactiveBackground: '#5DA5D580',
         black: '#1E1E1D',
         brightBlack: '#262625',
         red: '#CE5C5C',
@@ -1751,7 +1753,9 @@ export function applyTranslation() {
     const xtermThemeLight = {
         foreground: '#212121',
         background: getCssPropertyValue('--bg-color-edit'),
-        selection: '#80CBC440',
+        selectionBackground: '#80CBC4',
+        selectionForeground: '#212121',
+        selectionInactiveBackground: '#80CBC480',
         cursor: '#212121',
         black: '#212121',
         brightBlack: '#546E7A',
