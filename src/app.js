@@ -42,7 +42,7 @@ import { splitPath, sleep, fetchJSON, getCssPropertyValue,
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
-import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
+import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faFileCirclePlus, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
@@ -51,7 +51,7 @@ import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFol
 import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
 library.add(faUsb, faBluetoothB)
-library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
+library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faFileCirclePlus, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
@@ -412,7 +412,7 @@ export async function createNewFile(path) {
     // Keep the parent folder expanded so the freshly-created item is visible.
     if (path !== '/') openFolders.add(path.slice(0, -1))
 
-    await withLoader(T('files.creating', 'Creating {{name}}…', { name }), async () => {
+    await withLoader(T('files.creating', 'Creating {{name}}…', { name, interpolation: { escapeValue: false } }), async () => {
         const raw = await MpRawMode.begin(port)
         try {
             if (isFolder) {
@@ -594,7 +594,7 @@ function showPromptDialog(message, { value = '', placeholder = '', password = fa
 function showCreateItemDialog(parentPath) {
     return new Promise((resolve) => {
         const where = parentPath === '/' ? '/' : parentPath
-        const titleText = T('files.create-title', 'New in {{path}}', { path: where })
+        const titleText = T('files.create-title', 'New in {{path}}', { path: where, interpolation: { escapeValue: false } })
 
         const backdrop = document.createElement('div')
         backdrop.className = 'fri3d-dialog-backdrop'
@@ -962,7 +962,7 @@ AppManager.restart_launcher()
 
 export async function removeFile(path) {
     if (!port) return;
-    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path }))) return
+    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path, interpolation: { escapeValue: false } }))) return
     await withLoader(`Removing ${path}…`, async () => {
         const raw = await MpRawMode.begin(port)
         try {
@@ -977,7 +977,7 @@ export async function removeFile(path) {
 
 export async function removeDir(path) {
     if (!port) return;
-    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path }))) return
+    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path, interpolation: { escapeValue: false } }))) return
     await withLoader(`Removing ${path}…`, async () => {
         const raw = await MpRawMode.begin(port)
         try {
