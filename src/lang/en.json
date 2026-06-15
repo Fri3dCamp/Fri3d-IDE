@@ -29,6 +29,7 @@
             "loading": "Loading files…",
             "new-file": "New File",
             "refresh": "Refresh",
+            "expand-all": "Expand All",
             "collapse-all": "Collapse All",
             "confirm-remove": "Remove {{path}}?",
             "prompt-new-name": "Please enter the file name:",

@@ -1028,8 +1028,7 @@ function _updateFileTree(fs_tree, fs_stats)
     const fileTree = QID('menu-file-tree')
     // Preserve the scroll position across a full rebuild so saving/refreshing
     // doesn't jump the file list back to the top.
-    const scrollParent = fileTree.closest('.tab-content')
-    const prevScrollTop = scrollParent ? scrollParent.scrollTop : 0
+    const prevScrollTop = fileTree.scrollTop
     // Bind a single delegated click handler for dynamically-built rows so we
     // never interpolate untrusted file/folder names into inline onclick JS.
     if (!fileTree.dataset.delegationBound) {
@@ -1048,14 +1047,11 @@ function _updateFileTree(fs_tree, fs_stats)
             }
         })
     }
+    // Root row mirrors the other folder rows (a create "+" action) but has no
+    // remove button, since the filesystem root can't be deleted.
     fileTree.innerHTML = `<div>
         <span class="folder name"><i class="fa-solid fa-folder fa-fw"></i> /</span>
-        <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Create App" onclick="app.createNewApp();return false;"><i class="fa-solid fa-cubes fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Expand all" onclick="app.expandAllFolders();return false;"><i class="fa-solid fa-folder-open fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Collapse all" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
-        <span class="menu-action">${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}</span>
+        <a href="#" class="menu-action" title="Create" data-act="new-file" data-path="/"><i class="fa-solid fa-plus fa-fw"></i></a>
     </div>`
     function buildTree(node, depth) {
         const offset = '&emsp;'.repeat(depth)
@@ -1119,7 +1115,13 @@ function _updateFileTree(fs_tree, fs_stats)
         </div>`)
     }
 
-    if (scrollParent) scrollParent.scrollTop = prevScrollTop
+    const usageEl = QID('file-tree-usage')
+    if (usageEl) {
+        usageEl.textContent = `${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}`
+        usageEl.hidden = false
+    }
+
+    fileTree.scrollTop = prevScrollTop
 
 }
 
@@ -1814,8 +1816,8 @@ export function applyTranslation() {
         })
 
         QS('#menu-file-title-text').innerText = T('menu.file-mgr')
-        QID('btn-file-new').setAttribute('title', T('files.new-file', 'New File'))
         QID('btn-file-refresh').setAttribute('title', T('files.refresh', 'Refresh'))
+        QID('btn-file-expand').setAttribute('title', T('files.expand-all', 'Expand All'))
         QID('btn-file-collapse').setAttribute('title', T('files.collapse-all', 'Collapse All'))
         QID('create-new-app-label').innerText = T('app.scaffold-btn', 'Create new app scaffold')
         QS('#menu-pkg-title').innerText = T('menu.package-mgr')

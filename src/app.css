@@ -262,6 +262,34 @@ body.loaded {
     opacity: 1;
 }
 
+/* File manager fills its panel as a flex column: the title stays at the top,
+   the tree scrolls in the middle, and the disk-usage footer pins to the
+   bottom of the sidebar. */
+#menu-files.active {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#menu-files #menu-file-tree {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+#file-tree-usage {
+    flex: 0 0 auto;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    opacity: 0.65;
+}
+
+#file-tree-usage[hidden] {
+    display: none;
+}
+
 #create-new-app-section {
     flex: 0 0 auto;
     padding: 8px 10px;
