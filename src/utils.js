@@ -65,6 +65,19 @@ export function sanitizeHTML(s) {
     return (new Option(s)).innerHTML.replace(/(?:\r\n|\r|\n)/g, '<br>').replace(/ /g, '&nbsp;')
 }
 
+// Escape a string for safe insertion into HTML text or a double-quoted
+// attribute. Unlike sanitizeHTML it does not mangle spaces/newlines, so it is
+// suitable for file names, package names and values stored in data-* attributes.
+export function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+    }[c]))
+}
+
 export function sizeFmt(size, places=1) {
     if (size == null) { return "unknown" }
     const suffixes = ['B', 'KiB', 'MiB', 'GiB', 'TiB']
@@ -157,4 +170,100 @@ window.addEventListener('unhandledrejection', (ev) => {
     report("Error", new Error(ev.reason))
     ev.preventDefault()
 });
+
+/*
+ * Loading indicators
+ *
+ * A stacked, non-blocking indicator shown while data is being
+ * loaded, processed or saved. Each concurrent operation gets its
+ * own row with a spinner, so several loaders can be visible at once.
+ */
+
+let _loaderContainer = null
+let _loaderSeq = 0
+
+// Keep a CSS variable in sync with the loader stack height so that the
+// toastr notification container can be pushed down and the two share the
+// same top-right corner without overlapping.
+function _syncLoaderOffset() {
+    requestAnimationFrame(() => {
+        const h = (_loaderContainer && _loaderContainer.isConnected)
+            ? _loaderContainer.getBoundingClientRect().height
+            : 0
+        const offset = h ? `${Math.ceil(h) + 12}px` : '12px'
+        document.documentElement.style.setProperty('--loader-stack-offset', offset)
+    })
+}
+
+function _ensureLoaderContainer() {
+    if (!_loaderContainer || !_loaderContainer.isConnected) {
+        _loaderContainer = document.createElement('div')
+        _loaderContainer.id = 'loader-stack'
+        _loaderContainer.setAttribute('aria-live', 'polite')
+        document.body.appendChild(_loaderContainer)
+    }
+    return _loaderContainer
+}
+
+function _hideLoaderItem(item) {
+    if (!item || item.dataset.hiding) return
+    item.dataset.hiding = '1'
+    item.classList.remove('visible')
+    _syncLoaderOffset()
+    const remove = () => {
+        item.remove()
+        if (_loaderContainer && !_loaderContainer.children.length) {
+            _loaderContainer.remove()
+            _loaderContainer = null
+        }
+        _syncLoaderOffset()
+    }
+    item.addEventListener('transitionend', remove, { once: true })
+    // Fallback in case the transition does not fire (e.g. reduced motion)
+    setTimeout(remove, 400)
+}
+
+// Show a loading indicator with a message.
+// Returns a handle with update(message) and hide() methods.
+export function showLoader(message) {
+    const container = _ensureLoaderContainer()
+    const id = 'loader-' + (++_loaderSeq)
+
+    const item = document.createElement('div')
+    item.className = 'loader-item'
+    item.id = id
+
+    const spinner = document.createElement('span')
+    spinner.className = 'loader-spinner'
+
+    const label = document.createElement('span')
+    label.className = 'loader-label'
+    label.textContent = message
+
+    item.appendChild(spinner)
+    item.appendChild(label)
+    container.appendChild(item)
+    _syncLoaderOffset()
+
+    // Trigger the entrance animation on the next frame
+    requestAnimationFrame(() => item.classList.add('visible'))
+
+    return {
+        id,
+        update(newMessage) { label.textContent = newMessage },
+        hide() { _hideLoaderItem(item) },
+    }
+}
+
+// Wrap an async operation with a loading indicator that is shown
+// while it runs and removed when it settles (resolve or reject).
+// The task receives the loader handle so it can update the message.
+export async function withLoader(message, task) {
+    const loader = showLoader(message)
+    try {
+        return await task(loader)
+    } finally {
+        loader.hide()
+    }
+}
 

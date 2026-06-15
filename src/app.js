@@ -33,14 +33,16 @@ import { MicroPythonWASM } from './emulator.js'
 
 import { marked } from 'marked'
 import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
+import { initOnboarding } from './onboarding.js'
 
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
-         QSA, QS, QID, iOS, sanitizeHTML,
-         sizeFmt, indicateActivity, setupTabs, report } from './utils.js'
+         QSA, QS, QID, iOS, sanitizeHTML, escapeHtml,
+         sizeFmt, indicateActivity, setupTabs, report,
+         withLoader, showLoader } from './utils.js'
 
 import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import { faUsb, faBluetoothB } from '@fortawesome/free-brands-svg-icons'
-import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
+import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faFileCirclePlus, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
@@ -49,7 +51,7 @@ import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFol
 import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
 library.add(faUsb, faBluetoothB)
-library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faCubes, faGear,
+library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faFileCirclePlus, faCubes, faGear,
          faCube, faTools, faSliders, faCircleInfo, faStar, faExpand, faCertificate,
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
@@ -184,7 +186,7 @@ async function prepareNewPort(type) {
     if (type === 'ws') {
         let url
         if (typeof window.webrepl_url === 'undefined' || window.webrepl_url == '') {
-            url = prompt('Enter WebREPL device address.\nSupported protocols: ws wss rtc', defaultWsURL)
+            url = await showPromptDialog(T('app.prompt-webrepl-url', 'Enter WebREPL device address.\nSupported protocols: ws wss rtc'), { value: defaultWsURL })
             if (!url) { return }
             defaultWsURL = url
 
@@ -221,7 +223,7 @@ async function prepareNewPort(type) {
 
             new_port = new WebSocketREPL(url)
             new_port.onPasswordRequest(async () => {
-                const pass = prompt('WebREPL password:', defaultWsPass)
+                const pass = await showPromptDialog(T('app.prompt-webrepl-pass', 'WebREPL password:'), { value: defaultWsPass, password: true })
                 if (pass == null) { return }
                 if (pass.length < 4) {
                     toastr.error('Password is too short')
@@ -286,7 +288,7 @@ async function prepareNewPort(type) {
 
 export async function connectDevice(type) {
     if (port) {
-        if (!confirm('Disconnect current device?')) { return }
+        if (!await showConfirmDialog(T('app.confirm-disconnect', 'Disconnect current device?'))) { return }
         await disconnectDevice()
         return
     }
@@ -294,11 +296,14 @@ export async function connectDevice(type) {
     const new_port = await prepareNewPort(type)
     if (!new_port) { return }
     // Connect new port
+    const connectLoader = showLoader('Connecting…')
     try {
         await new_port.connect()
     } catch (err) {
         report('Cannot connect', err)
         return
+    } finally {
+        connectLoader.hide()
     }
 
     port = new_port
@@ -321,6 +326,8 @@ export async function connectDevice(type) {
     if (QID('interrupt-device').checked) {
         // TODO: detect WDT and disable it temporarily
 
+        const loader = showLoader('Reading device\u2026')
+        let fileLoader = null
         const raw = await MpRawMode.begin(port)
         try {
             devInfo = await raw.getDeviceInfo()
@@ -330,10 +337,12 @@ export async function connectDevice(type) {
             console.log('Device info', devInfo)
 
             if (window.pkg_install_url) {
+                loader.update('Installing package\u2026')
                 await _raw_installPkg(raw, window.pkg_install_url)
                 window.pkg_install_url = null
             }
 
+            fileLoader = showFileTreeLoader()
             let fs_stats = [null, null, null];
             try {
                 fs_stats = await raw.getFsStats()
@@ -360,6 +369,8 @@ export async function connectDevice(type) {
             }
         } finally {
             await raw.end()
+            loader.hide()
+            if (fileLoader) fileLoader.hide()
         }
         // Print banner. TODO: optimize
         await port.write('\x02')
@@ -374,71 +385,42 @@ export async function connectDevice(type) {
 
 export async function refreshFileTree() {
     if (!port) return;
-    const raw = await MpRawMode.begin(port)
+    const loader = showFileTreeLoader()
     try {
-        await _raw_updateFileTree(raw)
+        const raw = await MpRawMode.begin(port)
+        try {
+            await _raw_updateFileTree(raw)
+        } finally {
+            await raw.end()
+        }
     } finally {
-        await raw.end()
+        loader.hide()
     }
 }
 
 export async function createNewFile(path) {
     if (!port) return;
 
-    // Remove any existing inline input before creating a new one
-    const existingContainer = QID('file-tree-new-item')
-    if (existingContainer) existingContainer.remove()
+    const result = await showCreateItemDialog(path)
+    if (!result) return
 
-    // Expand collapsed folder when "+" is clicked on it
-    if (path !== '/') {
-        const folderPath = path.slice(0, -1)
-        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${folderPath}"]`)
-        if (contentEl && contentEl.classList.contains('collapsed')) {
-            toggleFolder(folderPath)
-        }
-    }
+    let { name, isFolder } = result
+    name = name.trim().replace(/^\/+/, '')
+    if (isFolder) name = name.replace(/\/+$/, '')
+    if (!name) return
 
-    // Calculate indentation depth: root "/" → 1 emsp, "/dir/" → 2 emsp, etc.
-    // Uses em-space (\u2003) to match the &emsp; characters used in buildTree.
-    const depth = path.split('/').filter(Boolean).length + 1
-    const offset = '\u2003'.repeat(depth - 1)
+    // Keep the parent folder expanded so the freshly-created item is visible.
+    if (path !== '/') openFolders.add(path.slice(0, -1))
 
-    const div = document.createElement('div')
-    div.id = 'file-tree-new-item'
-    div.innerHTML = `${offset}<input type="text" id="file-tree-new-input" class="file-tree-new-input" placeholder="name or folder/" autocomplete="off" spellcheck="false" />`
-
-    if (path === '/') {
-        // Insert after the root header (first child of fileTree)
-        const fileTree = QID('menu-file-tree')
-        const rootHeader = fileTree.firstElementChild
-        fileTree.insertBefore(div, rootHeader ? rootHeader.nextSibling : null)
-    } else {
-        // Insert at the top of the folder's content element
-        const folderPath = path.slice(0, -1)
-        const contentEl = QS(`#menu-file-tree .folder-content[data-folder-path="${folderPath}"]`)
-        if (!contentEl) return
-        contentEl.insertBefore(div, contentEl.firstChild)
-    }
-
-    const input = QID('file-tree-new-input')
-    input.focus()
-
-    let confirmed = false
-
-    async function confirmCreate() {
-        confirmed = true
-        const fn = input.value.trim()
-        div.remove()
-        if (!fn) return
+    await withLoader(T('files.creating', 'Creating {{name}}…', { name, interpolation: { escapeValue: false } }), async () => {
         const raw = await MpRawMode.begin(port)
         try {
-            if (fn.endsWith('/')) {
-                const full = path + fn.slice(0, -1)
-                await raw.makePath(full)
+            if (isFolder) {
+                await raw.makePath(path + name)
             } else {
-                const full = path + fn
-                if (fn.includes('/')) {
-                    // Ensure path exists
+                const full = path + name
+                if (name.includes('/')) {
+                    // Ensure parent directories exist for nested file names.
                     const [dirname] = splitPath(full)
                     await raw.makePath(dirname)
                 }
@@ -449,24 +431,48 @@ export async function createNewFile(path) {
         } finally {
             await raw.end()
         }
-    }
+    })
+}
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+// Make a modal dialog accessible: tag it with ARIA roles, trap Tab focus
+// inside it, and restore focus to the previously-focused element on close.
+// Returns a restoreFocus() function to call when the dialog is dismissed.
+function setupModalA11y(dialog, label) {
+    dialog.setAttribute('role', 'dialog')
+    dialog.setAttribute('aria-modal', 'true')
+    if (label) dialog.setAttribute('aria-label', label)
+    const prevFocus = document.activeElement
+    dialog.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return
+        const items = [...dialog.querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+            .filter(el => !el.disabled && el.offsetParent !== null)
+        if (!items.length) return
+        const first = items[0]
+        const last = items[items.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
             e.preventDefault()
-            confirmCreate()
-        } else if (e.key === 'Escape') {
-            div.remove()
+            last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
         }
     })
+    return function restoreFocus() {
+        if (prevFocus && typeof prevFocus.focus === 'function') prevFocus.focus()
+    }
+}
 
-    input.addEventListener('blur', () => {
-        // Small delay so that a click on the input itself doesn't accidentally cancel.
-        // Skip removal if Enter was already pressed (confirmCreate handles cleanup).
-        setTimeout(() => {
-            if (!confirmed) div.remove()
-        }, 150)
-    })
+// Toggle a small badge whenever the browser goes offline, so users understand
+// why network features (package install, docs fetch, updates) are unavailable.
+function initOfflineIndicator() {
+    const el = QID('offline-indicator')
+    if (!el) return
+    const label = QID('offline-indicator-text')
+    if (label) label.textContent = T('app.offline', 'Offline')
+    const sync = () => { el.hidden = navigator.onLine }
+    window.addEventListener('online', sync)
+    window.addEventListener('offline', sync)
+    sync()
 }
 
 function showConfirmDialog(message) {
@@ -499,8 +505,11 @@ function showConfirmDialog(message) {
         backdrop.appendChild(dialog)
         document.body.appendChild(backdrop)
 
+        const restoreFocus = setupModalA11y(dialog, message)
+
         function close(value) {
             backdrop.remove()
+            restoreFocus()
             resolve(value)
         }
 
@@ -512,6 +521,168 @@ function showConfirmDialog(message) {
             else if (e.key === 'Escape') close(false)
         })
         confirmBtn.focus()
+    })
+}
+
+// Styled, translatable replacement for the native prompt(). Resolves to the
+// entered string, or null if the dialog is cancelled.
+function showPromptDialog(message, { value = '', placeholder = '', password = false } = {}) {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div')
+        backdrop.className = 'fri3d-dialog-backdrop'
+
+        const dialog = document.createElement('div')
+        dialog.className = 'fri3d-dialog'
+
+        const msgEl = document.createElement('div')
+        msgEl.className = 'fri3d-dialog-message'
+        msgEl.style.whiteSpace = 'pre-line'
+        msgEl.textContent = message
+
+        const input = document.createElement('input')
+        input.type = password ? 'password' : 'text'
+        input.className = 'fri3d-dialog-input'
+        input.value = value
+        input.placeholder = placeholder
+        input.autocomplete = 'off'
+        input.spellcheck = false
+
+        const actions = document.createElement('div')
+        actions.className = 'fri3d-dialog-actions'
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.className = 'fri3d-btn-secondary'
+        cancelBtn.type = 'button'
+        cancelBtn.textContent = T('app.dialog.btn-cancel', 'Cancel')
+
+        const okBtn = document.createElement('button')
+        okBtn.className = 'fri3d-btn-cta'
+        okBtn.type = 'button'
+        okBtn.textContent = T('app.dialog.btn-ok', 'OK')
+
+        actions.appendChild(cancelBtn)
+        actions.appendChild(okBtn)
+        dialog.appendChild(msgEl)
+        dialog.appendChild(input)
+        dialog.appendChild(actions)
+        backdrop.appendChild(dialog)
+        document.body.appendChild(backdrop)
+
+        const restoreFocus = setupModalA11y(dialog, message)
+
+        function close(result) {
+            backdrop.remove()
+            restoreFocus()
+            resolve(result)
+        }
+
+        okBtn.addEventListener('click', () => close(input.value))
+        cancelBtn.addEventListener('click', () => close(null))
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(null) })
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); close(input.value) }
+            else if (e.key === 'Escape') close(null)
+        })
+        input.focus()
+        input.select()
+    })
+}
+
+// Unified, styled dialog for creating a file or folder. Resolves to
+// { name, isFolder } or null if cancelled. A File/Folder toggle makes folder
+// creation discoverable instead of relying on a trailing-slash convention.
+function showCreateItemDialog(parentPath) {
+    return new Promise((resolve) => {
+        const where = parentPath === '/' ? '/' : parentPath
+        const titleText = T('files.create-title', 'New in {{path}}', { path: where, interpolation: { escapeValue: false } })
+
+        const backdrop = document.createElement('div')
+        backdrop.className = 'fri3d-dialog-backdrop'
+
+        const dialog = document.createElement('div')
+        dialog.className = 'fri3d-dialog'
+
+        const title = document.createElement('div')
+        title.className = 'fri3d-dialog-title'
+        title.innerHTML = `<i class="fa-solid fa-plus fa-fw"></i> ${escapeHtml(titleText)}`
+
+        const toggle = document.createElement('div')
+        toggle.className = 'fri3d-dialog-toggle'
+
+        const fileBtn = document.createElement('button')
+        fileBtn.type = 'button'
+        fileBtn.className = 'active'
+        fileBtn.innerHTML = `<i class="fa-solid fa-file fa-fw"></i> ${T('files.type-file', 'File')}`
+
+        const folderBtn = document.createElement('button')
+        folderBtn.type = 'button'
+        folderBtn.innerHTML = `<i class="fa-solid fa-folder fa-fw"></i> ${T('files.type-folder', 'Folder')}`
+
+        toggle.appendChild(fileBtn)
+        toggle.appendChild(folderBtn)
+
+        const input = document.createElement('input')
+        input.type = 'text'
+        input.className = 'fri3d-dialog-input'
+        input.placeholder = T('files.name-file', 'file name')
+        input.autocomplete = 'off'
+        input.spellcheck = false
+
+        const actions = document.createElement('div')
+        actions.className = 'fri3d-dialog-actions'
+
+        const cancelBtn = document.createElement('button')
+        cancelBtn.className = 'fri3d-btn-secondary'
+        cancelBtn.type = 'button'
+        cancelBtn.textContent = T('app.dialog.btn-cancel', 'Cancel')
+
+        const createBtn = document.createElement('button')
+        createBtn.className = 'fri3d-btn-cta'
+        createBtn.type = 'button'
+        createBtn.textContent = T('app.dialog.btn-create', 'Create')
+
+        actions.appendChild(cancelBtn)
+        actions.appendChild(createBtn)
+
+        dialog.appendChild(title)
+        dialog.appendChild(toggle)
+        dialog.appendChild(input)
+        dialog.appendChild(actions)
+        backdrop.appendChild(dialog)
+        document.body.appendChild(backdrop)
+
+        let isFolder = false
+        function setType(folder) {
+            isFolder = folder
+            fileBtn.classList.toggle('active', !folder)
+            folderBtn.classList.toggle('active', folder)
+            input.placeholder = folder ? T('files.name-folder', 'folder name') : T('files.name-file', 'file name')
+            input.focus()
+        }
+        fileBtn.addEventListener('click', () => setType(false))
+        folderBtn.addEventListener('click', () => setType(true))
+
+        const restoreFocus = setupModalA11y(dialog, titleText)
+
+        function close(result) {
+            backdrop.remove()
+            restoreFocus()
+            resolve(result)
+        }
+        function submit() {
+            const name = input.value.trim()
+            if (!name) { input.focus(); return }
+            close({ name, isFolder })
+        }
+
+        createBtn.addEventListener('click', submit)
+        cancelBtn.addEventListener('click', () => close(null))
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(null) })
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submit() }
+            else if (e.key === 'Escape') close(null)
+        })
+        input.focus()
     })
 }
 
@@ -552,6 +723,8 @@ function showAppWizardDialog() {
         const fullnameInput = dialog.querySelector('#fri3d-app-fullname')
         const errorEl = dialog.querySelector('#fri3d-app-error')
 
+        const restoreFocus = setupModalA11y(dialog, T('app.dialog.title', 'Create New App'))
+
         fullnameInput.focus()
 
         function tryCreate() {
@@ -566,6 +739,7 @@ function showAppWizardDialog() {
             }
             errorEl.classList.remove('visible')
             backdrop.remove()
+            restoreFocus()
             resolve({
                 fullname: fullnameVal,
                 appName: dialog.querySelector('#fri3d-app-name').value,
@@ -577,6 +751,7 @@ function showAppWizardDialog() {
 
         function cancel() {
             backdrop.remove()
+            restoreFocus()
             resolve(null)
         }
 
@@ -703,6 +878,7 @@ export async function createNewApp() {
     const mainPath = `${appRoot}/assets/main.py`
 
     const raw = await MpRawMode.begin(port)
+    let loader = null
     try {
         const exists = (await raw.exec(`
 import os
@@ -716,6 +892,8 @@ except:
             const confirmed = await showConfirmDialog(T('app.dialog.confirm-overwrite', 'App folder {{path}} already exists. Overwrite scaffold files?', { path: appRoot }))
             if (!confirmed) return
         }
+
+        loader = showLoader(T('app.dialog.loading-create', 'Creating app {{fullname}}\u2026', { fullname }))
 
         await raw.makePath(`${appRoot}/META-INF`)
         await raw.makePath(`${appRoot}/assets`)
@@ -752,6 +930,7 @@ AppManager.restart_launcher()
         report('Create app scaffold failed', err)
         return
     } finally {
+        if (loader) loader.hide()
         await raw.end()
     }
 
@@ -783,28 +962,32 @@ AppManager.restart_launcher()
 
 export async function removeFile(path) {
     if (!port) return;
-    if (!confirm(`Remove ${path}?`)) return
-    const raw = await MpRawMode.begin(port)
-    try {
-        await raw.removeFile(path)
-        await _raw_updateFileTree(raw)
-        document.dispatchEvent(new CustomEvent("fileRemoved", {detail: {path: path}}))
-    } finally {
-        await raw.end()
-    }
+    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path, interpolation: { escapeValue: false } }))) return
+    await withLoader(`Removing ${path}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await raw.removeFile(path)
+            await _raw_updateFileTree(raw)
+            document.dispatchEvent(new CustomEvent("fileRemoved", {detail: {path: path}}))
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 export async function removeDir(path) {
     if (!port) return;
-    if (!confirm(`Remove ${path}?`)) return
-    const raw = await MpRawMode.begin(port)
-    try {
-        await raw.removeDir(path)
-        await _raw_updateFileTree(raw)
-        document.dispatchEvent(new CustomEvent("dirRemoved", {detail: {path: path}}))
-    } finally {
-        await raw.end()
-    }
+    if (!await showConfirmDialog(T('files.confirm-remove', 'Remove {{path}}?', { path, interpolation: { escapeValue: false } }))) return
+    await withLoader(`Removing ${path}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await raw.removeDir(path)
+            await _raw_updateFileTree(raw)
+            document.dispatchEvent(new CustomEvent("dirRemoved", {detail: {path: path}}))
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 async function execReplNoFollow(cmd) {
@@ -843,27 +1026,47 @@ function _updateFileTree(fs_tree, fs_stats)
 
     // Traverse file tree
     const fileTree = QID('menu-file-tree')
+    // Preserve the scroll position across a full rebuild so saving/refreshing
+    // doesn't jump the file list back to the top.
+    const prevScrollTop = fileTree.scrollTop
+    // Bind a single delegated click handler for dynamically-built rows so we
+    // never interpolate untrusted file/folder names into inline onclick JS.
+    if (!fileTree.dataset.delegationBound) {
+        fileTree.dataset.delegationBound = '1'
+        fileTree.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-act]')
+            if (!el || !fileTree.contains(el)) return
+            e.preventDefault()
+            const path = el.dataset.path
+            switch (el.dataset.act) {
+                case 'toggle-folder': toggleFolder(path); break
+                case 'remove-dir':    removeDir(path);    break
+                case 'new-file':      createNewFile(path); break
+                case 'remove-file':   removeFile(path);   break
+                case 'open-file':     fileClick(path);    break
+            }
+        })
+    }
+    // Root row mirrors the other folder rows (a create "+" action) but has no
+    // remove button, since the filesystem root can't be deleted.
     fileTree.innerHTML = `<div>
         <span class="folder name"><i class="fa-solid fa-folder fa-fw"></i> /</span>
-        <a href="#" class="menu-action" title="Refresh" onclick="app.refreshFileTree();return false;"><i class="fa-solid fa-arrows-rotate fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Create App" onclick="app.createNewApp();return false;"><i class="fa-solid fa-cubes fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Expand all" onclick="app.expandAllFolders();return false;"><i class="fa-solid fa-folder-open fa-fw"></i></a>
-        <a href="#" class="menu-action" title="Collapse all" onclick="app.collapseAllFolders();return false;"><i class="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
-        <span class="menu-action">${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}</span>
+        <a href="#" class="menu-action" title="Create" data-act="new-file" data-path="/"><i class="fa-solid fa-plus fa-fw"></i></a>
     </div>`
     function buildTree(node, depth) {
         const offset = '&emsp;'.repeat(depth)
         let html = ''
         for (const n of sorted(node)) {
+            const ep = escapeHtml(n.path)
+            const en = escapeHtml(n.name)
             if ('content' in n) {
                 const isOpen = openFolders.has(n.path)
                 html += `<div>
-                    ${offset}<span class="folder name folder-toggleable" onclick="app.toggleFolder('${n.path}');return false;"><i class="fa-solid fa-chevron-right fa-fw folder-chevron${isOpen ? ' open' : ''}"></i><i class="fa-solid fa-folder fa-fw"></i> ${n.name}</span>
-                    <a href="#" class="menu-action" title="Remove" onclick="app.removeDir('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
-                    <a href="#" class="menu-action" title="Create" onclick="app.createNewFile('${n.path}/');return false;"><i class="fa-solid fa-plus fa-fw"></i></a>
+                    ${offset}<span class="folder name folder-toggleable" data-act="toggle-folder" data-path="${ep}"><i class="fa-solid fa-chevron-right fa-fw folder-chevron${isOpen ? ' open' : ''}"></i><i class="fa-solid fa-folder fa-fw"></i> ${en}</span>
+                    <a href="#" class="menu-action" title="Remove" data-act="remove-dir" data-path="${ep}"><i class="fa-solid fa-xmark fa-fw"></i></a>
+                    <a href="#" class="menu-action" title="Create" data-act="new-file" data-path="${ep}/"><i class="fa-solid fa-plus fa-fw"></i></a>
                 </div>
-                <div class="folder-content${isOpen ? '' : ' collapsed'}" data-folder-path="${n.path}">
+                <div class="folder-content${isOpen ? '' : ' collapsed'}" data-folder-path="${ep}">
                     ${buildTree(n.content, depth+1)}
                 </div>`
             } else {
@@ -883,12 +1086,12 @@ function _updateFileTree(fs_tree, fs_stats)
                 if (n.path.startsWith("/proc/") || n.path.startsWith("/dev/")) {
                     icon = '<i class="fa-solid fa-gear fa-fw"></i>'
                     html += `<div>
-                        ${offset}<span>${icon} ${n.name}&nbsp;</span>
+                        ${offset}<span>${icon} ${en}&nbsp;</span>
                     </div>`
                 } else {
                     html += `<div>
-                        ${offset}<a href="#" class="name ${sel}" data-fn="${n.path}" onclick="app.fileClick('${n.path}');return false;">${icon} ${n.name}&nbsp;</a>
-                        <a href="#" class="menu-action" title="Remove" onclick="app.removeFile('${n.path}');return false;"><i class="fa-solid fa-xmark fa-fw"></i></a>
+                        ${offset}<a href="#" class="name ${sel}" data-fn="${ep}" data-act="open-file" data-path="${ep}">${icon} ${en}&nbsp;</a>
+                        <a href="#" class="menu-action" title="Remove" data-act="remove-file" data-path="${ep}"><i class="fa-solid fa-xmark fa-fw"></i></a>
                         <span class="menu-action">${sizeFmt(n.size)}</span>
                     </div>`
                 }
@@ -912,6 +1115,35 @@ function _updateFileTree(fs_tree, fs_stats)
         </div>`)
     }
 
+    const usageEl = QID('file-tree-usage')
+    if (usageEl) {
+        usageEl.textContent = `${T('files.used')} ${sizeFmt(fs_used,0)} / ${sizeFmt(fs_size,0)}`
+        usageEl.hidden = false
+    }
+
+    fileTree.scrollTop = prevScrollTop
+
+}
+
+// Show an inline loading indicator inside the file picker (file tree panel).
+// Returns a handle with a hide() method. The indicator is also removed
+// automatically when the tree is rebuilt by _updateFileTree().
+function showFileTreeLoader(message = T('files.loading', 'Loading files…')) {
+    const fileTree = QID('menu-file-tree')
+    if (!fileTree) return { update() {}, hide() {} }
+    let el = QID('file-tree-loader')
+    if (!el) {
+        el = document.createElement('div')
+        el.id = 'file-tree-loader'
+        el.className = 'file-tree-loader'
+        el.innerHTML = `<span class="loader-spinner"></span><span class="loader-label"></span>`
+        fileTree.insertBefore(el, fileTree.firstChild)
+    }
+    el.querySelector('.loader-label').textContent = message
+    return {
+        update(newMessage) { el.querySelector('.loader-label').textContent = newMessage },
+        hide() { el.remove() },
+    }
 }
 
 async function _raw_updateFileTree(raw) {
@@ -1001,12 +1233,14 @@ export function expandAllFolders() {
 export async function fileClick(fn) {
     if (!port) return;
 
-    const raw = await MpRawMode.begin(port)
-    try {
-        await _raw_loadFile(raw, fn)
-    } finally {
-        await raw.end()
-    }
+    await withLoader(`Opening ${fn}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await _raw_loadFile(raw, fn)
+        } finally {
+            await raw.end()
+        }
+    })
 
     fileTreeSelect(fn)
 }
@@ -1018,7 +1252,7 @@ export async function pyMinify() {
     }
 
     const input = editor.state.doc.toString()
-    const res = await minifyPython(input)
+    const res = await withLoader('Minifying…', () => minifyPython(input))
 
     editor.dispatch({
       changes: { from: 0, to: editor.state.doc.length, insert: res }
@@ -1033,7 +1267,7 @@ export async function pyPrettify() {
         return
     }
 
-    const res = await prettifyPython(editor.state.doc.toString())
+    const res = await withLoader('Formatting…', () => prettifyPython(editor.state.doc.toString()))
 
     editor.dispatch({
       changes: { from: 0, to: editor.state.doc.length, insert: res }
@@ -1192,35 +1426,42 @@ export async function saveCurrentFile() {
     }
 
     if (editorFn == "Untitled") {
-        const fn = prompt(`Creating new file inside /\nPlease enter the name:`)
+        const fn = await showPromptDialog(T('files.prompt-new-name', 'Please enter the file name:'))
         if (fn == null || fn == '') return
         editorFn = fn
         document.dispatchEvent(new CustomEvent("fileRenamed", {detail: {old: "Untitled", new: fn}}))
     }
 
     let content = editor.state.doc.toString()
-    if (editorFn.endsWith('.json') && QID('expand-minify-json').checked) {
-        try {
-            // Minify JSON
-            content = JSON.stringify(JSON.parse(content))
-        } catch (_error) {
-            toastr.error('JSON is malformed')
-            return
-        }
-    } else if (editorFn.endsWith('.py')) {
-        const content = editor.state.doc.toString()
-        const backtrace = await validatePython(editorFn, content)
-        if (backtrace) {
-            console.log(backtrace)
-            toastr.warning(sanitizeHTML(backtrace.summary), backtrace.type)
-        }
-    }
-    const raw = await MpRawMode.begin(port)
+    const loader = showLoader(`Saving ${editorFn}…`)
     try {
-        await raw.writeFile(editorFn, content)
-        await _raw_updateFileTree(raw)
+        if (editorFn.endsWith('.json') && QID('expand-minify-json').checked) {
+            try {
+                // Minify JSON
+                content = JSON.stringify(JSON.parse(content))
+            } catch (_error) {
+                toastr.error('JSON is malformed')
+                return
+            }
+        } else if (editorFn.endsWith('.py')) {
+            loader.update(`Validating ${editorFn}…`)
+            const content = editor.state.doc.toString()
+            const backtrace = await validatePython(editorFn, content)
+            if (backtrace) {
+                console.log(backtrace)
+                toastr.warning(sanitizeHTML(backtrace.summary), backtrace.type)
+            }
+        }
+        loader.update(`Saving ${editorFn}…`)
+        const raw = await MpRawMode.begin(port)
+        try {
+            await raw.writeFile(editorFn, content)
+            await _raw_updateFileTree(raw)
+        } finally {
+            await raw.end()
+        }
     } finally {
-        await raw.end()
+        loader.hide()
     }
     // Success
     toastr.success('File Saved')
@@ -1307,31 +1548,44 @@ export async function runCurrentFile() {
 export async function loadAllPkgIndexes() {
     const pkgList = QID('menu-pkg-list')
     pkgList.innerHTML = ''
-    for (const i of await getPkgIndexes()) {
-        pkgList.insertAdjacentHTML('beforeend', `<div class="title-lines">${i.name}</div>`)
-        for (const pkg of i.index.packages) {
-            let offset = ''
-            let icon = ''
-            if (pkg.name.includes('-')) {
-                const parent = pkg.name.split('-').slice(0, -1).join('-')
-                const exists = i.index.packages.some(pkg => (pkg.name === parent))
-                if (exists) {
-                    offset = '&emsp;'
-                }
-            }
-            const keywords = pkg.keywords ? pkg.keywords.split(',').map(x => x.trim()) : [];
-            if (keywords.includes('__hidden__')) {
-                continue
-            }
-            if (keywords.includes('native')) {
-                icon = ' <i class="fa-solid fa-gauge-high" title="Efficient native module"></i>'
-            }
-            pkgList.insertAdjacentHTML('beforeend', `<div>
-                ${offset}<span><i class="fa-solid fa-cube fa-fw"></i> ${pkg.name}${icon}</span>
-                <a href="#" class="menu-action" onclick="app.installPkg('${pkg.name}');return false;">${pkg.version} <i class="fa-regular fa-circle-down"></i></a>
-            </div>`)
-        }
+    // Bind a single delegated handler so remote package names are never
+    // interpolated into inline onclick JS.
+    if (!pkgList.dataset.delegationBound) {
+        pkgList.dataset.delegationBound = '1'
+        pkgList.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-act="install-pkg"]')
+            if (!el || !pkgList.contains(el)) return
+            e.preventDefault()
+            installPkg(el.dataset.pkg)
+        })
     }
+    await withLoader('Loading package index…', async () => {
+        for (const i of await getPkgIndexes()) {
+            pkgList.insertAdjacentHTML('beforeend', `<div class="title-lines">${escapeHtml(i.name)}</div>`)
+            for (const pkg of i.index.packages) {
+                let offset = ''
+                let icon = ''
+                if (pkg.name.includes('-')) {
+                    const parent = pkg.name.split('-').slice(0, -1).join('-')
+                    const exists = i.index.packages.some(pkg => (pkg.name === parent))
+                    if (exists) {
+                        offset = '&emsp;'
+                    }
+                }
+                const keywords = pkg.keywords ? pkg.keywords.split(',').map(x => x.trim()) : [];
+                if (keywords.includes('__hidden__')) {
+                    continue
+                }
+                if (keywords.includes('native')) {
+                    icon = ' <i class="fa-solid fa-gauge-high" title="Efficient native module"></i>'
+                }
+                pkgList.insertAdjacentHTML('beforeend', `<div>
+                    ${offset}<span><i class="fa-solid fa-cube fa-fw"></i> ${escapeHtml(pkg.name)}${icon}</span>
+                    <a href="#" class="menu-action" data-act="install-pkg" data-pkg="${escapeHtml(pkg.name)}">${escapeHtml(pkg.version)} <i class="fa-regular fa-circle-down"></i></a>
+                </div>`)
+            }
+        }
+    })
 }
 
 async function _raw_installPkg(raw, pkg, { version=null } = {}) {
@@ -1351,26 +1605,28 @@ async function _raw_installPkg(raw, pkg, { version=null } = {}) {
 
 export async function installPkg(pkg, { version=null } = {}) {
     if (!port) {
-        toastr.info('Connect yout board first')
+        toastr.info(T('app.connect-first', 'Connect your board first'))
         return
     }
-    const raw = await MpRawMode.begin(port)
-    try {
-        await _raw_installPkg(raw, pkg, { version })
-        await _raw_updateFileTree(raw)
-    } catch (err) {
-        report('Installing failed', err)
-    } finally {
-        await raw.end()
-    }
+    await withLoader(`Installing ${pkg}…`, async () => {
+        const raw = await MpRawMode.begin(port)
+        try {
+            await _raw_installPkg(raw, pkg, { version })
+            await _raw_updateFileTree(raw)
+        } catch (err) {
+            report('Installing failed', err)
+        } finally {
+            await raw.end()
+        }
+    })
 }
 
 export async function installPkgFromUrl() {
     if (!port) {
-        toastr.info('Connect yout board first')
+        toastr.info(T('app.connect-first', 'Connect your board first'))
         return
     }
-    const url = prompt('Enter package name or URL:')
+    const url = await showPromptDialog(T('app.prompt-pkg-url', 'Enter package name or URL:'))
     if (url) {
         await installPkg(url)
     }
@@ -1560,8 +1816,8 @@ export function applyTranslation() {
         })
 
         QS('#menu-file-title-text').innerText = T('menu.file-mgr')
-        QID('btn-file-new').setAttribute('title', T('files.new-file', 'New File'))
         QID('btn-file-refresh').setAttribute('title', T('files.refresh', 'Refresh'))
+        QID('btn-file-expand').setAttribute('title', T('files.expand-all', 'Expand All'))
         QID('btn-file-collapse').setAttribute('title', T('files.collapse-all', 'Collapse All'))
         QID('create-new-app-label').innerText = T('app.scaffold-btn', 'Create new app scaffold')
         QS('#menu-pkg-title').innerText = T('menu.package-mgr')
@@ -1670,7 +1926,9 @@ export function applyTranslation() {
     const xtermThemeDark = {
         foreground: '#F8F8F8',
         background: getCssPropertyValue('--bg-color-edit'),
-        selection: '#5DA5D533',
+        selectionBackground: '#5DA5D5',
+        selectionForeground: '#1E1E1D',
+        selectionInactiveBackground: '#5DA5D580',
         black: '#1E1E1D',
         brightBlack: '#262625',
         red: '#CE5C5C',
@@ -1692,7 +1950,9 @@ export function applyTranslation() {
     const xtermThemeLight = {
         foreground: '#212121',
         background: getCssPropertyValue('--bg-color-edit'),
-        selection: '#80CBC440',
+        selectionBackground: '#80CBC4',
+        selectionForeground: '#212121',
+        selectionInactiveBackground: '#80CBC480',
         cursor: '#212121',
         black: '#212121',
         brightBlack: '#546E7A',
@@ -1847,7 +2107,10 @@ export function applyTranslation() {
 
     setTimeout(() => {
         document.body.classList.add('loaded')
+        initOnboarding()
     }, 100)
+
+    initOfflineIndicator()
 
     const urlParams = new URLSearchParams(window.location.search)
     let urlID = null

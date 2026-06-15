@@ -26,7 +26,7 @@ function expandVars(s, vars) {
     return s.replace(/\{(\w+)\}/g, (match, key) => (vars[key.trim()] || match))
 }
 
-function rewriteUrl(url, { base=null, branch=null } = {}) {
+export function rewriteUrl(url, { base=null, branch=null } = {}) {
     //const input_url = url;
     if (url.startsWith('http://')) {
         url = 'https://' + url.slice(7)

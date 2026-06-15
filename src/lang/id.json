@@ -78,6 +78,46 @@
                 "validate-dot": "Nama lengkap harus mengandung setidaknya satu titik, mis. com.example.myapp",
                 "validate-chars": "Nama lengkap hanya boleh berisi huruf, angka, titik, tanda hubung, dan garis bawah"
             }
+        },
+        "onboarding": {
+            "step": "Langkah {{current}} dari {{total}}",
+            "skip": "Lewati tur",
+            "next": "Berikutnya →",
+            "get-started": "Mari mulai! 🚀",
+            "steps": {
+                "welcome": {
+                    "title": "Selamat datang di Fri3d-IDE! 👋",
+                    "text": "Halo! Saya panduan Fri3d-mu. Biar saya tunjukkan tur singkat agar kamu bisa langsung mulai coding!"
+                },
+                "toolbar": {
+                    "title": "Toolbar Utama",
+                    "text": "Ini adalah toolbar utamamu. Simpan file, jalankan kode di badge, dan hubungkan perangkat Fri3d-mu dari sini."
+                },
+                "connect": {
+                    "title": "Hubungkan melalui USB",
+                    "text": "Klik tombol ini untuk menghubungkan badge Fri3d-mu melalui USB/Serial. Kamu juga bisa menggunakan Bluetooth 🦷 atau WebREPL 🌐!"
+                },
+                "side-menu": {
+                    "title": "Menu Samping",
+                    "text": "Panel ini memiliki tab untuk Manajer File, Manajer Paket, Alat, Pengaturan, dan Tentang. Semua yang kamu butuhkan!"
+                },
+                "files": {
+                    "title": "Manajer File",
+                    "text": "Jelajahi dan kelola file di badge yang terhubung. Hubungkan perangkat terlebih dahulu untuk melihat dan mengedit file-nya!"
+                },
+                "editor": {
+                    "title": "Editor Kode",
+                    "text": "Tulis kode MicroPython-mu di sini! Penyorotan sintaks, pelengkap otomatis, dan linting semuanya sudah bawaan. 🐍"
+                },
+                "terminal": {
+                    "title": "Terminal",
+                    "text": "Terminal menampilkan output dari badge-mu. Kamu juga bisa mengetikkan perintah langsung ke REPL saat terhubung."
+                },
+                "done": {
+                    "title": "Semua siap! 🚀",
+                    "text": "Itulah turnya! Hubungkan badge Fri3d-mu dan mulai membangun hal-hal yang luar biasa. Selamat coding!"
+                }
+            }
         }
     }
 }
