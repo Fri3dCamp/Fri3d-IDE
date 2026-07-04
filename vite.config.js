@@ -23,12 +23,18 @@ function genManifest(src, dst) {
 }
 
 // Plugin: generate translations.json and manifest.json before every build/serve
-function preparePlugin() {
+function preparePlugin(isBuild) {
     return {
         name: 'viper-prepare',
         buildStart() {
             genTranslations('./src/lang/', './build/translations.json')
             genManifest('./src/manifest.json', './build/manifest.json')
+        },
+        // The built output ships its own micropython.mjs (copied by build.cjs);
+        // the dev server has no build step and keeps the upstream-hosted copy.
+        transformIndexHtml(html) {
+            if (!isBuild) return html
+            return html.replace('https://viper-ide.org/micropython.mjs', './micropython.mjs')
         },
     }
 }
@@ -93,7 +99,7 @@ export default defineConfig(({ command }) => ({
         VIPER_IDE_BUILD:   String(Date.now()),
     },
     plugins: [
-        preparePlugin(),
+        preparePlugin(command === 'build'),
         command === 'build' && viteSingleFile({ deleteInlinedFiles: true }),
         serveAssetsPlugin(),
     ].filter(Boolean),

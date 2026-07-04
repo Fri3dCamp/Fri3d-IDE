@@ -28,7 +28,25 @@
             "used": "gebruikt",
             "new-file": "Nieuw bestand",
             "refresh": "Vernieuwen",
-            "collapse-all": "Alles inklappen"
+            "collapse-all": "Alles inklappen",
+            "open-python-first": "Open eerst een Python-bestand",
+            "minified": "Verkleind van {{from}} naar {{to}}",
+            "load-failed": "Kan bestand niet laden: {{err}}",
+            "json-malformed": "JSON is ongeldig",
+            "read-only": "Bestand is alleen-lezen",
+            "saved": "Bestand opgeslagen",
+            "not-executable": "{{fn}} is niet uitvoerbaar",
+            "confirm-close-unsaved": "{{fn}} heeft niet-opgeslagen wijzigingen. Sluiten zonder op te slaan?",
+            "confirm-remove": "{{path}} verwijderen?",
+            "create-title": "Nieuw in {{path}}",
+            "creating": "{{name}} wordt aangemaakt…",
+            "expand-all": "Alles uitklappen",
+            "loading": "Bestanden laden…",
+            "name-file": "bestandsnaam",
+            "name-folder": "mapnaam",
+            "prompt-new-name": "Geef de bestandsnaam:",
+            "type-file": "Bestand",
+            "type-folder": "Map"
         },
         "settings": {
             "conn": "verbinding",
@@ -76,8 +94,28 @@
                 "info-assistant-ready": "Assistent-prompt voorbereid. Klik op \"Taak uitvoeren\" om code te genereren.",
                 "validate-required": "App volledige naam is vereist",
                 "validate-dot": "App volledige naam moet ten minste een punt bevatten, bijv. com.example.myapp",
-                "validate-chars": "App volledige naam mag alleen letters, cijfers, punten, koppeltekens en underscores bevatten"
-            }
+                "validate-chars": "App volledige naam mag alleen letters, cijfers, punten, koppeltekens en underscores bevatten",
+                "btn-ok": "OK",
+                "loading-create": "App {{fullname}} wordt aangemaakt…"
+            },
+            "err-pwd-short": "Wachtwoord is te kort",
+            "err-link-type": "Onbekend linktype",
+            "err-ble-ios": "WebBluetooth is niet beschikbaar op iOS",
+            "err-ble-insecure": "WebBluetooth werkt niet via een onbeveiligde verbinding",
+            "err-ble-unsupported": "WebBluetooth wordt niet ondersteund",
+            "err-serial-ios": "WebSerial is niet beschikbaar op iOS",
+            "err-serial-insecure": "WebSerial werkt niet via een onbeveiligde verbinding",
+            "err-serial-unsupported": "WebSerial en WebUSB worden niet ondersteund",
+            "err-try-browsers": "Probeer Chrome, Edge, Opera of Brave",
+            "err-conn-type": "Onbekend verbindingstype",
+            "device-disconnected": "Verbinding met apparaat verbroken",
+            "device-connected": "Apparaat verbonden",
+            "update-available": "Nieuwe Fri3d-IDE versie {{version}} is beschikbaar",
+            "confirm-disconnect": "Verbinding met huidig apparaat verbreken?",
+            "offline": "Offline",
+            "prompt-pkg-url": "Geef een pakketnaam of URL:",
+            "prompt-webrepl-pass": "WebREPL-wachtwoord:",
+            "prompt-webrepl-url": "Geef het WebREPL-adres van het apparaat.\nOndersteunde protocollen: ws wss rtc"
         },
         "onboarding": {
             "step": "Stap {{current}} van {{total}}",
@@ -118,6 +156,12 @@
                     "text": "Dat was de tour! Verbind je Fri3d-badge en begin met het bouwen van geweldige dingen. Veel plezier met coderen!"
                 }
             }
+        },
+        "pkg": {
+            "installing": "{{pkg}} wordt geïnstalleerd…",
+            "installed": "{{pkg}} geïnstalleerd",
+            "install-overwrite": "Let op: je bestanden kunnen overschreven worden!",
+            "install-connect": "Verbind je board om {{pkg}} te installeren"
         }
     }
 }

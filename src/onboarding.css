@@ -160,9 +160,9 @@
 }
 
 .ob-next {
-    background: var(--fri3d-mint);
+    background: var(--accent-cta);
     border: var(--border-std);
-    color: var(--fri3d-black);
+    color: var(--accent-cta-fg);
     cursor: pointer;
     padding: 5px 14px;
     font-size: 0.88em;
@@ -172,7 +172,8 @@
 }
 
 .ob-next:hover {
-    background: var(--fri3d-orange);
+    box-shadow: calc(var(--shadow-offset) / 2) calc(var(--shadow-offset) / 2) 0px var(--fri3d-black);
+    transform: translate(calc(var(--shadow-offset) / 2), calc(var(--shadow-offset) / 2));
 }
 
 /* ── Glow ring on elevated target ──────────────────────────────── */

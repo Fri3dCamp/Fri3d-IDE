@@ -29,9 +29,10 @@ import { getPkgIndexes, rawInstallPkg } from './package_mgr.js'
 import { ConnectionUID } from './connection_uid.js'
 import translations from '../build/translations.json'
 import { parseStackTrace, validatePython, disassembleMPY, minifyPython, prettifyPython } from './python_utils.js'
-import { MicroPythonWASM } from './emulator.js'
+import { MicroPythonOSWASM } from './emulator.js'
 
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel.js'
 import { initOnboarding } from './onboarding.js'
 
@@ -63,7 +64,7 @@ function getBuildDate() {
     return (new Date(VIPER_IDE_BUILD)).toISOString().substring(0, 19).replace('T',' ')
 }
 
-const T = i18next.t.bind(i18next)
+export const T = i18next.t.bind(i18next)
 const ADVANCED_MODE_STORAGE_KEY = 'viper.settings.advanced-mode'
 const UI_SETTINGS_STORAGE_KEY = 'viper.settings.ui.v1'
 
@@ -226,7 +227,7 @@ async function prepareNewPort(type) {
                 const pass = await showPromptDialog(T('app.prompt-webrepl-pass', 'WebREPL password:'), { value: defaultWsPass, password: true })
                 if (pass == null) { return }
                 if (pass.length < 4) {
-                    toastr.error('Password is too short')
+                    toastr.error(T('app.err-pwd-short', 'Password is too short'))
                     return
                 }
                 defaultWsPass = pass
@@ -236,35 +237,35 @@ async function prepareNewPort(type) {
             const id = ConnectionUID.parse(url.replace('rtc://', ''))
             new_port = new WebRTCTransport(id.value())
         } else if (url.startsWith('vm://')) {
-            new_port = new MicroPythonWASM()
+            new_port = new MicroPythonOSWASM()
         } else {
-            toastr.error('Unknown link type')
+            toastr.error(T('app.err-link-type', 'Unknown link type'))
         }
     } else if (type === 'ble') {
         if (iOS) {
-            toastr.error('WebBluetooth is not available on iOS')
+            toastr.error(T('app.err-ble-ios', 'WebBluetooth is not available on iOS'))
             return
         }
         if (!window.isSecureContext) {
-            toastr.error('WebBluetooth cannot be accessed with unsecure connection')
+            toastr.error(T('app.err-ble-insecure', 'WebBluetooth cannot be accessed with unsecure connection'))
             return
         }
         if (typeof navigator.bluetooth === 'undefined') {
-            toastr.error('Try Chrome, Edge, Opera, Brave', 'WebBluetooth is not supported')
+            toastr.error(T('app.err-try-browsers', 'Try Chrome, Edge, Opera, Brave'), T('app.err-ble-unsupported', 'WebBluetooth is not supported'))
             return
         }
         new_port = new WebBluetooth()
     } else if (type === 'usb') {
         if (iOS) {
-            toastr.error('WebSerial is not available on iOS')
+            toastr.error(T('app.err-serial-ios', 'WebSerial is not available on iOS'))
             return
         }
         if (!window.isSecureContext) {
-            toastr.error('WebSerial cannot be accessed with unsecure connection')
+            toastr.error(T('app.err-serial-insecure', 'WebSerial cannot be accessed with unsecure connection'))
             return
         }
         if (typeof navigator.serial === 'undefined' && typeof navigator.usb === 'undefined') {
-            toastr.error('Try Chrome, Edge, Opera, Brave', 'WebSerial and WebUSB are not supported')
+            toastr.error(T('app.err-try-browsers', 'Try Chrome, Edge, Opera, Brave'), T('app.err-serial-unsupported', 'WebSerial and WebUSB are not supported'))
             return
         }
         if (typeof navigator.serial === 'undefined' || QID('force-serial-poly').checked) {
@@ -274,7 +275,7 @@ async function prepareNewPort(type) {
             new_port = new WebSerial()
         }
     } else {
-        toastr.error('Unknown connection type')
+        toastr.error(T('app.err-conn-type', 'Unknown connection type'))
         return
     }
 
@@ -316,13 +317,16 @@ export async function connectDevice(type) {
 
     port.onDisconnect(() => {
         QID(`btn-conn-${type}`).classList.remove('connected')
-        toastr.warning('Device disconnected')
+        toastr.warning(T('app.device-disconnected', 'Device disconnected'))
         port = null
         //connectDevice(type)
     })
 
     QID(`btn-conn-${type}`).classList.add('connected')
 
+    if (port.isGraphical) {
+        QS('a[data-target="mpos-screen"]')?.click()
+    }
     if (QID('interrupt-device').checked) {
         // TODO: detect WDT and disable it temporarily
 
@@ -333,7 +337,7 @@ export async function connectDevice(type) {
             devInfo = await raw.getDeviceInfo()
             Object.assign(devInfo, { connection: type })
 
-            toastr.success(sanitizeHTML(devInfo.machine + '\n' + devInfo.version), 'Device connected')
+            toastr.success(sanitizeHTML(devInfo.machine + '\n' + devInfo.version), T('app.device-connected', 'Device connected'))
             console.log('Device info', devInfo)
 
             if (window.pkg_install_url) {
@@ -375,7 +379,7 @@ export async function connectDevice(type) {
         // Print banner. TODO: optimize
         await port.write('\x02')
     } else {
-        toastr.success('Device connected')
+        toastr.success(T('app.device-connected', 'Device connected'))
     }
 }
 
@@ -475,7 +479,7 @@ function initOfflineIndicator() {
     sync()
 }
 
-function showConfirmDialog(message) {
+export function showConfirmDialog(message) {
     return new Promise((resolve) => {
         const backdrop = document.createElement('div')
         backdrop.className = 'fri3d-dialog-backdrop'
@@ -1102,10 +1106,10 @@ function _updateFileTree(fs_tree, fs_stats)
     fileTree.insertAdjacentHTML('beforeend', buildTree(fs_tree, 1))
 
     for (let fn of changed_files) {
-        QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("changed")
+        QS(`#menu-file-tree [data-fn="${CSS.escape(fn)}"]`)?.classList.add("changed")
     }
     for (let fn of open_files) {
-        QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("open")
+        QS(`#menu-file-tree [data-fn="${CSS.escape(fn)}"]`)?.classList.add("open")
     }
 
     if (QID('advanced-mode').checked) {
@@ -1163,7 +1167,7 @@ export function fileTreeSelect(fn) {
     for (const el of document.getElementsByClassName('name')) {
         el.classList.remove('selected')
     }
-    const fileElement = QS(`#menu-file-tree [data-fn="${fn}"]`)
+    const fileElement = QS(`#menu-file-tree [data-fn="${CSS.escape(fn)}"]`)
     if (!fileElement) {
         // might be a meta/unsaved file
         return
@@ -1247,7 +1251,7 @@ export async function fileClick(fn) {
 
 export async function pyMinify() {
     if (!editorFn.endsWith('.py')) {
-        toastr.info(`Please open a Python file`)
+        toastr.info(T('files.open-python-first', 'Please open a Python file'))
         return
     }
 
@@ -1258,12 +1262,12 @@ export async function pyMinify() {
       changes: { from: 0, to: editor.state.doc.length, insert: res }
     })
 
-    toastr.info(`Minified ${input.length} to ${res.length}`)
+    toastr.info(T('files.minified', 'Minified {{from}} to {{to}}', { from: input.length, to: res.length }))
 }
 
 export async function pyPrettify() {
     if (!editorFn.endsWith('.py')) {
-        toastr.info(`Please open a Python file`)
+        toastr.info(T('files.open-python-first', 'Please open a Python file'))
         return
     }
 
@@ -1287,7 +1291,7 @@ async function _raw_loadFile(raw, fn) {
         try {
             content = (new TextDecoder('utf-8', { fatal: true })).decode(content)
         } catch (err) {
-            toastr.error(`Unable to load file: ${err}`)
+            toastr.error(T('files.load-failed', 'Unable to load file: {{err}}', { err }))
         }
     }
     await _loadContent(fn, content, createTab(fn))
@@ -1302,7 +1306,7 @@ async function _loadContent(fn, content, editorElement) {
         editor = null
     } else if (fn.endsWith('.md') && QID('render-markdown').checked) {
         _mdRawContent.set(paneEl, content)
-        editorElement.innerHTML = `<div class="marked-viewer">` + marked(content) + `</div>`
+        editorElement.innerHTML = `<div class="marked-viewer">` + DOMPurify.sanitize(marked(content)) + `</div>`
         paneEl.dataset.mdMode = 'view'
         editor = null
         _setMdToggleButton(fn, 'view')
@@ -1313,7 +1317,7 @@ async function _loadContent(fn, content, editorElement) {
                 // Prettify JSON
                 content = JSON.stringify(JSON.parse(content), null, 2)
             } catch (_err) {
-                toastr.warning('JSON is malformed')
+                toastr.warning(T('files.json-malformed', 'JSON is malformed'))
             }
         } else if (willDisasm) {
             content = await disassembleMPY(content)
@@ -1330,7 +1334,7 @@ async function _loadContent(fn, content, editorElement) {
         document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: editor, fn: fn}}))
         addUpdateHandler(editor, (update) => {
             if (update.docChanged) {
-                QS(`#menu-file-tree [data-fn="${fn}"]`)?.classList.add("changed")
+                QS(`#menu-file-tree [data-fn="${CSS.escape(fn)}"]`)?.classList.add("changed")
             }
         })
 
@@ -1346,7 +1350,7 @@ async function _loadContent(fn, content, editorElement) {
 }
 
 function _setMdToggleButton(fn, mode) {
-    const tabEl = QS(`#editor-tabs [data-fn="${fn}"]`)
+    const tabEl = QS(`#editor-tabs [data-fn="${CSS.escape(fn)}"]`)
     if (!tabEl) return
     let btn = tabEl.querySelector('.md-toggle-btn')
     if (!btn) {
@@ -1371,7 +1375,7 @@ function _setMdToggleButton(fn, mode) {
 }
 
 export async function toggleMarkdownView(fn) {
-    const tabEl = QS(`#editor-tabs [data-fn="${fn}"]`)
+    const tabEl = QS(`#editor-tabs [data-fn="${CSS.escape(fn)}"]`)
     if (!tabEl) return
     const paneEl = QS(`.editor-tab-pane[data-pane="${tabEl.dataset.tab}"]`)
     if (!paneEl) return
@@ -1390,7 +1394,7 @@ export async function toggleMarkdownView(fn) {
         document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: newEditor, fn: fn}}))
         addUpdateHandler(newEditor, (update) => {
             if (update.docChanged) {
-                const fileEl = QS(`#menu-file-tree [data-fn="${fn}"]`)
+                const fileEl = QS(`#menu-file-tree [data-fn="${CSS.escape(fn)}"]`)
                 if (fileEl) fileEl.classList.add("changed")
             }
         })
@@ -1407,7 +1411,7 @@ export async function toggleMarkdownView(fn) {
             ? currentEditor.state.doc.toString()
             : (_mdRawContent.get(paneEl) || '')
         _mdRawContent.set(paneEl, content)
-        editorEl.innerHTML = `<div class="marked-viewer">` + marked(content) + `</div>`
+        editorEl.innerHTML = `<div class="marked-viewer">` + DOMPurify.sanitize(marked(content)) + `</div>`
         paneEl.dataset.mdMode = 'view'
         if (isActive) {
             editor = null
@@ -1421,7 +1425,7 @@ export async function saveCurrentFile() {
     if (!editor) return;
 
     if (editor.state.readOnly) {
-        toastr.warning("File is read only")
+        toastr.warning(T('files.read-only', 'File is read only'))
         return
     }
 
@@ -1440,7 +1444,7 @@ export async function saveCurrentFile() {
                 // Minify JSON
                 content = JSON.stringify(JSON.parse(content))
             } catch (_error) {
-                toastr.error('JSON is malformed')
+                toastr.error(T('files.json-malformed', 'JSON is malformed'))
                 return
             }
         } else if (editorFn.endsWith('.py')) {
@@ -1464,10 +1468,10 @@ export async function saveCurrentFile() {
         loader.hide()
     }
     // Success
-    toastr.success('File Saved')
+    toastr.success(T('files.saved', 'File Saved'))
 
     document.dispatchEvent(new CustomEvent("fileSaved", {detail: {fn: editorFn}}))
-    QS(`#menu-file-tree [data-fn="${editorFn}"]`)?.classList.remove("changed")
+    QS(`#menu-file-tree [data-fn="${CSS.escape(editorFn)}"]`)?.classList.remove("changed")
 }
 
 export function clearTerminal() {
@@ -1501,7 +1505,7 @@ export async function runCurrentFile() {
     }
 
     if (!editorFn.endsWith('.py')) {
-        toastr.error(`${editorFn} file is not executable`)
+        toastr.error(T('files.not-executable', '{{fn}} file is not executable', { fn: editorFn, interpolation: { escapeValue: false } }))
         return
     }
 
@@ -1589,7 +1593,7 @@ export async function loadAllPkgIndexes() {
 }
 
 async function _raw_installPkg(raw, pkg, { version=null } = {}) {
-    toastr.info(`Installing ${pkg}...`)
+    toastr.info(T('pkg.installing', 'Installing {{pkg}}…', { pkg }))
     const dev_info = await raw.getDeviceInfo()
     const pkg_info = await rawInstallPkg(raw, pkg, {
         version,
@@ -1597,9 +1601,9 @@ async function _raw_installPkg(raw, pkg, { version=null } = {}) {
         prefer_source: QID('install-package-source').checked,
     })
     if (pkg_info.version) {
-        toastr.success(`Installed ${pkg_info.name}@${pkg_info.version}`)
+        toastr.success(T('pkg.installed', 'Installed {{pkg}}', { pkg: `${pkg_info.name}@${pkg_info.version}` }))
     } else {
-        toastr.success(`Installed ${pkg_info.name}`)
+        toastr.success(T('pkg.installed', 'Installed {{pkg}}', { pkg: pkg_info.name }))
     }
 }
 
@@ -1851,13 +1855,13 @@ export function applyTranslation() {
     }
 
     QSA('a[id=gh-star]').forEach(el => {
-        el.setAttribute('href', 'https://github.com/vshymanskyy/ViperIDE')
+        el.setAttribute('href', 'https://github.com/DrSkunk/Fri3d-IDE')
         el.setAttribute('target', '_blank')
         el.classList.add('link')
     })
 
     QSA('a[id=gh-issues]').forEach(el => {
-        el.setAttribute('href', 'https://github.com/vshymanskyy/ViperIDE/issues')
+        el.setAttribute('href', 'https://github.com/DrSkunk/Fri3d-IDE/issues')
         el.setAttribute('target', '_blank')
         el.classList.add('link')
     })
@@ -2062,7 +2066,7 @@ export function applyTranslation() {
         fileTreeSelect(event.detail.fn)
         editor = getEditorFromElement(event.detail.editorElement)
         editorFn = event.detail.fn
-        const fileElement = QS(`#menu-file-tree [data-fn="${event.detail.fn}"]`)
+        const fileElement = QS(`#menu-file-tree [data-fn="${CSS.escape(event.detail.fn)}"]`)
         if (fileElement) {
             fileElement.classList.add("open")
         }
@@ -2072,7 +2076,7 @@ export function applyTranslation() {
         if (closedView) {
             unregisterEditor(closedView)
         }
-        const fileElement = QS(`#menu-file-tree [data-fn="${event.detail.fn}"]`)
+        const fileElement = QS(`#menu-file-tree [data-fn="${CSS.escape(event.detail.fn)}"]`)
         if (fileElement) {
             fileElement.classList.remove("open")
             fileElement.classList.remove("changed")
@@ -2134,7 +2138,7 @@ export function applyTranslation() {
 
     if ((urlID = urlParams.get('install'))) {
         window.pkg_install_url = urlID
-        toastr.info('Warning: your files may be overwritten!', `Connect your board to install ${urlID}`)
+        toastr.info(T('pkg.install-overwrite', 'Warning: your files may be overwritten!'), T('pkg.install-connect', 'Connect your board to install {{pkg}}', { pkg: urlID }))
     }
 
     if (typeof webrepl_url !== 'undefined') {
@@ -2161,14 +2165,17 @@ async function checkForUpdates() {
     QID('viper-ide-version').innerHTML = current_version
     QID('viper-ide-build').innerText = 'build ' + getBuildDate()
 
+    // Compare against the manifest of our own deployment (generated with the
+    // package version at build time). Fails silently on the dev server, which
+    // serves no built manifest.
     let manifest;
     try {
-        manifest = await fetchJSON('https://viper-ide.org/manifest.json')
+        manifest = await fetchJSON('./manifest.json')
     } catch {
         return
     }
     if (current_version.localeCompare(manifest.version, undefined, {numeric: true, sensitivity: "base"}) < 0) {
-        toastr.info(`New Fri3d-IDE version ${manifest.version} is available`)
+        toastr.info(T('app.update-available', 'New Fri3d-IDE version {{version}} is available', { version: manifest.version }))
         QID('viper-ide-version').innerHTML = `${current_version} (<a href="javascript:app.updateApp()">update</a>)`
 
         // Automatically show about page

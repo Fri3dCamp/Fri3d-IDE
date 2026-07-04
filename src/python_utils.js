@@ -3,7 +3,11 @@ import { splitPath } from './utils.js'
 import { TarReader } from '@gera2ld/tarjs'
 import ruffInit, { Workspace as RuffWorkspace } from '@astral-sh/ruff-wasm-web'
 
-const BASE_URL = 'https://viper-ide.org';
+// Base for the large generated assets (wasm binaries, *_vfs.tar.gz). The build
+// emits local copies under /assets/ (see build.cjs), so production is
+// self-contained; the dev server has no build step, so it falls back to the
+// copies hosted by upstream ViperIDE.
+export const BASE_URL = import.meta.env.DEV ? 'https://viper-ide.org' : '';
 
 export function parseStackTrace(stackTrace)
 {

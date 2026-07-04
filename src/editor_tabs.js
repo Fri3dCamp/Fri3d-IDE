@@ -1,5 +1,6 @@
 import { addUpdateHandler } from './editor.js'
 import { QSA, QS, QID } from './utils.js'
+import { showConfirmDialog, T } from './app.js'
 
 
 let currentTab = 0
@@ -13,7 +14,7 @@ let connected = false
  * @returns {boolean} Returns true if a tab matching the given file name is found, else false
  */
 export function displayOpenFile(fn) {
-    const openTab = QS(`#editor-tabs [data-fn="${fn}"]`)
+    const openTab = QS(`#editor-tabs [data-fn="${CSS.escape(fn)}"]`)
     if (!openTab) {
         return false
     }
@@ -80,31 +81,31 @@ export function createTab(fn) {
 /**Event Listeners **/
 
 document.addEventListener("fileRemoved", (event) => {
-    const tab = QS(`#editor-tabs [data-fn="${event.detail.path}"]`)
+    const tab = QS(`#editor-tabs [data-fn="${CSS.escape(event.detail.path)}"]`)
     if (tab) {
         _closeTab(tab.dataset.tab)
     }
 })
 
 document.addEventListener("dirRemoved", (event) => {
-    QSA(`#editor-tabs [data-fn^="${event.detail.path}/"]`).forEach((tab) => {
+    QSA(`#editor-tabs [data-fn^="${CSS.escape(event.detail.path)}/"]`).forEach((tab) => {
         _closeTab(tab.dataset.tab)
     })
 })
 
 document.addEventListener("fileRenamed", (event) => {
-    const editorTab = QS(`#editor-tabs [data-fn="${event.detail.old}"]`)
+    const editorTab = QS(`#editor-tabs [data-fn="${CSS.escape(event.detail.old)}"]`)
     editorTab.dataset.fn = event.detail.new
     editorTab.querySelector(".tab-title").textContent = event.detail.new.split("/").pop()
 })
 
 document.addEventListener("fileSaved", (event) => {
-    const editorTab = QS(`#editor-tabs [data-fn="${event.detail.fn}"] .tab-title`)
+    const editorTab = QS(`#editor-tabs [data-fn="${CSS.escape(event.detail.fn)}"] .tab-title`)
     editorTab.classList.remove("changed")
 })
 
 document.addEventListener("editorLoaded", (event) => {
-    const editorTab = QS(`#editor-tabs [data-fn="${event.detail.fn}"] .tab-title`)
+    const editorTab = QS(`#editor-tabs [data-fn="${CSS.escape(event.detail.fn)}"] .tab-title`)
     addUpdateHandler(event.detail.editor, (update) => {
         if (update.docChanged) {
             editorTab.classList.add("changed")
@@ -120,7 +121,7 @@ document.addEventListener("deviceConnected", (_event) => {
 
 /** Helper Functions **/
 
-function _closeTab(index) {
+async function _closeTab(index) {
     const tabElement = QS(`#editor-tabs .tab[data-tab="${index}"]`)
     const titleElement = tabElement.querySelector(".tab-title")
     const tabSelected = tabElement.classList.contains("active")
@@ -128,7 +129,10 @@ function _closeTab(index) {
     const fn = tabElement.dataset.fn
 
     if (titleElement.classList.contains("changed")) {
-        if (!confirm(`${fn} has unsaved changes. Close without saving?`)) {
+        const confirmed = await showConfirmDialog(
+            T('files.confirm-close-unsaved', '{{fn}} has unsaved changes. Close without saving?', { fn, interpolation: { escapeValue: false } })
+        )
+        if (!confirmed) {
             return
         }
     }
