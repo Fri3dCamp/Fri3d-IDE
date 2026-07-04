@@ -147,7 +147,11 @@ export class MicroPythonOSWASM extends Transport {
 
     _createCanvas() {
         const canvas = document.createElement('canvas')
-        canvas.id = 'mpos-canvas'
+        // The MicroPythonOS SDL build registers mouse/touch input via
+        // document.querySelector('#canvas'), so this exact id is required
+        // for the display to receive clicks (rendering alone would work
+        // without it, via Module.canvas).
+        canvas.id = 'canvas'
         canvas.width = 320
         canvas.height = 240
         canvas.tabIndex = 0
