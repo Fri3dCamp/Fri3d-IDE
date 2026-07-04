@@ -143,6 +143,33 @@ export class MicroPythonOSWASM extends Transport {
         this.isConnected = false
         this.isGraphical = true
         this.decoder = new TextDecoder()
+        this._outBuf = []
+        this._lastOutByte = 0
+        this._flushScheduled = false
+    }
+
+    // Emscripten delivers stdout one byte per call (FS.createDevice write);
+    // batch into a single decode/receiveCallback per microtask. Lone LF is
+    // expanded to CRLF, matching what mp_hal_stdout does on a real board —
+    // the IDE raw-REPL protocol (rawmode.js) matches on '\r\n' banners.
+    _onStdoutByte(byte) {
+        if (byte === null || byte === undefined) { return } // flush marker
+        if (byte === 10 && this._lastOutByte !== 13) { this._outBuf.push(13) }
+        this._lastOutByte = byte
+        this._outBuf.push(byte)
+        if (!this._flushScheduled) {
+            this._flushScheduled = true
+            queueMicrotask(() => this._flushStdout())
+        }
+    }
+
+    _flushStdout() {
+        this._flushScheduled = false
+        if (!this._outBuf.length) { return }
+        const bytes = new Uint8Array(this._outBuf)
+        this._outBuf.length = 0
+        this.receiveCallback(this.decoder.decode(bytes, { stream: true }))
+        this.activityCallback()
     }
 
     _createCanvas() {
@@ -178,12 +205,36 @@ export class MicroPythonOSWASM extends Transport {
 
         this.canvas = this._createCanvas()
 
+        // The SDL2 port registers keydown/keyup/keypress on window (bubble
+        // phase) and preventDefaults keypress, which silently kills text input
+        // in the CodeMirror editor everywhere on the page. This guard is
+        // registered on the same target/phase BEFORE the runtime script loads,
+        // so it runs first and can stop keys that aren't aimed at the VM
+        // canvas from ever reaching SDL. Keys go to the VM only while the
+        // canvas is focused (it has tabindex, clicking it focuses it).
+        // Never removed: the Emscripten runtime cannot be torn down, so SDL's
+        // listeners survive disconnect() and the guard must too.
+        const canvas = this.canvas
+        const keyGuard = (e) => {
+            if (e.target !== canvas && document.activeElement !== canvas) {
+                e.stopImmediatePropagation()
+            }
+        }
+        for (const type of ['keydown', 'keyup', 'keypress']) {
+            window.addEventListener(type, keyGuard, false)
+        }
+
+        // Input side of the serial bridge: the IDE pushes bytes into inq and
+        // the in-VM asyncio REPL drains them via the _webterm module.
+        // Output deliberately does NOT use __webterm.onOutput: the released
+        // web builds don't mirror stdout through the _webterm C hook (the
+        // unix_mphal.c patch step is optional in build_mpos.sh), so output is
+        // tapped at the Emscripten level via Module.stdout below. Leaving
+        // onOutput unset also keeps builds that DO have the C mirror from
+        // double-delivering (webterm_js_tx no-ops without a callback).
         const webterm = {
             inq: [],
-            onOutput: (bytes) => {
-                this.receiveCallback(this.decoder.decode(bytes, { stream: true }))
-                this.activityCallback()
-            },
+            onOutput: null,
             push(data) {
                 if (typeof data === 'number') { this.inq.push(data & 0xff); return }
                 for (let i = 0; i < data.length; i++) { this.inq.push(data[i] & 0xff) }
@@ -196,6 +247,10 @@ export class MicroPythonOSWASM extends Transport {
                 canvas: this.canvas,
                 arguments: ['-X', 'heapsize=16M', '-m', 'main'],
                 locateFile: (path) => MPOS_ASSET_BASE + path,
+                // FS.init wires this as the per-byte /dev/stdout device, so the
+                // IDE sees the exact byte stream of the in-VM REPL (raw-REPL
+                // framing included). Module.print is then unused for stdout.
+                stdout: (byte) => this._onStdoutByte(byte),
                 print: (text) => { console.log(text) },
                 printErr: (text) => { console.warn(text) },
                 __webterm: webterm,
