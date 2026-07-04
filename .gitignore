@@ -1,5 +1,7 @@
 build/
 fw/
+assets/mpos/*
+!assets/mpos/README.md
 node_modules/
 .parcel-cache/
 extra/

@@ -227,6 +227,7 @@ button.connected {
 .fa-file                    { color: var(--icon-info); }
 .fa-file-circle-exclamation { color: var(--icon-error); }
 .fa-folder                  { color: var(--icon-warning); }
+.fa-folder-open             { color: var(--icon-warning); }
 .fa-certificate             { color: var(--icon-cert); }
 .fa-cube                    { color: var(--icon-module); }
 .fa-cubes                   { color: var(--icon-module); }

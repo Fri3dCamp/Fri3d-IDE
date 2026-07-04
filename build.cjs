@@ -47,6 +47,53 @@ async function downloadAndExtract(url, subfolder, dest) {
     }
 }
 
+// Fetch the MicroPythonOS web build (micropython.js/.wasm/.data) from the
+// latest GitHub release into assets/mpos/, where both the dev server and the
+// verbatim assets copy below pick it up. A .version stamp file makes this a
+// no-op when the release hasn't changed; if GitHub is unreachable, previously
+// fetched files are reused.
+async function fetchMposWeb(destDir) {
+    const versionFile = path.join(destDir, '.version');
+    const wanted = ['micropython.js', 'micropython.wasm', 'micropython.data'];
+    const haveAll = wanted.every(f => fs.existsSync(path.join(destDir, f)));
+
+    let release;
+    try {
+        const resp = await fetch('https://api.github.com/repos/MicroPythonOS/MicroPythonOS/releases/latest');
+        if (!resp.ok) throw new Error(`GitHub API: ${resp.status}`);
+        release = await resp.json();
+    } catch (err) {
+        if (haveAll) {
+            console.warn(`Cannot check MicroPythonOS releases (${err.message}), reusing existing files in ${destDir}`);
+            return;
+        }
+        throw new Error(`Cannot fetch MicroPythonOS web build and no local copy exists: ${err.message}`);
+    }
+
+    const tag = release.tag_name;
+    if (haveAll && fs.existsSync(versionFile) && readfile(versionFile).trim() === tag) {
+        console.log(`MicroPythonOS web build ${tag} is up to date`);
+        return;
+    }
+
+    const asset = (release.assets || []).find(a => /^MicroPythonOS_web_.*\.zip$/.test(a.name));
+    if (!asset) throw new Error(`No MicroPythonOS_web_*.zip asset in release ${tag}`);
+
+    console.log(`Downloading MicroPythonOS web build ${tag} (${asset.name}) ...`);
+    const resp = await fetch(asset.browser_download_url);
+    if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
+    const tmpZip = path.join(require('os').tmpdir(), 'mpos_web.zip');
+    fs.writeFileSync(tmpZip, Buffer.from(await resp.arrayBuffer()));
+
+    try {
+        fs.mkdirSync(destDir, { recursive: true });
+        execSync(`unzip -o "${tmpZip}" ${wanted.map(f => `"${f}"`).join(' ')} -d "${destDir}"`, { stdio: 'pipe' });
+        fs.writeFileSync(versionFile, tag + '\n');
+    } finally {
+        fs.rmSync(tmpZip, { force: true });
+    }
+}
+
 function buildServiceWorker() {
     const pkg = JSON.parse(readfile('package.json'));
     const src = readfile('src/app_worker.js')
@@ -60,6 +107,7 @@ async function main() {
     fs.rmSync('build', { recursive: true, force: true });
     fs.mkdirSync('build/assets', { recursive: true });
     fs.copyFileSync('./src/webrepl_content.js', './build/webrepl_content.js');
+    await fetchMposWeb('./assets/mpos');
     fs.cpSync('./assets', './build/assets', { recursive: true });
 
     await downloadAndExtract(
