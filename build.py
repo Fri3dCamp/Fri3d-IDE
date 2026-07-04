@@ -79,6 +79,19 @@ def combine(dst):
     with open(dst, 'w', encoding='utf-8') as f:
         f.write(combined)
 
+def copy_root_favicons():
+    files = [
+        'favicon.svg',
+        'favicon-96x96.png',
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'web-app-manifest-192x192.png',
+        'web-app-manifest-512x512.png',
+        'site.webmanifest',
+    ]
+    for file in files:
+        cp(file, f'./build/{file}')
+
 if __name__ == "__main__":
     # Prepare
     rmtree("build", ignore_errors=True)
@@ -115,6 +128,7 @@ if __name__ == "__main__":
     cp("node_modules/@micropython/micropython-webassembly-pyscript/micropython.mjs", "./build/micropython.mjs")
     cp("node_modules/@pybricks/mpy-cross-v6/build/mpy-cross-v6.wasm", "./build/assets/mpy-cross-v6.wasm")
     cp("node_modules/@astral-sh/ruff-wasm-web/ruff_wasm_bg.wasm", "./build/assets/ruff_wasm_bg.wasm")
+    copy_root_favicons()
 
     print()
     print("Build complete.")

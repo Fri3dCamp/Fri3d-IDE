@@ -102,6 +102,21 @@ function buildServiceWorker() {
     fs.writeFileSync('build/app_worker.js', src);
 }
 
+function copyRootFavicons() {
+    const files = [
+        'favicon.svg',
+        'favicon-96x96.png',
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'web-app-manifest-192x192.png',
+        'web-app-manifest-512x512.png',
+        'site.webmanifest',
+    ];
+    for (const file of files) {
+        fs.copyFileSync(file, path.join('build', file));
+    }
+}
+
 async function main() {
     // Prepare
     fs.rmSync('build', { recursive: true, force: true });
@@ -128,6 +143,7 @@ async function main() {
 
     // Build service worker (plain JS file, handled separately from Vite)
     buildServiceWorker();
+    copyRootFavicons();
 
     // Add assets from packages
     fs.copyFileSync('node_modules/@micropython/micropython-webassembly-pyscript/micropython.wasm', './build/assets/micropython.wasm');
