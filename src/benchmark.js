@@ -8,7 +8,7 @@
 
 import {
     toastr, webSerialPolyfill,
-    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonWASM,
+    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonOSWASM,
     ConnectionUID, MpRawMode,
     QID, iOS, indicateActivity, report,
 } from './viper_lib.js'
@@ -99,7 +99,7 @@ async function prepareNewPort(type) {
             const id = ConnectionUID.parse(url.replace('rtc://', ''))
             new_port = new WebRTCTransport(id.value())
         } else if (url.startsWith('vm://')) {
-            new_port = new MicroPythonWASM()
+            new_port = new MicroPythonOSWASM()
         } else {
             toastr.error('Unknown link type')
         }

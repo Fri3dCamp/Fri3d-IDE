@@ -2,7 +2,7 @@ import globals from "globals"
 import pluginJs from "@eslint/js"
 
 export default [
-  { ignores: ["build/", "build.cjs", "vite.config.js", "vitest.config.js", "playwright.config.js", "src/websocket_relay.js"] },
+  { ignores: ["build/", "assets/", "build.cjs", "vite.config.js", "vitest.config.js", "playwright.config.js", "src/websocket_relay.js"] },
   { languageOptions: { globals: globals.browser }},
   pluginJs.configs.recommended,
   {

@@ -255,6 +255,7 @@
             <div id="terminal-container">
                 <div class="tabs" id="terminal-tabs" onmousedown="app.initDrag(event)" ontouchstart="app.initDrag(event)">
                     <div>
+                        <a class="tab" data-target="mpos-screen" id="tab-screen-link" style="display:none"><i class="fa-solid fa-display"></i> <span id="tab-screen">Display</span></a>
                         <a class="tab active" data-target="xterm"><i class="fa-solid fa-terminal"></i> <span id="tab-term">Terminal</span></a>
                         <!--a class="tab"        data-target="logs"><i class="fa-solid fa-bug"></i> IDE Logs</a-->
                     </div>
@@ -267,6 +268,9 @@
                 </div>
                 <div id="xterm" class="tab-content active">
                     <!-- Xterm.js terminal content goes here -->
+                </div>
+                <div id="mpos-screen" class="tab-content">
+                    <!-- MicroPythonOS device canvas is injected here when connected -->
                 </div>
                 <div id="logs" class="tab-content">
                     <!-- Logs content goes here -->
