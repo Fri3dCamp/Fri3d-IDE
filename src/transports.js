@@ -212,7 +212,10 @@ export class WebSerial extends Transport {
             }
             this.disconnectCallback()
         }
-        processStream()
+        processStream().catch((err) => {
+            console.error('Serial stream failed:', err)
+            this.disconnectCallback()
+        })
     }
 
     async disconnect() {
@@ -354,10 +357,13 @@ export class WebBluetooth extends Transport {
         }
 
         this.rx.addEventListener('characteristicvaluechanged', (ev) => {
-            writer.write(ev.target.value)
+            writer.write(ev.target.value).catch(() => {})
         })
         await this.rx.startNotifications()
-        processStream()
+        processStream().catch((err) => {
+            console.error('Bluetooth stream failed:', err)
+            this.disconnectCallback()
+        })
     }
 
     async disconnect() {
@@ -550,6 +556,9 @@ export class WebRTCTransport extends Transport {
             controller.abort()
         }, 3000);
 
+        // NOTE: WebRTC signaling/TURN relies on the upstream ViperIDE
+        // infrastructure (hub.viper-ide.org). If that service disappears, P2P
+        // bridging degrades to the public peerjs TURN servers below.
         try {
             const ice = await (await fetch('https://hub.viper-ide.org/ice.json', {
                 cache: "no-store",

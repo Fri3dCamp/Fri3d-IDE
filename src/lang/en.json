@@ -38,7 +38,15 @@
             "type-folder": "Folder",
             "name-file": "file name",
             "name-folder": "folder name",
-            "creating": "Creating {{name}}…"
+            "creating": "Creating {{name}}…",
+            "open-python-first": "Please open a Python file",
+            "minified": "Minified {{from}} to {{to}}",
+            "load-failed": "Unable to load file: {{err}}",
+            "json-malformed": "JSON is malformed",
+            "read-only": "File is read only",
+            "saved": "File Saved",
+            "not-executable": "{{fn}} file is not executable",
+            "confirm-close-unsaved": "{{fn}} has unsaved changes. Close without saving?"
         },
         "settings": {
             "conn": "connection",
@@ -134,7 +142,26 @@
                 "validate-required": "App fullname is required",
                 "validate-dot": "App fullname should include at least one dot, e.g. com.example.myapp",
                 "validate-chars": "App fullname may only contain letters, numbers, dots, dashes and underscores"
-            }
+            },
+            "err-pwd-short": "Password is too short",
+            "err-link-type": "Unknown link type",
+            "err-ble-ios": "WebBluetooth is not available on iOS",
+            "err-ble-insecure": "WebBluetooth cannot be accessed with unsecure connection",
+            "err-ble-unsupported": "WebBluetooth is not supported",
+            "err-serial-ios": "WebSerial is not available on iOS",
+            "err-serial-insecure": "WebSerial cannot be accessed with unsecure connection",
+            "err-serial-unsupported": "WebSerial and WebUSB are not supported",
+            "err-try-browsers": "Try Chrome, Edge, Opera, Brave",
+            "err-conn-type": "Unknown connection type",
+            "device-disconnected": "Device disconnected",
+            "device-connected": "Device connected",
+            "update-available": "New Fri3d-IDE version {{version}} is available"
+        },
+        "pkg": {
+            "installing": "Installing {{pkg}}…",
+            "installed": "Installed {{pkg}}",
+            "install-overwrite": "Warning: your files may be overwritten!",
+            "install-connect": "Connect your board to install {{pkg}}"
         }
     }
 }

@@ -17,7 +17,7 @@ body.loaded {
 }
 
 .github-fork-ribbon:before {
-    background-color: #666;
+    background-color: var(--icon-neutral);
 }
 
 .logo {
@@ -191,6 +191,27 @@ body.loaded {
 #xterm {
     height: 0px;
     background: var(--bg-color-edit);
+}
+
+#mpos-screen {
+    /* Device screen bezel stays black in both themes unless overridden */
+    background: var(--mpos-screen-bg, #000);
+    text-align: center;
+    overflow: auto;
+}
+
+#mpos-screen.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mpos-canvas {
+    image-rendering: pixelated;
+    height: 100%;
+    width: auto;
+    background: var(--mpos-screen-bg, #000);
+    outline: none;
 }
 
 .marked-viewer {
@@ -444,7 +465,7 @@ body.loaded {
 
 #menu-file-tree div .open::after {
     content: "●";
-    color: #666;
+    color: var(--icon-neutral);
 }
 
 #menu-file-tree div .selected {
@@ -536,7 +557,7 @@ body.loaded {
 
     #overlay.show {
         visibility: visible;
-        background-color: #00000088;
+        background-color: rgba(0, 0, 0, 0.75);
         backdrop-filter: blur(3px);
         -webkit-backdrop-filter: blur(3px);
         transition: visibility 0s,

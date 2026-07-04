@@ -8,18 +8,20 @@
 
 import {
     toastr, ConnectionUID, webSerialPolyfill,
-    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonWASM,
+    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonOSWASM,
     QID, iOS, indicateActivity, report,
 } from './viper_lib.js'
 
 const my_p2p_id = ConnectionUID.random().value();
+// The IDE lives next to bridge.html on the same deployment.
+const IDE_URL = new URL('.', window.location.href).href;
 let rtc = null;
 let port = null;
 let wakeLock = null;
 
 async function disconnectDevice() {
     QID('bridge-id').textContent = '---'
-    QID('ide-link').textContent = 'https://viper-ide.org?rtc=YOUR-BRIDGE-ID'
+    QID('ide-link').textContent = IDE_URL + '?rtc=YOUR-BRIDGE-ID'
 
     for (const t of ["ws", "ble", "usb"]) {
         QID(`btn-conn-${t}`).classList.remove('connected')
@@ -85,7 +87,7 @@ async function prepareNewPort(type) {
             const id = ConnectionUID.parse(url.replace('rtc://', ''))
             new_port = new WebRTCTransport(id.value())
         } else if (url.startsWith('vm://')) {
-            new_port = new MicroPythonWASM()
+            new_port = new MicroPythonOSWASM()
         } else {
             toastr.error('Unknown link type')
         }
@@ -161,7 +163,7 @@ async function connectDevice(type) {
     await rtc.requestAccess()
 
     QID('bridge-id').textContent = "rtc://" + rtc.info.id
-    QID('ide-link').textContent = 'https://viper-ide.org?rtc=' + rtc.info.id
+    QID('ide-link').textContent = IDE_URL + '?rtc=' + rtc.info.id
 
     rtc.onConnect(() => {
         toastr.info('Fri3d-IDE connected')
