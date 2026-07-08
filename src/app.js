@@ -704,16 +704,45 @@ function showAppWizardDialog() {
                 <input type="text" id="fri3d-app-fullname" placeholder="com.example.myapp" autocomplete="off" spellcheck="false"/>
                 <label for="fri3d-app-name">${T('app.dialog.field-name', 'Display name')}</label>
                 <input type="text" id="fri3d-app-name" value="My App" autocomplete="off"/>
+                <label for="fri3d-app-publisher">${T('app.dialog.field-publisher', 'Publisher')}</label>
+                <input type="text" id="fri3d-app-publisher" placeholder="${T('app.dialog.field-desc-placeholder', 'optional')}" autocomplete="off"/>
                 <label for="fri3d-app-version">${T('app.dialog.field-version', 'Version')}</label>
                 <input type="text" id="fri3d-app-version" value="0.1.0" autocomplete="off"/>
-                <label for="fri3d-app-desc">${T('app.dialog.field-desc', 'Description')}</label>
+                <label for="fri3d-app-desc">${T('app.dialog.field-short-desc', 'Short description')}</label>
                 <input type="text" id="fri3d-app-desc" placeholder="${T('app.dialog.field-desc-placeholder', 'optional')}" autocomplete="off"/>
+                <label for="fri3d-app-long-desc">${T('app.dialog.field-long-desc', 'Long description')}</label>
+                <input type="text" id="fri3d-app-long-desc" placeholder="${T('app.dialog.field-desc-placeholder', 'optional')}" autocomplete="off"/>
+                <label for="fri3d-app-category">${T('app.dialog.field-category', 'Category')}</label>
+                <select id="fri3d-app-category">
+                    <option value="development">${T('app.dialog.category-development', 'Development')}</option>
+                    <option value="games">${T('app.dialog.category-games', 'Games')}</option>
+                    <option value="media">${T('app.dialog.category-media', 'Media')}</option>
+                    <option value="productivity">${T('app.dialog.category-productivity', 'Productivity')}</option>
+                    <option value="utilities">${T('app.dialog.category-utilities', 'Utilities')}</option>
+                    <option value="system">${T('app.dialog.category-system', 'System')}</option>
+                    <option value="other">${T('app.dialog.category-other', 'Other')}</option>
+                </select>
                 <label for="fri3d-app-template">${T('app.dialog.field-template', 'Template')}</label>
                 <select id="fri3d-app-template">
                     <option value="hello">${T('app.dialog.template-hello', 'Hello World')}</option>
                     <option value="settings">${T('app.dialog.template-settings', 'Settings demo')}</option>
                     <option value="blank">${T('app.dialog.template-blank', 'Blank')}</option>
                 </select>
+                <label>${T('app.dialog.field-icon', 'Icon')}</label>
+                <div class="fri3d-icon-editor">
+                    <canvas id="fri3d-app-icon" width="64" height="64"></canvas>
+                    <div class="fri3d-icon-tools">
+                        <button type="button" id="fri3d-icon-auto" title="${T('app.dialog.icon-auto-title', 'Auto-generate from app name')}"><i class="fa-solid fa-wand-magic-sparkles fa-fw"></i> ${T('app.dialog.icon-auto', 'Auto')}</button>
+                        <input type="color" id="fri3d-icon-color" value="#ffffff" title="${T('app.dialog.icon-brush-color', 'Brush color')}"/>
+                        <select id="fri3d-icon-size" title="${T('app.dialog.icon-brush-size', 'Brush size')}">
+                            <option value="2">2 px</option>
+                            <option value="4" selected>4 px</option>
+                            <option value="8">8 px</option>
+                        </select>
+                        <button type="button" id="fri3d-icon-eraser" title="${T('app.dialog.icon-eraser', 'Eraser')}"><i class="fa-solid fa-eraser fa-fw"></i></button>
+                        <span class="fri3d-icon-hint">${T('app.dialog.icon-hint', 'Draw directly on the icon, or let it auto-generate (icon_64x64.png)')}</span>
+                    </div>
+                </div>
                 <span class="fri3d-dialog-error" id="fri3d-app-error"></span>
             </div>
             <div class="fri3d-dialog-actions">
@@ -725,9 +754,66 @@ function showAppWizardDialog() {
         document.body.appendChild(backdrop)
 
         const fullnameInput = dialog.querySelector('#fri3d-app-fullname')
+        const nameInput = dialog.querySelector('#fri3d-app-name')
         const errorEl = dialog.querySelector('#fri3d-app-error')
 
         const restoreFocus = setupModalA11y(dialog, T('app.dialog.title', 'Create New App'))
+
+        const iconCanvas = dialog.querySelector('#fri3d-app-icon')
+        const iconCtx = iconCanvas.getContext('2d')
+        const eraserBtn = dialog.querySelector('#fri3d-icon-eraser')
+        const colorInput = dialog.querySelector('#fri3d-icon-color')
+        const sizeSelect = dialog.querySelector('#fri3d-icon-size')
+        let iconDrawnByUser = false
+
+        function regenerateIcon() {
+            renderAutoIcon(iconCtx, nameInput.value.trim() || 'My App', fullnameInput.value.trim())
+            iconDrawnByUser = false
+        }
+        regenerateIcon()
+        // Keep the auto icon in sync with the name until the user draws on it.
+        nameInput.addEventListener('input', () => { if (!iconDrawnByUser) regenerateIcon() })
+        fullnameInput.addEventListener('input', () => { if (!iconDrawnByUser) regenerateIcon() })
+        dialog.querySelector('#fri3d-icon-auto').addEventListener('click', () => {
+            eraserBtn.classList.remove('active')
+            regenerateIcon()
+        })
+        eraserBtn.addEventListener('click', () => eraserBtn.classList.toggle('active'))
+
+        let strokeLast = null
+        function iconPos(e) {
+            const r = iconCanvas.getBoundingClientRect()
+            return {
+                x: (e.clientX - r.left) * iconCanvas.width / r.width,
+                y: (e.clientY - r.top) * iconCanvas.height / r.height,
+            }
+        }
+        function strokeTo(p) {
+            iconCtx.globalCompositeOperation = eraserBtn.classList.contains('active') ? 'destination-out' : 'source-over'
+            iconCtx.strokeStyle = colorInput.value
+            iconCtx.lineWidth = Number(sizeSelect.value)
+            iconCtx.lineCap = 'round'
+            iconCtx.lineJoin = 'round'
+            iconCtx.beginPath()
+            iconCtx.moveTo(strokeLast.x, strokeLast.y)
+            // Nudge zero-length strokes so a single click still paints a dot.
+            iconCtx.lineTo(p.x + (p.x === strokeLast.x ? 0.01 : 0), p.y)
+            iconCtx.stroke()
+            iconCtx.globalCompositeOperation = 'source-over'
+            strokeLast = p
+        }
+        iconCanvas.addEventListener('pointerdown', (e) => {
+            e.preventDefault()
+            iconCanvas.setPointerCapture(e.pointerId)
+            iconDrawnByUser = true
+            strokeLast = iconPos(e)
+            strokeTo(iconPos(e))
+        })
+        iconCanvas.addEventListener('pointermove', (e) => {
+            if (strokeLast) strokeTo(iconPos(e))
+        })
+        iconCanvas.addEventListener('pointerup', () => { strokeLast = null })
+        iconCanvas.addEventListener('pointercancel', () => { strokeLast = null })
 
         fullnameInput.focus()
 
@@ -742,14 +828,19 @@ function showAppWizardDialog() {
                 return
             }
             errorEl.classList.remove('visible')
+            const iconDataUrl = iconCanvas.toDataURL('image/png')
             backdrop.remove()
             restoreFocus()
             resolve({
                 fullname: fullnameVal,
-                appName: dialog.querySelector('#fri3d-app-name').value,
+                appName: nameInput.value,
+                publisher: dialog.querySelector('#fri3d-app-publisher').value,
                 version: dialog.querySelector('#fri3d-app-version').value,
                 description: dialog.querySelector('#fri3d-app-desc').value,
+                longDescription: dialog.querySelector('#fri3d-app-long-desc').value,
+                category: dialog.querySelector('#fri3d-app-category').value,
                 template: dialog.querySelector('#fri3d-app-template').value,
+                iconDataUrl,
             })
         }
 
@@ -767,6 +858,38 @@ function showAppWizardDialog() {
             else if (e.key === 'Escape') cancel()
         })
     })
+}
+
+function renderAutoIcon(ctx, appName, fullname) {
+    let hash = 0
+    for (const ch of (fullname || appName)) {
+        hash = (hash * 31 + ch.charCodeAt(0)) >>> 0
+    }
+    const hue = hash % 360
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.clearRect(0, 0, 64, 64)
+    const grad = ctx.createLinearGradient(0, 0, 64, 64)
+    grad.addColorStop(0, `hsl(${hue}, 65%, 55%)`)
+    grad.addColorStop(1, `hsl(${(hue + 45) % 360}, 65%, 38%)`)
+    ctx.fillStyle = grad
+    ctx.beginPath()
+    ctx.roundRect(0, 0, 64, 64, 12)
+    ctx.fill()
+    const initials = (appName.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2) || 'A').toUpperCase()
+    ctx.fillStyle = '#ffffff'
+    ctx.font = `700 ${initials.length > 1 ? 26 : 32}px 'Montserrat', system-ui, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(initials, 32, 34)
+}
+
+function dataUrlToBytes(dataUrl) {
+    const bin = atob(dataUrl.split(',')[1])
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) {
+        bytes[i] = bin.charCodeAt(i)
+    }
+    return bytes
 }
 
 function validateAppFullname(fullname) {
@@ -798,7 +921,7 @@ class Main(Activity):
         title.set_text("${appName}")
         title.align(lv.ALIGN.TOP_MID, 0, 12)
 
-        btn = lv.btn(screen)
+        btn = lv.button(screen)
         btn.align(lv.ALIGN.CENTER, 0, 0)
         lbl = lv.label(btn)
         lbl.set_text("Open settings")
@@ -849,7 +972,7 @@ class Main(Activity):
 function makeAssistantBootstrapPrompt({ fullname, appName, description, template, version }) {
     return [
         `Create starter MicroPythonOS app code for ${fullname}.`,
-        'Output only Python code for assets/main.py in one code block.',
+        'Output only Python code for main.py (at the app root) in one code block.',
         'Constraints:',
         '- Must define class Main(Activity) with onCreate().',
         '- Must call self.setContentView(screen).',
@@ -873,13 +996,20 @@ export async function createNewApp() {
 
     const fullname = input.fullname
     const appName = input.appName.trim() || 'My App'
+    const publisher = input.publisher.trim()
     const version = input.version.trim() || '0.1.0'
     const description = input.description.trim()
+    const longDescription = input.longDescription.trim()
+    const category = input.category
     const template = input.template
 
+    // Flat layout per https://docs.micropythonos.com/apps/creating-apps/ —
+    // MANIFEST.JSON, icon_64x64.png and code at the app root (each extra
+    // directory costs ~8 KiB in LittleFS).
     const appRoot = `/apps/${fullname}`
-    const manifestPath = `${appRoot}/META-INF/MANIFEST.JSON`
-    const mainPath = `${appRoot}/assets/main.py`
+    const manifestPath = `${appRoot}/MANIFEST.JSON`
+    const mainPath = `${appRoot}/main.py`
+    const iconPath = `${appRoot}/icon_64x64.png`
 
     const raw = await MpRawMode.begin(port)
     let loader = null
@@ -899,22 +1029,30 @@ except:
 
         loader = showLoader(T('app.dialog.loading-create', 'Creating app {{fullname}}\u2026', { fullname }))
 
-        await raw.makePath(`${appRoot}/META-INF`)
-        await raw.makePath(`${appRoot}/assets`)
+        await raw.makePath(appRoot)
 
         const manifest = {
-            fullname,
             name: appName,
+            publisher: publisher || 'Unknown',
+            short_description: description || appName,
+            long_description: longDescription || description || appName,
+            fullname,
             version,
-            description,
-            main_launcher_activity: {
-                entrypoint: 'assets/main.py',
-                classname: 'Main',
-            },
+            category,
+            activities: [
+                {
+                    entrypoint: 'main.py',
+                    classname: 'Main',
+                    intent_filters: [
+                        { action: 'main', category: 'launcher' },
+                    ],
+                },
+            ],
         }
 
         await raw.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
         await raw.writeFile(mainPath, makeMainPyBoilerplate(appName, template))
+        await raw.writeFile(iconPath, dataUrlToBytes(input.iconDataUrl))
 
         try {
             await raw.exec(`
@@ -2268,6 +2406,7 @@ window.app = {
     installPkgFromUrl,
     createNewApp,
     createNewAppFromTools,
+    showAppWizardDialog,
     toggleSideMenu,
     autoHideSideMenu,
     toggleFullScreen,

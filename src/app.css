@@ -720,6 +720,66 @@ body.loaded {
     color: var(--accent-cta-fg);
 }
 
+/* Icon editor in the "Create New App" wizard. */
+.fri3d-icon-editor {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+#fri3d-app-icon {
+    width: 96px;
+    height: 96px;
+    flex: none;
+    image-rendering: pixelated;
+    border: var(--border-std);
+    cursor: crosshair;
+    touch-action: none;
+    /* Checkerboard so transparent pixels are visible while drawing. */
+    background: repeating-conic-gradient(rgba(128, 128, 128, 0.25) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px;
+}
+
+.fri3d-icon-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.fri3d-icon-tools button {
+    font-family: 'Open Sans', system-ui, sans-serif;
+    font-size: 0.78rem;
+    padding: 4px 8px;
+    background: var(--bg-color-edit);
+    color: var(--fg-color);
+    border: var(--border-std);
+    cursor: pointer;
+}
+
+.fri3d-icon-tools button.active {
+    background: var(--accent-secondary);
+    color: var(--accent-cta-fg);
+}
+
+.fri3d-icon-tools input[type="color"] {
+    width: 32px;
+    height: 26px;
+    padding: 0 2px;
+    background: var(--bg-color-edit);
+    border: var(--border-std);
+    cursor: pointer;
+}
+
+.fri3d-icon-tools select {
+    width: auto;
+}
+
+.fri3d-icon-hint {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    flex-basis: 100%;
+}
+
 .fri3d-dialog-error {
     font-size: 0.8rem;
     color: var(--icon-danger);
