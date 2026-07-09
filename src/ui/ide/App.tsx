@@ -1,12 +1,11 @@
 import { ToolPanel } from './ToolPanel'
 import { SideMenu } from './SideMenu'
 import { MainEditor } from './MainEditor'
-import { AssistantSidebar } from './AssistantSidebar'
 import { app } from '../legacy'
 
 // The shell renders exactly once and must stay stateless: the legacy modules
 // mutate this DOM directly (FontAwesome dom.watch(), applyTranslation(),
-// xterm, the file tree, the assistant panel). A React re-render would clash
+// xterm, and the file tree). A React re-render would clash
 // with those mutations, so no useState/props may drive this tree.
 export function App() {
     return (
@@ -20,8 +19,6 @@ export function App() {
                 <SideMenu />
                 <div id="side-menu-resizer" title="Resize sidebar"></div>
                 <MainEditor />
-                <div id="assistant-resizer" title="Resize assistant sidebar"></div>
-                <AssistantSidebar />
             </div>
         </>
     )

@@ -25,6 +25,7 @@ function FilesMenu() {
                 <span id="menu-file-title-text">File Manager</span>
                 <span className="menu-file-title-actions">
                     <a href="#" className="menu-action" title="Refresh" id="btn-file-refresh" onClick={(e) => { e.preventDefault(); app().refreshFileTree() }}><i className="fa-solid fa-arrows-rotate fa-fw"></i></a>
+                    <a href="#" className="menu-action" title="Upload files" id="btn-file-upload" onClick={(e) => { e.preventDefault(); app().uploadFilesToBoard('/') }}><i className="fa-regular fa-circle-down fa-fw"></i></a>
                     <a href="#" className="menu-action" title="Expand All" id="btn-file-expand" onClick={(e) => { e.preventDefault(); app().expandAllFolders() }}><i className="fa-solid fa-folder-open fa-fw"></i></a>
                     <a href="#" className="menu-action" title="Collapse All" id="btn-file-collapse" onClick={(e) => { e.preventDefault(); app().collapseAllFolders() }}><i className="fa-solid fa-folder fa-fw file-tree-collapse-icon"></i></a>
                 </span>

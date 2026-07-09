@@ -70,10 +70,8 @@
                 "btn-cancel": "Anuluj",
                 "btn-confirm": "Potwierdź",
                 "confirm-overwrite": "Folder aplikacji {{path}} już istnieje. Nadpisać pliki szablonu?",
-                "confirm-bootstrap": "Przygotować prompt asystenta do zainicjowania main.py przez LLM?",
                 "success-created": "Szkielet aplikacji utworzony dla {{fullname}}",
                 "warning-launcher": "Szkielet utworzony, ale odświeżenie launchera nie powiodło się",
-                "info-assistant-ready": "Prompt asystenta przygotowany. Kliknij \"Uruchom zadanie\", aby wygenerować kod.",
                 "validate-required": "Pełna nazwa aplikacji jest wymagana",
                 "validate-dot": "Pełna nazwa powinna zawierać co najmniej jedną kropkę, np. com.example.myapp",
                 "validate-chars": "Pełna nazwa może zawierać tylko litery, cyfry, kropki, myślniki i podkreślenia"

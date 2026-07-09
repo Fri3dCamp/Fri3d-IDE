@@ -70,55 +70,6 @@ export function SettingsMenu() {
                     </select>
                 </div>
                 <div><input type="checkbox" id="use-natural-sort" defaultChecked /><label htmlFor="use-natural-sort">Use natural sorting</label></div>
-
-                <div id="assistant-settings-section">
-                    <div className="title-lines" id="menu-line-assistant">assistant</div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-provider">Provider:</label>
-                        <select id="assistant-provider">
-                            <option value="openai-compatible">Cloud (OpenAI-compatible)</option>
-                            <option value="chrome-prompt-api">Local (Chrome Prompt API)</option>
-                            <option value="webllm">Local (WebLLM)</option>
-                        </select>
-                    </div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-base-url">Base URL:</label>
-                        <input id="assistant-base-url" type="text" placeholder="https://api.openai.com/v1" />
-                    </div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-model">Model:</label>
-                        <input id="assistant-model" type="text" placeholder="gpt-4.1-mini" />
-                    </div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-api-key">API key:</label>
-                        <input id="assistant-api-key" type="password" autoComplete="off" placeholder="sk-..." />
-                    </div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-temperature">Temperature:</label>
-                        <input id="assistant-temperature" type="number" min="0" max="2" step="0.1" />
-                    </div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-max-tokens">Max tokens:</label>
-                        <input id="assistant-max-tokens" type="number" min="32" max="8192" step="1" />
-                    </div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-timeout-ms">Timeout (ms):</label>
-                        <input id="assistant-timeout-ms" type="number" min="2000" max="120000" step="1000" />
-                    </div>
-                    <div><input type="checkbox" id="assistant-fallback" defaultChecked /><label htmlFor="assistant-fallback">Allow provider fallback to cloud</label></div>
-                    <div><input type="checkbox" id="assistant-include-editor" defaultChecked /><label htmlFor="assistant-include-editor">Include editor context</label></div>
-                    <div><input type="checkbox" id="assistant-include-terminal" defaultChecked /><label htmlFor="assistant-include-terminal">Include terminal context</label></div>
-                    <div><input type="checkbox" id="assistant-include-board" defaultChecked /><label htmlFor="assistant-include-board">Include board info</label></div>
-                    <div><input type="checkbox" id="assistant-include-grounding" defaultChecked /><label htmlFor="assistant-include-grounding">Use docs grounding (MCP)</label></div>
-                    <div className="space-between">
-                        <label htmlFor="assistant-webllm-model">WebLLM model:</label>
-                        <input id="assistant-webllm-model" type="text" placeholder="Llama-3.1-8B-Instruct-q4f32_1-MLC" />
-                    </div>
-                    <div className="assistant-warning">Assistant keys are stored in your browser profile. Avoid using shared/public machines.</div>
-                    <div className="assistant-settings-actions">
-                        <button id="assistant-clear-data" type="button">Clear assistant data</button>
-                    </div>
-                </div>
             </div>
         </div>
     )

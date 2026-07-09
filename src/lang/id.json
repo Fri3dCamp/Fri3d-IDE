@@ -70,10 +70,8 @@
                 "btn-cancel": "Batal",
                 "btn-confirm": "Konfirmasi",
                 "confirm-overwrite": "Folder aplikasi {{path}} sudah ada. Timpa file scaffold?",
-                "confirm-bootstrap": "Siapkan prompt asisten untuk bootstrap main.py dengan LLM?",
                 "success-created": "Scaffold aplikasi dibuat untuk {{fullname}}",
                 "warning-launcher": "Scaffold dibuat, tetapi pembaruan launcher gagal",
-                "info-assistant-ready": "Prompt asisten siap. Klik \"Jalankan tugas\" untuk menghasilkan kode.",
                 "validate-required": "Nama lengkap aplikasi wajib diisi",
                 "validate-dot": "Nama lengkap harus mengandung setidaknya satu titik, mis. com.example.myapp",
                 "validate-chars": "Nama lengkap hanya boleh berisi huruf, angka, titik, tanda hubung, dan garis bawah"

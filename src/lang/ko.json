@@ -70,10 +70,8 @@
                 "btn-cancel": "취소",
                 "btn-confirm": "확인",
                 "confirm-overwrite": "앱 폴더 {{path}} 이(가) 이미 존재합니다. 스캐폴드 파일을 덮어쓰시겠습니까?",
-                "confirm-bootstrap": "LLM으로 main.py를 부트스트랩할 어시스턴트 프롬프트를 준비하시겠습니까?",
                 "success-created": "{{fullname}} 에 대한 앱 스캐폴드가 생성되었습니다",
                 "warning-launcher": "스캐폴드가 생성되었지만 런청 새로 고침에 실패했습니다",
-                "info-assistant-ready": "어시스턴트 프롬프트가 준비되었습니다. \"작업 실행\"을 클릭하여 코드를 생성하세요.",
                 "validate-required": "앱 전체 이름은 필수입니다",
                 "validate-dot": "전체 이름에는 점이 하나 이상 포함되어야 합니다. 예: com.example.myapp",
                 "validate-chars": "전체 이름에는 문자, 숫자, 점, 대시, 밑줄만 사용할 수 있습니다"

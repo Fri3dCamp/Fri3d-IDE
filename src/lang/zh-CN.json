@@ -70,10 +70,8 @@
                 "btn-cancel": "取消",
                 "btn-confirm": "确认",
                 "confirm-overwrite": "应用文件夹 {{path}} 已存在。覆盖模板文件？",
-                "confirm-bootstrap": "准备一个助手提示词来用LLM引导 main.py？",
                 "success-created": "已为 {{fullname}} 创建应用模板",
                 "warning-launcher": "模板已创建，但启动器刷新失败",
-                "info-assistant-ready": "助手提示词已准备好。点击“运行任务”生成代码。",
                 "validate-required": "应用全名是必填项",
                 "validate-dot": "应用全名应包含至少一个点，例如 com.example.myapp",
                 "validate-chars": "应用全名只能包含字母、数字、点、横线和下划线"

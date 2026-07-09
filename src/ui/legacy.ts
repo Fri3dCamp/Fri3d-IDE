@@ -5,6 +5,7 @@
 export interface AppApi {
     connectDevice(type: 'ws' | 'ble' | 'usb'): void
     refreshFileTree(): void
+    uploadFilesToBoard(defaultPath?: string): void
     createNewApp(): void
     saveCurrentFile(): void
     clearTerminal(): void
@@ -19,7 +20,6 @@ export interface AppApi {
     toggleSideMenu(): void
     autoHideSideMenu(): void
     toggleFullScreen(elementId: string): void
-    toggleAssistantSidebar(): void
     initDrag(e: Event): void
 }
 

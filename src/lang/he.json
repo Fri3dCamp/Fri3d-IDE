@@ -70,10 +70,8 @@
                 "btn-cancel": "ביטול",
                 "btn-confirm": "אישור",
                 "confirm-overwrite": "תיקיית האפליקציה {{path}} כבר קיימת. להחליף קבצי פיגום?",
-                "confirm-bootstrap": "להכין פרומפט עוזר לאתחול main.py עם LLM?",
                 "success-created": "פיגום אפליקציה נוצר עבור {{fullname}}",
                 "warning-launcher": "פיגום נוצר, אך רענון המשגר נכשל",
-                "info-assistant-ready": "פרומפט העוזר הוכן. לחץ על «הפעל משימה» כדי ליצור קוד.",
                 "validate-required": "שם מלא של האפליקציה הוא שדה חובה",
                 "validate-dot": "השם המלא צריך לכלול לפחות נקודה אחת, למשל com.example.myapp",
                 "validate-chars": "השם המלא יכול להכיל רק אותיות, מספרים, נקודות, מקפים וקווים תחתונים"

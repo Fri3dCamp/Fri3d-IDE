@@ -33,7 +33,6 @@ import { MicroPythonOSWASM } from './emulator'
 
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
-import { initAssistantPanel, toggleAssistantSidebar } from './assistant/ui/panel'
 import { initOnboarding } from './onboarding'
 
 import { splitPath, sleep, fetchJSON, getCssPropertyValue,
@@ -56,7 +55,7 @@ import { faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFol
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
          faPen, faEye
        } from '@fortawesome/free-solid-svg-icons'
-import { faMessage, faCircleDown } from '@fortawesome/free-regular-svg-icons'
+import { faCircleDown } from '@fortawesome/free-regular-svg-icons'
 
 library.add(faUsb, faBluetoothB)
 library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, faFolderOpen, faFile, faFileCircleExclamation, faFileCirclePlus, faCubes, faGear,
@@ -64,7 +63,7 @@ library.add(faLink, faBars, faDownload, faCirclePlay, faCircleStop, faFolder, fa
          faPlug, faArrowUpRightFromSquare, faTerminal, faBug, faGaugeHigh,
          faTrashCan, faArrowsRotate, faPowerOff, faPlus, faXmark, faChevronRight,
          faPen, faEye)
-library.add(faMessage, faCircleDown)
+library.add(faCircleDown)
 dom.watch()
 
 function getBuildDate() {
@@ -105,7 +104,7 @@ function restoreAndBindUiSettings() {
 
     for (const control of controls) {
         const id = control.id
-        if (!id || id.startsWith('assistant-') || id === 'lang') {
+        if (!id || id === 'lang') {
             continue
         }
 
@@ -137,6 +136,16 @@ function restoreAndBindUiSettings() {
     }
 }
 
+function applyAdvancedModeUi() {
+    const advancedEnabled = Boolean(QID('advanced-mode')?.checked)
+    for (const id of ['btn-conn-ws', 'btn-conn-ble']) {
+        const el = QID(id)
+        if (el) {
+            el.hidden = !advancedEnabled
+        }
+    }
+}
+
 /*
  * Device Management
  */
@@ -149,6 +158,26 @@ let lastTracebackText = ''
 const terminalLogLines: string[] = []
 const openFolders = new Set()
 const _mdRawContent = new WeakMap()
+const _svgRawContent = new WeakMap()
+const _imageObjectUrl = new WeakMap()
+const _imageMimeByExt: Record<string, string> = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.bmp': 'image/bmp',
+}
+
+function getImageMimeType(fn: string): string | null {
+    const lower = fn.toLowerCase()
+    for (const [ext, mime] of Object.entries(_imageMimeByExt)) {
+        if (lower.endsWith(ext)) {
+            return mime
+        }
+    }
+    return null
+}
 
 function appendTerminalLog(data: any) {
     const clean = String(data || '')
@@ -407,6 +436,80 @@ export async function refreshFileTree() {
     } finally {
         loader.hide()
     }
+}
+
+function pickFilesFromSystem() {
+    return new Promise<File[]>((resolve) => {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.multiple = true
+        input.addEventListener('change', () => {
+            resolve(Array.from(input.files || []))
+        }, { once: true })
+        input.click()
+    })
+}
+
+function normalizeUploadPath(path: string) {
+    let normalized = (path || '/').trim()
+    if (!normalized) normalized = '/'
+    normalized = normalized.replace(/\\+/g, '/')
+    if (!normalized.startsWith('/')) normalized = '/' + normalized
+    normalized = normalized.replace(/\/+/g, '/')
+    if (!normalized.endsWith('/')) normalized += '/'
+    return normalized
+}
+
+export async function uploadFilesToBoard(defaultPath = '/') {
+    if (!port) return
+
+    const files = await pickFilesFromSystem()
+    if (!files.length) return
+
+    const uploadPath = await showPromptDialog(
+        T('files.upload-destination', 'Upload to folder:'),
+        { value: defaultPath, placeholder: '/' }
+    )
+    if (uploadPath == null) return
+
+    const targetDir = normalizeUploadPath(uploadPath)
+    const loader = showLoader(T('files.uploading-many', 'Uploading {{n}} files…', { n: files.length }))
+
+    try {
+        const raw = await MpRawMode.begin(port)
+        try {
+            if (targetDir !== '/') {
+                await raw.makePath(targetDir)
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i]
+                const targetFile = targetDir + file.name
+                const [dirname] = splitPath(targetFile)
+                if (dirname && dirname !== '/') {
+                    await raw.makePath(dirname)
+                }
+
+                loader.update(T('files.uploading-one', 'Uploading {{name}} ({{index}}/{{total}})…', {
+                    name: file.name,
+                    index: i + 1,
+                    total: files.length,
+                    interpolation: { escapeValue: false },
+                }))
+
+                const bytes = new Uint8Array(await file.arrayBuffer())
+                await raw.writeFile(targetFile, bytes)
+            }
+
+            await _raw_updateFileTree(raw)
+        } finally {
+            await raw.end()
+        }
+    } finally {
+        loader.hide()
+    }
+
+    toastr.success(T('files.upload-done', 'Uploaded {{n}} file(s)', { n: files.length }))
 }
 
 export async function createNewFile(path: string) {
@@ -976,22 +1079,6 @@ class Main(Activity):
 `
 }
 
-function makeAssistantBootstrapPrompt({ fullname, appName, description, template, version }: any) {
-    return [
-        `Create starter MicroPythonOS app code for ${fullname}.`,
-        'Output only Python code for main.py (at the app root) in one code block.',
-        'Constraints:',
-        '- Must define class Main(Activity) with onCreate().',
-        '- Must call self.setContentView(screen).',
-        '- Keep dependencies to mpos and lvgl only.',
-        '- Keep it small and production-safe.',
-        `App name: ${appName}`,
-        `Version: ${version}`,
-        `Template preference: ${template}`,
-        `Description: ${description || 'No description provided'}`,
-    ].join('\n')
-}
-
 export async function createNewApp() {
     if (!port) {
         toastr.info(T('app.connect-first', 'Connect your board first'))
@@ -1085,28 +1172,6 @@ AppManager.restart_launcher()
 
     toastr.success(T('app.dialog.success-created', 'Created app scaffold for {{fullname}}', { fullname }))
 
-    const assistantEnabled = QID('advanced-mode') && QID('advanced-mode').checked
-    if (assistantEnabled) {
-        const useAssistant = await showConfirmDialog(T('app.dialog.confirm-bootstrap', 'Prepare an Assistant prompt to bootstrap main.py with LLM?'))
-        if (useAssistant) {
-            const taskPreset = QID('assistant-task-preset')
-            if (taskPreset) {
-                taskPreset.value = 'app-bootstrap'
-            }
-            const promptBox = QID('assistant-prompt')
-            if (promptBox) {
-                promptBox.value = makeAssistantBootstrapPrompt({
-                    fullname,
-                    appName,
-                    description,
-                    template,
-                    version,
-                })
-            }
-            toggleAssistantSidebar()
-            toastr.info(T('app.dialog.info-assistant-ready', 'Assistant prompt prepared. Click "Run task" to generate code.'))
-        }
-    }
 }
 
 export async function removeFile(path: string) {
@@ -1425,6 +1490,7 @@ export async function pyPrettify() {
 
 async function _raw_loadFile(raw: any, fn: string) {
     let content
+    const imageMimeType = getImageMimeType(fn)
     if (fn == '~sysinfo.md') {
         content = await raw.readSysInfoMD()
     } else if (displayOpenFile(fn)) {
@@ -1433,10 +1499,12 @@ async function _raw_loadFile(raw: any, fn: string) {
         return
     } else {
         content = await raw.readFile(fn)
-        try {
-            content = (new TextDecoder('utf-8', { fatal: true })).decode(content)
-        } catch (err) {
-            toastr.error(T('files.load-failed', 'Unable to load file: {{err}}', { err }))
+        if (!imageMimeType) {
+            try {
+                content = (new TextDecoder('utf-8', { fatal: true })).decode(content)
+            } catch (_err) {
+                // Keep binary files as bytes and let _loadContent choose a viewer.
+            }
         }
     }
     await _loadContent(fn, content, createTab(fn))
@@ -1445,10 +1513,38 @@ async function _raw_loadFile(raw: any, fn: string) {
 async function _loadContent(fn: string, content: any, editorElement: any) {
     const willDisasm = fn.endsWith('.mpy') && QID('advanced-mode').checked
     const paneEl = editorElement.closest('.editor-tab-pane')
+    const imageMimeType = getImageMimeType(fn)
+    const isSvg = fn.toLowerCase().endsWith('.svg')
 
-    if (content instanceof Uint8Array && !willDisasm) {
+    if (paneEl) {
+        const oldObjectUrl = _imageObjectUrl.get(paneEl)
+        if (oldObjectUrl) {
+            URL.revokeObjectURL(oldObjectUrl)
+            _imageObjectUrl.delete(paneEl)
+        }
+    }
+
+    if (imageMimeType && content instanceof Uint8Array) {
+        imageViewer(content, editorElement, imageMimeType, fn)
+        editor = null
+    } else if (content instanceof Uint8Array && !willDisasm) {
         hexViewer(content.buffer, editorElement)
         editor = null
+    } else if (isSvg) {
+        let svgText = content
+        if (content instanceof Uint8Array) {
+            try {
+                svgText = (new TextDecoder('utf-8', { fatal: true })).decode(content)
+            } catch (_err) {
+                svgText = ''
+                toastr.warning(T('files.load-failed', 'Unable to load file: {{err}}', { err: 'Invalid UTF-8 SVG' }))
+            }
+        }
+        _svgRawContent.set(paneEl, svgText)
+        svgViewer(svgText, editorElement, fn)
+        paneEl.dataset.svgMode = 'view'
+        editor = null
+        _setSvgToggleButton(fn, 'view')
     } else if (fn.endsWith('.md') && QID('render-markdown').checked) {
         _mdRawContent.set(paneEl, content)
         editorElement.innerHTML = `<div class="marked-viewer">` + DOMPurify.sanitize(marked(content) as string) + `</div>`
@@ -1519,6 +1615,31 @@ function _setMdToggleButton(fn: string, mode: string) {
     }
 }
 
+function _setSvgToggleButton(fn: string, mode: string) {
+    const tabEl = QS(`#editor-tabs [data-fn="${CSS.escape(fn)}"]`)
+    if (!tabEl) return
+    let btn = tabEl.querySelector('.svg-toggle-btn')
+    if (!btn) {
+        btn = document.createElement('a')
+        btn.className = 'menu-action svg-toggle-btn'
+        btn.href = '#'
+        btn.addEventListener('click', (e: any) => {
+            e.stopPropagation()
+            e.preventDefault()
+            toggleSvgView(fn)
+        })
+        const closeBtn = tabEl.querySelector('.menu-action')
+        tabEl.insertBefore(btn, closeBtn)
+    }
+    if (mode === 'view') {
+        btn.title = T('editor.md-edit', 'Edit raw')
+        btn.innerHTML = '<i class="fa-solid fa-pen"></i>'
+    } else {
+        btn.title = T('editor.md-preview', 'Preview')
+        btn.innerHTML = '<i class="fa-solid fa-eye"></i>'
+    }
+}
+
 export async function toggleMarkdownView(fn: string) {
     const tabEl = QS(`#editor-tabs [data-fn="${CSS.escape(fn)}"]`)
     if (!tabEl) return
@@ -1562,6 +1683,56 @@ export async function toggleMarkdownView(fn: string) {
             editor = null
         }
         _setMdToggleButton(fn, 'view')
+    }
+}
+
+export async function toggleSvgView(fn: string) {
+    const tabEl = QS(`#editor-tabs [data-fn="${CSS.escape(fn)}"]`)
+    if (!tabEl) return
+    const paneEl = QS(`.editor-tab-pane[data-pane="${tabEl.dataset.tab}"]`)
+    if (!paneEl) return
+    const editorEl = paneEl.querySelector('.editor')
+    const isActive = paneEl.classList.contains('active')
+    const currentMode = paneEl.dataset.svgMode || 'view'
+
+    if (currentMode === 'view') {
+        const oldObjectUrl = _imageObjectUrl.get(paneEl)
+        if (oldObjectUrl) {
+            URL.revokeObjectURL(oldObjectUrl)
+            _imageObjectUrl.delete(paneEl)
+        }
+
+        const content = _svgRawContent.get(paneEl) || ''
+        editorEl.innerHTML = ''
+        const newEditor = await createNewEditor(editorEl, fn, content, {
+            wordWrap: QID('use-word-wrap').checked,
+            devInfo,
+        })
+        document.dispatchEvent(new CustomEvent("editorLoaded", {detail: {editor: newEditor, fn: fn}}))
+        addUpdateHandler(newEditor, (update: any) => {
+            if (update.docChanged) {
+                const fileEl = QS(`#menu-file-tree [data-fn="${CSS.escape(fn)}"]`)
+                if (fileEl) fileEl.classList.add("changed")
+            }
+        })
+        paneEl.dataset.svgMode = 'edit'
+        if (isActive) {
+            editor = newEditor
+            editorFn = fn
+        }
+        _setSvgToggleButton(fn, 'edit')
+    } else {
+        const currentEditor = getEditorFromElement(editorEl)
+        const content = currentEditor
+            ? currentEditor.state.doc.toString()
+            : (_svgRawContent.get(paneEl) || '')
+        _svgRawContent.set(paneEl, content)
+        svgViewer(content, editorEl, fn)
+        paneEl.dataset.svgMode = 'view'
+        if (isActive) {
+            editor = null
+        }
+        _setSvgToggleButton(fn, 'view')
     }
 }
 
@@ -1911,6 +2082,43 @@ function hexViewer(arrayBuffer: any, targetElement: any) {
     targetElement.appendChild(containerDiv)
 }
 
+function imageViewer(bytes: Uint8Array, targetElement: any, mimeType: string, fn: string) {
+    const paneEl = targetElement.closest('.editor-tab-pane')
+    const blob = new Blob([new Uint8Array(bytes)], { type: mimeType })
+    const objectUrl = URL.createObjectURL(blob)
+    if (paneEl) {
+        _imageObjectUrl.set(paneEl, objectUrl)
+    }
+
+    const name = fn.split('/').pop() || 'Image preview'
+    targetElement.innerHTML = `<div class="image-viewer"><img alt="${escapeHtml(name)}"></div>`
+    const imageEl = targetElement.querySelector('img')
+    imageEl.src = objectUrl
+}
+
+function svgViewer(content: string, targetElement: any, fn: string) {
+    const paneEl = targetElement.closest('.editor-tab-pane')
+
+    if (paneEl) {
+        const oldObjectUrl = _imageObjectUrl.get(paneEl)
+        if (oldObjectUrl) {
+            URL.revokeObjectURL(oldObjectUrl)
+            _imageObjectUrl.delete(paneEl)
+        }
+    }
+
+    const blob = new Blob([content], { type: 'image/svg+xml' })
+    const objectUrl = URL.createObjectURL(blob)
+    if (paneEl) {
+        _imageObjectUrl.set(paneEl, objectUrl)
+    }
+
+    const name = fn.split('/').pop() || 'SVG preview'
+    targetElement.innerHTML = `<div class="image-viewer"><img alt="${escapeHtml(name)}"></div>`
+    const imageEl = targetElement.querySelector('img')
+    imageEl.src = objectUrl
+}
+
 
 /*
  * Initialization
@@ -2031,6 +2239,14 @@ export function applyTranslation() {
     const currentLang = i18next.resolvedLanguage || 'en';
 
     restoreAndBindUiSettings()
+    applyAdvancedModeUi()
+
+    const advancedModeCheckbox = QID('advanced-mode')
+    if (advancedModeCheckbox) {
+        advancedModeCheckbox.addEventListener('change', () => {
+            applyAdvancedModeUi()
+        })
+    }
 
     const lang_sel = QID('lang')
     lang_sel.value = currentLang
@@ -2063,12 +2279,9 @@ export function applyTranslation() {
     const fn = 'test.py'
     const content = `
 # Fri3d-IDE - MicroPython Web IDE
-# Read more: https://github.com/DrSkunk/Fri3d-IDE/
+# Read more: https://fri3dcamp.github.io/badge_2026/
 
 # Connect your device and start creating! 🤖👨‍💻🕹️
-
-# You can also open a virtual device and explore some examples:
-# https://fri3d-programmer.vercel.app/?vm=1
 `
     await _loadContent(fn, content, createTab(fn))
 
@@ -2217,6 +2430,14 @@ export function applyTranslation() {
         }
     })
     document.addEventListener("tabClosed", (event: any) => {
+        const paneEl = event.detail.editorElement.closest('.editor-tab-pane')
+        if (paneEl) {
+            const objectUrl = _imageObjectUrl.get(paneEl)
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl)
+                _imageObjectUrl.delete(paneEl)
+            }
+        }
         const closedView = getEditorFromElement(event.detail.editorElement)
         if (closedView) {
             unregisterEditor(closedView)
@@ -2226,32 +2447,6 @@ export function applyTranslation() {
             fileElement.classList.remove("open")
             fileElement.classList.remove("changed")
         }
-    })
-
-    initAssistantPanel({
-        getEditorState() {
-            if (!editor) {
-                return null
-            }
-
-            const sel = editor.state.selection.main
-            const selected = editor.state.sliceDoc(sel.from, sel.to)
-
-            return {
-                filename: editorFn,
-                selection: selected,
-                content: editor.state.doc.toString(),
-            }
-        },
-        getTerminalLines() {
-            return [...terminalLogLines]
-        },
-        getTraceback() {
-            return lastTracebackText
-        },
-        getBoardInfo() {
-            return devInfo
-        },
     })
 
     setTimeout(() => {
@@ -2394,6 +2589,7 @@ function stopDrag() {
 window.app = {
     connectDevice,
     refreshFileTree,
+    uploadFilesToBoard,
     createNewFile,
     removeFile,
     removeDir,
@@ -2420,6 +2616,5 @@ window.app = {
     applyTranslation,
     updateApp,
     initDrag,
-    toggleAssistantSidebar,
     toggleMarkdownView,
 }
