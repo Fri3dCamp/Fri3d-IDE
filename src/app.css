@@ -82,37 +82,6 @@ body.loaded {
     width: 0;
 }
 
-#assistant-sidebar {
-    flex: 0 0 360px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px;
-    background-color: var(--bg-color-menu);
-    border-left: 3px solid var(--border-color);
-    overflow-y: auto;
-}
-
-#assistant-resizer {
-    flex: 0 0 6px;
-    cursor: col-resize;
-    background: transparent;
-}
-
-#assistant-resizer:hover {
-    background: var(--accent-secondary);
-}
-
-#container.assistant-collapsed #assistant-sidebar,
-#container.assistant-collapsed #assistant-resizer {
-    display: none;
-}
-
-#container.assistant-unavailable #assistant-sidebar,
-#container.assistant-unavailable #assistant-resizer {
-    display: none;
-}
-
 .editor {
     background: var(--bg-color-edit);
     height: 100%;
@@ -218,6 +187,23 @@ body.loaded {
     height: 100%;
     width: 100%;
     padding: 10px;
+}
+
+.image-viewer {
+    height: 100%;
+    width: 100%;
+    padding: 10px;
+    overflow: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.image-viewer img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: auto;
 }
 
 .hexed-viewer {
@@ -342,21 +328,6 @@ body.loaded {
     transform: translate(var(--shadow-offset), var(--shadow-offset));
 }
 
-#menu-assistant-title {
-    font-family: 'Montserrat', system-ui, sans-serif;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.85rem;
-    color: var(--accent-secondary);
-}
-
-.assistant-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
 #menu-file-tree div, #menu-pkg-list div, #menu-settings-list div, #menu-tools-list div {
     margin: 5px 0;
     line-height: 1.2em;
@@ -371,54 +342,6 @@ body.loaded {
     color: var(--fg-color);
     border: 2px solid var(--border-color);
 }
-
-.assistant-provider-status {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.assistant-task-row,
-.assistant-quick-actions,
-.assistant-actions,
-.assistant-settings-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-#assistant-prompt {
-    width: 100%;
-    resize: vertical;
-    min-height: 90px;
-    background: var(--bg-color-edit);
-    color: var(--fg-color);
-    border: 2px solid var(--border-color);
-    font-family: 'Open Sans', system-ui, sans-serif;
-}
-
-.assistant-status {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    opacity: 0.9;
-}
-
-.assistant-output {
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: var(--bg-color-edit);
-    border: 2px solid var(--border-color);
-    padding: 8px;
-    min-height: 60px;
-    max-height: 260px;
-    overflow: auto;
-}
-
-.assistant-warning {
-    font-size: 0.8rem;
-    color: var(--icon-warning);
-}
-
 #menu-file-tree div .name {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -543,18 +466,6 @@ body.loaded {
         width: 100%;
     }
 
-    #assistant-sidebar {
-        flex: 0 0 auto;
-        width: 100%;
-        max-height: 45vh;
-        border-left: 0;
-        border-top: 1px solid #444;
-    }
-
-    #assistant-resizer {
-        display: none;
-    }
-
     #overlay.show {
         visibility: visible;
         background-color: rgba(0, 0, 0, 0.75);
@@ -584,40 +495,6 @@ body.loaded {
     #editor-tabs {
         display: none;
     }
-}
-
-/* ── Fri3d action buttons ─────────────────────────────────────────────── */
-/* Applied to named action buttons (not bare icon buttons in the toolbar)  */
-.assistant-task-row button,
-.assistant-quick-actions button,
-.assistant-actions button,
-.assistant-settings-actions button {
-    font-family: 'Open Sans', system-ui, sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 5px 10px;
-    background: var(--accent-cta);
-    color: var(--accent-cta-fg);
-    border: var(--border-thick);
-    box-shadow: var(--shadow-std);
-    cursor: pointer;
-    transition: box-shadow 0.1s ease, transform 0.1s ease;
-}
-
-.assistant-task-row button:hover,
-.assistant-quick-actions button:hover,
-.assistant-actions button:hover,
-.assistant-settings-actions button:hover {
-    box-shadow: calc(var(--shadow-offset) / 2) calc(var(--shadow-offset) / 2) 0px var(--fri3d-black);
-    transform: translate(calc(var(--shadow-offset) / 2), calc(var(--shadow-offset) / 2));
-}
-
-.assistant-task-row button:active,
-.assistant-quick-actions button:active,
-.assistant-actions button:active,
-.assistant-settings-actions button:active {
-    box-shadow: none;
-    transform: translate(var(--shadow-offset), var(--shadow-offset));
 }
 
 /* ── Fri3d toolbar button hover ────────────────────────────────────────── */

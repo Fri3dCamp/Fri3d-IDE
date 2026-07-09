@@ -70,10 +70,8 @@
                 "btn-cancel": "Cancelar",
                 "btn-confirm": "Confirmar",
                 "confirm-overwrite": "La carpeta de la aplicación {{path}} ya existe. ¿Sobrescribir archivos de plantilla?",
-                "confirm-bootstrap": "¿Preparar un prompt de asistente para inicializar main.py con LLM?",
                 "success-created": "Plantilla de aplicación creada para {{fullname}}",
                 "warning-launcher": "Plantilla creada, pero la actualización del lanzador falló",
-                "info-assistant-ready": "Prompt de asistente preparado. Haz clic en \"Ejecutar tarea\" para generar código.",
                 "validate-required": "El nombre completo de la aplicación es obligatorio",
                 "validate-dot": "El nombre completo debe incluir al menos un punto, p.ej. com.example.myapp",
                 "validate-chars": "El nombre completo solo puede contener letras, números, puntos, guiones y guiones bajos"

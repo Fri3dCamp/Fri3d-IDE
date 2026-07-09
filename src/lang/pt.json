@@ -70,10 +70,8 @@
                 "btn-cancel": "Cancelar",
                 "btn-confirm": "Confirmar",
                 "confirm-overwrite": "A pasta da aplicação {{path}} já existe. Sobrescrever arquivos do modelo?",
-                "confirm-bootstrap": "Preparar um prompt do assistente para inicializar main.py com LLM?",
                 "success-created": "Modelo de aplicação criado para {{fullname}}",
                 "warning-launcher": "Modelo criado, mas a atualização do launcher falhou",
-                "info-assistant-ready": "Prompt do assistente preparado. Clique em \"Executar tarefa\" para gerar código.",
                 "validate-required": "O nome completo da aplicação é obrigatório",
                 "validate-dot": "O nome completo deve incluir pelo menos um ponto, ex. com.example.myapp",
                 "validate-chars": "O nome completo pode conter apenas letras, números, pontos, hífens e underscores"

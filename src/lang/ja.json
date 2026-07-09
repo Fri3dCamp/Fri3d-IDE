@@ -70,10 +70,8 @@
                 "btn-cancel": "キャンセル",
                 "btn-confirm": "確認",
                 "confirm-overwrite": "アプリフォルダ {{path}} はすでに存在します。ひな形ファイルを上書きしますか？",
-                "confirm-bootstrap": "LLMで main.py を初期化するためのアシスタントプロンプトを準備しますか？",
                 "success-created": "{{fullname}} のアプリひな形を作成しました",
                 "warning-launcher": "ひな形を作成しましたが、ランチャーの更新に失敗しました",
-                "info-assistant-ready": "アシスタントプロンプトが準備できました。「タスクを実行」をクリックしてコードを生成してください。",
                 "validate-required": "アプリの完全名は必須です",
                 "validate-dot": "完全名には少なくとも1つのドットが必要です（例：com.example.myapp）",
                 "validate-chars": "完全名には文字、数字、ドット、ダッシュ、アンダースコアのみ使用できます"

@@ -70,10 +70,8 @@
                 "btn-cancel": "Anulare",
                 "btn-confirm": "Confirmare",
                 "confirm-overwrite": "Folderul aplicației {{path}} există deja. Suprascrieți fişierele schelet?",
-                "confirm-bootstrap": "Pregătiți un prompt de asistent pentru a inițializa main.py cu LLM?",
                 "success-created": "Schelet de aplicație creat pentru {{fullname}}",
                 "warning-launcher": "Schelet creat, dar reîncărcarea launcher-ului a eşuat",
-                "info-assistant-ready": "Promptul asistentului este pregătit. Faceți clic pe «Rulează sarcina» pentru a genera cod.",
                 "validate-required": "Numele complet al aplicației este obligatoriu",
                 "validate-dot": "Numele complet trebuie să conțină cel puțin un punct, ex. com.example.myapp",
                 "validate-chars": "Numele complet poate conține doar litere, cifre, puncte, liniute și liniute de subliniere"

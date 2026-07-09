@@ -10,10 +10,9 @@ export function ToolPanel() {
                 <button title="Run File [F5]" onClick={() => app().runCurrentFile()} id="btn-run"><i className="fa-solid fa-circle-play" id="btn-run-icon"></i></button>
             </div>
             <div>
-                <button title="Connect WebREPL" onClick={() => app().connectDevice('ws')} id="btn-conn-ws"><i className="fa-solid fa-link"></i></button>
-                <button title="Connect Bluetooth" onClick={() => app().connectDevice('ble')} id="btn-conn-ble"><i className="fa-brands fa-bluetooth-b"></i></button>
+                <button title="Connect WebREPL" onClick={() => app().connectDevice('ws')} id="btn-conn-ws" className="advanced-only"><i className="fa-solid fa-link"></i></button>
+                <button title="Connect Bluetooth" onClick={() => app().connectDevice('ble')} id="btn-conn-ble" className="advanced-only"><i className="fa-brands fa-bluetooth-b"></i></button>
                 <button title="Connect USB/Serial" onClick={() => app().connectDevice('usb')} id="btn-conn-usb"><i className="fa-brands fa-usb"></i></button>
-                <button title="Toggle Assistant" onClick={() => app().toggleAssistantSidebar()} id="assistant-toggle"><i className="fa-regular fa-message"></i></button>
                 <button title="Full Screen" onClick={() => app().toggleFullScreen('app')} id="app-expand"><i className="fa-solid fa-expand"></i></button>
             </div>
         </div>

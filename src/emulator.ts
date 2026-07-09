@@ -16,7 +16,7 @@ async function populateFS(vm: any)
 {
     vm.FS.writeFile('/main.py', `
 # Fri3d-IDE - MicroPython Web IDE
-# Read more: https://github.com/DrSkunk/Fri3d-IDE
+# Read more: https://fri3dcamp.github.io/badge_2026/
 
 # 🚧 This is an experimental virtual device 🚧
 # It runs the official MicroPython WASM port directly in your browser

@@ -70,10 +70,8 @@
                 "btn-cancel": "取消",
                 "btn-confirm": "確認",
                 "confirm-overwrite": "應用程式資料夾 {{path}} 已存在。覆蓋骨架檔案？",
-                "confirm-bootstrap": "準備助手提示詞以使用LLM初始化 main.py？",
                 "success-created": "已為 {{fullname}} 建立應用程式骨架",
                 "warning-launcher": "骨架已建立，但啟動器重新整理失敗",
-                "info-assistant-ready": "助手提示詞已準備好。點擊「執行任務」以生成程式碼。",
                 "validate-required": "應用程式全名為必填項",
                 "validate-dot": "全名應包含至少一個點，例如 com.example.myapp",
                 "validate-chars": "全名只能包含字母、數字、點、橫線和底線"
