@@ -4,7 +4,7 @@
 
 Fri3d-IDE is a **browser-based IDE for MicroPython and CircuitPython** that runs entirely in the browser (no server side). It connects to physical microcontroller boards via WebUSB/Serial, WebBluetooth, WebREPL (WebSocket), or P2P/WebRTC, and also provides an in-browser MicroPython Virtual Machine powered by WebAssembly.
 
-The live deployment is at https://viper-ide.org, deployed from the `build/` directory to GitHub Pages.
+The stack is **Vite + React + TypeScript**. React renders the static page shells; the interactive IDE logic lives in imperative TypeScript controller modules that manipulate that DOM directly (a strangler-fig migration — new UI work should move state into React over time).
 
 ---
 
@@ -12,201 +12,122 @@ The live deployment is at https://viper-ide.org, deployed from the `build/` dire
 
 ```
 /
-├── src/                    # All application source code
-│   ├── ViperIDE.html       # Main HTML shell (NOT standalone — CSS/JS injected at build time)
-│   ├── app.js              # Main entry point bundled into build/app.js (IIFE)
-│   ├── viper_lib.js        # Re-export library bundled into build/viper_lib.js (for embedding)
-│   ├── app_worker.js       # Web Worker entry point
-│   ├── app.css             # Main application styles
-│   ├── app_common.css      # Shared styles (used by both app and viper_lib)
-│   ├── editor.js           # CodeMirror 6 editor setup and linting integration
-│   ├── editor_tabs.js      # Tab management for the file editor
-│   ├── transports.js       # Transport abstraction: WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport
-│   ├── rawmode.js          # MicroPython raw REPL protocol (MpRawMode class)
-│   ├── emulator.js         # In-browser MicroPython WASM VM (MicroPythonWASM class)
-│   ├── python_utils.js     # Python validation (Ruff WASM), mpy-cross compilation, minification
-│   ├── package_mgr.js      # MIP-compatible package manager (micropython-lib + featured index)
-│   ├── connection_uid.js   # P2P connection UID encoding/decoding
-│   ├── utils.js            # General utilities (sleep, Mutex, DOM helpers, etc.)
-│   ├── websocket_relay.js  # WebSocket relay server script (excluded from ESLint)
-│   ├── manifest.json       # PWA manifest template (version injected at build time)
-│   ├── lang/               # i18n translation files (one JSON per locale, e.g. en.json, uk.json)
-│   ├── tools_vfs/          # Virtual filesystem bundled as tools_vfs.tar.gz (mpy-tool.py, python_minifier)
-│   └── vm_vfs/             # Virtual filesystem bundled as vm_vfs.tar.gz (MicroPython VM helpers)
-├── assets/                 # Static assets copied verbatim to build/ (icons, images)
-├── packages/               # viper-tools package directory
-├── docs/                   # Markdown documentation (Features.md, USB/BLE/WebREPL guides, etc.)
-├── build/                  # ⚠️ GENERATED — do not edit, not committed (git-ignored)
-├── build.py                # Python build script (used in CI/GitHub Pages deployment)
-├── build.cjs               # Node.js build script (alternative, used by `npm run build`)
-├── rollup.config.mjs       # Rollup bundler config (three entry points: app, viper_lib, app_worker)
-├── eslint.config.mjs       # ESLint flat-config
-├── package.json            # npm dependencies and scripts
-└── .github/workflows/static.yml  # GitHub Actions: build (via build.py) + deploy to GitHub Pages
+├── index.html              # IDE page (loads /src/ui/ide/main.tsx)
+├── bridge.html             # P2P bridge page (loads /src/ui/bridge/main.tsx)
+├── benchmark.html          # Device benchmark page (loads /src/ui/benchmark/main.tsx)
+├── src/
+│   ├── ui/                 # React components (TSX)
+│   │   ├── legacy.ts       # Typed accessors for the legacy window.app API
+│   │   ├── ide/            # main.tsx, App.tsx, ToolPanel, SideMenu, SettingsMenu, ...
+│   │   ├── bridge/         # main.tsx, BridgePage.tsx
+│   │   └── benchmark/      # main.tsx, BenchmarkPage.tsx
+│   ├── app.ts              # Main IDE controller (imperative; loaded after React mounts)
+│   ├── bridge.ts           # Bridge page controller
+│   ├── benchmark.ts        # Benchmark page controller
+│   ├── app_worker.ts       # Service worker (bundled unhashed to /app_worker.js)
+│   ├── viper_lib.ts        # Re-export library shared by bridge/benchmark
+│   ├── editor.ts           # CodeMirror 6 editor setup and linting integration
+│   ├── editor_tabs.ts      # Tab management for the file editor
+│   ├── transports.ts       # WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport
+│   ├── rawmode.ts          # MicroPython raw REPL protocol (MpRawMode class)
+│   ├── emulator.ts         # In-browser MicroPython WASM VM
+│   ├── python_utils.ts     # Ruff WASM validation, mpy-cross compilation, minification
+│   ├── package_mgr.ts      # MIP-compatible package manager
+│   ├── connection_uid.ts   # P2P connection UID encoding/decoding
+│   ├── utils.ts            # General utilities (sleep, Mutex, DOM helpers, etc.)
+│   ├── assistant/          # AI assistant (providers, context collection, panel UI)
+│   ├── onboarding.ts       # First-run tour
+│   ├── types/globals.d.ts  # Global declarations (VIPER_IDE_*, loadMicroPython, window.*)
+│   ├── lang/               # i18n JSONs + index.ts that bundles them (import.meta.glob)
+│   ├── manifest.json       # Version manifest template (written to public/manifest.json)
+│   ├── tools_vfs/          # Packed to public/assets/tools_vfs.tar.gz by prepare script
+│   └── vm_vfs/             # Packed to public/assets/vm_vfs.tar.gz by prepare script
+├── public/                 # Served verbatim (favicons, site.webmanifest, assets/)
+│   └── assets/             # Committed images + GENERATED wasm/tars/mpos (gitignored)
+├── scripts/prepare.mjs     # Fetches/generates public/ assets (runs via pre* npm hooks)
+├── tests/unit/             # Vitest (happy-dom)
+├── tests/e2e/              # Playwright (chromium, stubs /micropython.mjs)
+├── vite.config.ts          # MPA build: index/bridge/benchmark + app_worker entry
+├── tsconfig.json           # strict; allowJs during migration
+└── build/                  # ⚠️ GENERATED build output — do not edit, git-ignored
 ```
 
 ---
 
 ## Build System
 
-### Two equivalent build scripts
-Both produce identical output in `build/`. Use either:
-
-| Script | Command | Notes |
-|--------|---------|-------|
-| `build.py` | `python3 build.py` | Used in CI (requires `pip install requests`) |
-| `build.cjs` | `npm run build` | Node.js alternative |
-
-### What the build does (in order)
-1. **Clean** `build/` and recreate it.
-2. **Copy** static assets (`assets/`, `webrepl_content.js`).
-3. **Generate** `build/translations.json` by merging all `src/lang/*.json` files.
-4. **Inject** version from `package.json` into `src/manifest.json` → `build/manifest.json`.
-5. **Download** `python-minifier` (from GitHub) into `src/tools_vfs/lib/python_minifier/` (git-ignored).
-6. **Pack** `src/tools_vfs/` → `build/assets/tools_vfs.tar.gz`.
-7. **Pack** `src/vm_vfs/` → `build/assets/vm_vfs.tar.gz`.
-8. **Lint** with ESLint (`npx eslint`).
-9. **Bundle** with Rollup (`npx rollup --config`) → produces `build/app.js`, `build/viper_lib.js`, `build/app_worker.js`, `build/app.css`, `build/viper_lib.css`.
-10. **Inline** CSS/JS into `build/index.html`, `build/bridge.html`, `build/benchmark.html` (self-contained HTML files).
-11. **Delete** intermediate `.js`/`.css` files from `build/`.
-12. **Copy** WASM assets from `node_modules/` into `build/assets/` (`micropython.wasm`, `mpy-cross-v6.wasm`, `ruff_wasm_bg.wasm`).
-
-### Dev server (watch mode)
 ```sh
 npm install
-npm start    # rollup --config --configDebug --watch + live reload on http://localhost:10001
+npm run dev      # prepare assets + Vite dev server
+npm run build    # prepare assets + tsc + eslint + vite build → build/
+npm run preview  # serve the production build
 ```
-The `--configDebug` flag enables sourcemaps and disables minification.
 
-### Important: `build/` is not committed
-The GitHub Actions workflow (`static.yml`) runs `python3 build.py` on every push to `main` and deploys `build/` to GitHub Pages.
+`scripts/prepare.mjs` (runs automatically via `predev`/`prebuild`):
+1. Downloads the MicroPythonOS web build into `public/assets/mpos/` (version-stamped, cached).
+2. Downloads `python-minifier` into `src/tools_vfs/lib/python_minifier/` (git-ignored).
+3. Packs `src/tools_vfs/` and `src/vm_vfs/` to `public/assets/*.tar.gz`.
+4. Copies wasm runtimes (`micropython.wasm`, `mpy-cross-v6.wasm`, `ruff_wasm_bg.wasm`) and `micropython.mjs` from `node_modules/` into `public/`.
+5. Writes `public/manifest.json` with the version from `package.json`.
 
----
+Vite `define` injects `VIPER_IDE_VERSION` (string) and `VIPER_IDE_BUILD` (timestamp). Do not declare or assign these — they are replaced textually and declared in `src/types/globals.d.ts`.
 
-## Code Style and Conventions
-
-### JavaScript
-- **ES Modules** throughout (`import`/`export`), bundled to IIFE by Rollup.
-- **No TypeScript** — plain JavaScript with JSDoc comments for type hints where present.
-- ESLint flat config in `eslint.config.mjs`:
-  - `no-unused-vars`: warn (ignore `_`-prefixed names).
-  - `no-use-before-define`: error (functions/variables exempt).
-  - `no-undef`: error.
-  - Global replacements at build time: `VIPER_IDE_VERSION` (string), `VIPER_IDE_BUILD` (timestamp integer).
-  - Excluded from lint: `build/`, `build.cjs`, `src/websocket_relay.js`.
-- **No semicolons** are used consistently across source files — do not add them.
-- Use `const`/`let`, arrow functions, `async`/`await`.
-- DOM utilities (`QS`, `QSA`, `QID`) are exported from `utils.js` — prefer these over `document.querySelector` etc.
-- Use `report(title, err)` from `utils.js` for user-visible error reporting (shows a toast notification).
-- i18n: use `T('key', 'fallback')` where `T = i18next.t.bind(i18next)`.
-
-### License header
-Every source file starts with:
-```js
-/*
- * SPDX-FileCopyrightText: 2024 Volodymyr Shymanskyy
- * SPDX-License-Identifier: MIT
- *
- * The software is provided "as is", without any warranties or guarantees (explicit or implied).
- * This includes no assurances about being fit for any specific purpose.
- */
-```
-Add this header to any new `.js` source file in `src/`.
-
-### CSS
-- Plain CSS, no preprocessors.
-- `app_common.css` is shared between the main app and `viper_lib`.
-
-### Translations
-- Translation keys live in `src/lang/<locale>.json`.
-- `en.json` is the canonical/source locale.
-- When adding new UI strings, add a key to `en.json` and use `T('key', 'English fallback')` in code.
-- The `_update.py` script in `src/lang/` is a helper for AI-assisted translation updates.
+The service worker (`src/app_worker.ts`) is a separate Vite entry emitted unhashed at `/app_worker.js`; it precaches the wasm/tar assets (which therefore must keep stable unhashed paths under `public/assets/`) and runtime-caches the hashed build output.
 
 ---
 
 ## Architecture Notes
 
-### Transport Abstraction (`transports.js`)
-All device connections implement the abstract `Transport` class:
-- `requestAccess()` — browser permission prompt.
-- `connect()` / `disconnect()`.
-- `write(data)` — chunked writes (128 bytes default).
-- `writeBytes(bytes)` — implemented by each subclass.
-- Callbacks: `onActivity`, `onReceive`, `onDisconnect`.
+### React shell + legacy controllers
+Each page's `main.tsx` renders the full static DOM with React (`flushSync`), **then** dynamically imports the legacy controller (`src/app.ts` etc.), which queries and mutates that DOM at import time. Consequences:
+- The React component trees must stay **stateless and render-once**; re-renders would fight FontAwesome `dom.watch()`, `applyTranslation()`, xterm, and the file tree, which all mutate the same DOM.
+- React event handlers call the controller through `window.app` (see `src/ui/legacy.ts`); dynamically generated HTML (file tree, dialogs) still uses inline `onclick="app.*"` strings, so `window.app` must keep its API.
 
-Concrete implementations: `WebSerial`, `WebBluetooth`, `WebSocketREPL`, `WebRTCTransport`.
+### Transport Abstraction (`transports.ts`)
+All device connections implement the abstract `Transport` class: `requestAccess()`, `connect()`/`disconnect()`, `write(data)`, `writeBytes(bytes)`, callbacks `onActivity`/`onReceive`/`onDisconnect`. Concrete: `WebSerial`, `WebBluetooth`, `WebSocketREPL`, `WebRTCTransport`.
 
-### MicroPython Raw REPL (`rawmode.js`)
-`MpRawMode` encapsulates the MicroPython raw REPL protocol (Ctrl-A / Ctrl-D):
-- `MpRawMode.begin(port)` — interrupt board, enter raw REPL, import `sys`/`os`.
-- `exec(code)` — execute Python code on the board, return stdout/stderr.
-- All file system operations (list, read, write, remove) go through `exec()`.
+### MicroPython Raw REPL (`rawmode.ts`)
+`MpRawMode.begin(port)` enters raw REPL; all file system operations go through `exec()`.
 
-### In-Browser VM (`emulator.js`)
-`MicroPythonWASM` extends `Transport` and runs MicroPython WASM in-process. Implements the same `Transport` interface so the rest of the app treats it identically to a real device.
+### In-Browser VM (`emulator.ts`)
+`MicroPythonWASM` extends `Transport` and runs MicroPython WASM in-process; `MicroPythonOSWASM` boots the MicroPythonOS build from `/assets/mpos/`.
 
-### Python Tooling (`python_utils.js`)
-- **Ruff WASM**: lint/format Python in the browser — `validatePython(code, filename)`.
-- **mpy-cross v6**: compile `.py` → `.mpy` bytecode in browser — `compilePython(code)`.
-- **python-minifier**: minify Python (loaded from `tools_vfs.tar.gz` virtual FS).
-- **mpy-tool**: disassemble `.mpy` bytecode.
-- All WASM assets are loaded from `https://viper-ide.org/assets/` at runtime.
-
-### Package Manager (`package_mgr.js`)
-Implements the MicroPython MIP protocol. Fetches package indexes from:
-- `https://micropython.org/pi/v2` (official micropython-lib)
-- `https://vsh.pp.ua/mip-featured` (curated featured packages)
+### Python Tooling (`python_utils.ts`)
+Ruff WASM (validate/format), mpy-cross v6 (compile), python-minifier + mpy-tool (via `tools_vfs` VFS). All WASM/tar assets load from local `/assets/` in both dev and prod.
 
 ---
 
-## Key Build Replacements
+## Code Style and Conventions
 
-At bundle time Rollup replaces these global identifiers:
-
-| Identifier | Value |
-|---|---|
-| `VIPER_IDE_VERSION` | `"0.5.2"` (from `package.json`) |
-| `VIPER_IDE_BUILD` | Unix timestamp (ms) at build time |
-
-Do not assign to or declare these names — they are replaced textually.
+- TypeScript strict mode; legacy modules may keep pragmatic `any` casts, new code should be properly typed.
+- **No semicolons** in most legacy modules — match the style of the file you edit.
+- Use `const`/`let`, arrow functions, `async`/`await`.
+- DOM utilities (`QS`, `QSA`, `QID`) from `utils.ts` — prefer these over `document.querySelector`.
+- `report(title, err)` from `utils.ts` for user-visible error toasts.
+- i18n: `T('key', 'fallback')` where `T = i18next.t.bind(i18next)`; keys live in `src/lang/en.json` (canonical locale).
+- Every source file starts with the SPDX MIT header used across `src/`.
 
 ---
 
-## How to Lint and Validate
+## How to Validate
 
 ```sh
-# Lint only (fast, no bundling)
-npx eslint
-
-# Full build (lint + bundle + inline)
-npm run build        # via Node.js build script
-# OR
-python3 build.py     # via Python build script (requires: pip install requests)
+npm run typecheck   # tsc
+npm run lint        # eslint .
+npm test            # vitest unit tests
+npm run test:e2e    # Playwright (chromium; may need: npx playwright install chromium)
+npm run build       # full production build (runs tsc + eslint too)
 ```
 
-There are **no automated tests** in this repository. Validation is done via ESLint and manual browser testing.
+CI (`.github/workflows/test.yml`) runs typecheck, lint, unit and e2e tests; `static.yml` builds and deploys `build/` to GitHub Pages.
 
 ---
 
 ## Common Pitfalls
 
-1. **Do not edit `build/`** — it is fully regenerated on every build.
-2. **`src/tools_vfs/lib/python_minifier/`** is git-ignored and downloaded at build time from GitHub. Do not commit it.
-3. **`src/ViperIDE.html` is not a standalone page** — CSS/JS links in it are replaced with inline content at build time by the `combine()` step.
-4. **The build downloads from the internet** (`python-minifier` release ZIP). If the build environment has restricted network access, this step will fail. Work around: pre-populate `src/tools_vfs/lib/python_minifier/` manually.
-5. **`translations.json`** is generated into `build/` and then imported by `app.js` at bundle time — so a clean build is needed to pick up translation changes.
-6. **ESLint will throw on any warning** because `onwarn` in `rollup.config.mjs` is set to `throw` — keep the code warning-free.
-7. **`VIPER_IDE_VERSION` and `VIPER_IDE_BUILD`** are bare globals — ESLint knows about them via `eslint.config.mjs` globals; do not import or declare them.
-
----
-
-## Adding a New Feature (Checklist)
-
-- [ ] Add source in `src/` (with SPDX license header).
-- [ ] Export from `viper_lib.js` if it should be part of the embeddable library.
-- [ ] Add any new UI strings to `src/lang/en.json` and use `T('key', 'fallback')`.
-- [ ] Run `npx eslint` — fix all errors before bundling.
-- [ ] Run `npm run build` to verify the full build succeeds.
-- [ ] If adding new static assets (non-npm), place them in `assets/` or a virtual FS directory (`src/vm_vfs/` or `src/tools_vfs/`).
-- [ ] Update `docs/Features.md` if the feature is user-visible.
+1. **Do not edit `build/`** — regenerated on every build.
+2. **Generated `public/` content** (mpos, tars, wasm, `micropython.mjs`, `manifest.json`) is git-ignored — never commit it; `scripts/prepare.mjs` recreates it.
+3. **The prepare script downloads from the internet** (GitHub releases). Offline: it reuses previously fetched copies if present.
+4. **Keep the React shells render-once** — no `useState` in `src/ui/ide/**`; dynamic behavior belongs in the controllers until state is deliberately migrated into React.
+5. **`window.app` naming**: `<body id="app">` means `window.app` is the body element until the controller overwrites it — feature-detect with `typeof window.app.someMethod === 'function'` (the e2e tests do this).
+6. **Stable asset paths**: the service worker precache list and `BASE_URL` consumers rely on unhashed `/assets/...` paths served from `public/`.

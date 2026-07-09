@@ -1,0 +1,399 @@
+/*
+ * SPDX-FileCopyrightText: 2024 Volodymyr Shymanskyy
+ * SPDX-License-Identifier: MIT
+ *
+ * The software is provided "as is", without any warranties or guarantees (explicit or implied).
+ * This includes no assurances about being fit for any specific purpose.
+ */
+
+import {
+    toastr, webSerialPolyfill,
+    WebSerial, WebBluetooth, WebSocketREPL, WebRTCTransport, MicroPythonOSWASM,
+    ConnectionUID, MpRawMode,
+    QID as _QID, iOS, indicateActivity, report,
+} from './viper_lib'
+
+// Loosened selector helper type during the TS migration (runtime-identical).
+const QID = _QID as (id: string) => any
+
+let port: any = null;
+let wakeLock: any = null;
+
+function log(s: any) {
+    QID('log').insertAdjacentHTML('beforeend', s)
+}
+
+function areBytewiseEqual(a: any, b: any) {
+    return indexedDB.cmp(a, b) === 0;
+}
+
+function findFile(fs: any, filePath: any): any {
+    for (const item of fs) {
+        if (item.path === filePath) {
+            return item;
+        }
+        if (item.content) {
+            const f = findFile(item.content, filePath);
+            if (f !== undefined) {
+                return f;
+            }
+        }
+    }
+    return undefined;
+}
+
+async function disconnectDevice() {
+    for (const t of ["ws", "ble", "usb"]) {
+        QID(`btn-conn-${t}`).classList.remove('connected')
+    }
+
+    try {
+        await port.disconnect()
+    } catch(_err) { /* ignore */ }
+
+    try {
+        await wakeLock.release()
+    } catch(_err) { /* ignore */ }
+
+    port = null
+    wakeLock = null
+}
+
+let defaultWsURL = 'ws://192.168.1.123:8266'
+let defaultWsPass = ''
+
+async function prepareNewPort(type: string) {
+    let new_port: any;
+
+    if (type === 'ws') {
+        let url
+        if (typeof window.webrepl_url === 'undefined' || window.webrepl_url == '') {
+            url = prompt('Enter WebREPL device address.\nSupported protocols: ws wss rtc', defaultWsURL)
+            if (!url) { return }
+            defaultWsURL = url
+
+            if (url.startsWith('http://')) { url = url.slice(7) }
+            if (url.startsWith('https://')) { url = url.slice(8) }
+            if (!url.includes('://')) { url = 'ws://' + url }
+
+            if (window.location.protocol === 'https:' && url.startsWith('ws://')) {
+                toastr.error('Connection to an unsecure WebSocket is blocked on a secure website')
+                return
+            }
+        } else {
+            url = window.webrepl_url
+            defaultWsURL = url
+            window.webrepl_url = ''
+        }
+
+        if (url.startsWith('ws://') || url.startsWith('wss://')) {
+            new_port = new WebSocketREPL(url)
+            new_port.onPasswordRequest(async () => {
+                const pass = prompt('WebREPL password:', defaultWsPass)
+                if (pass == null) { return }
+                if (pass.length < 4) {
+                    toastr.error('Password is too short')
+                    return
+                }
+                defaultWsPass = pass
+                return pass
+            })
+        } else if (url.startsWith('rtc://')) {
+            const id = ConnectionUID.parse(url.replace('rtc://', ''))
+            new_port = new WebRTCTransport(id.value())
+        } else if (url.startsWith('vm://')) {
+            new_port = new MicroPythonOSWASM()
+        } else {
+            toastr.error('Unknown link type')
+        }
+    } else if (type === 'ble') {
+        if (iOS) {
+            toastr.error('WebBluetooth is not available on iOS')
+            return
+        }
+        if (!window.isSecureContext) {
+            toastr.error('WebBluetooth cannot be accessed with unsecure connection')
+            return
+        }
+        if (typeof navigator.bluetooth === 'undefined') {
+            toastr.error('Try Chrome, Edge, Opera, Brave', 'WebBluetooth is not supported')
+            return
+        }
+        new_port = new WebBluetooth()
+    } else if (type === 'usb') {
+        if (iOS) {
+            toastr.error('WebSerial is not available on iOS')
+            return
+        }
+        if (!window.isSecureContext) {
+            toastr.error('WebSerial cannot be accessed with unsecure connection')
+            return
+        }
+        if (typeof navigator.serial === 'undefined' && typeof (navigator as any).usb === 'undefined') {
+            toastr.error('Try Chrome, Edge, Opera, Brave', 'WebSerial and WebUSB are not supported')
+            return
+        }
+        if (typeof navigator.serial === 'undefined') {
+            console.log('Using WebSerial polyfill')
+            new_port = new WebSerial(webSerialPolyfill)
+        } else {
+            new_port = new WebSerial()
+        }
+    } else {
+        toastr.error('Unknown connection type')
+        return
+    }
+
+    try {
+        await new_port.requestAccess()
+    } catch (_err) {
+        return
+    }
+    return new_port
+}
+
+async function test_FS(raw: any, devinfo: any) {
+    let success = true;
+    const test_size = 10*1024;
+    let startTime, endTime;
+
+    let root = ""
+    if (devinfo.sys_path.indexOf("/flash") >= 0 || devinfo.sys_path.indexOf("/flash/lib") >= 0) {
+        root = "/flash"
+    }
+
+    await raw.makePath(`${root}/test`)
+
+    /*
+     * ASCII data
+     */
+
+    log(`Writing ascii file ${test_size} bytes...`)
+    const data_txt = generateRandomString(test_size);
+    startTime = performance.now()
+    await raw.writeFile(`${root}/test/_bench.txt`, data_txt)
+    endTime = performance.now()
+    log(` ${(endTime-startTime).toFixed(1)}ms\n`)
+
+    log(`Reading...`)
+    startTime = performance.now()
+    const actual_txt = await raw.readFile(`${root}/test/_bench.txt`)
+    endTime = performance.now()
+    log(` ${(endTime-startTime).toFixed(1)}ms\n`)
+
+    const encoder = new (TextEncoder as any)('utf-8')
+    const data_txt_encoded = new Uint8Array(Array.from(encoder.encode(data_txt)))
+    if (!areBytewiseEqual(data_txt_encoded, actual_txt)) {
+        log(`ERROR: content mismatch\n`)
+        success = false
+    }
+
+    /*
+     * Binary data
+     */
+
+    log(`Writing binary file ${test_size} bytes...`)
+    const data_bin = generateRandomBuffer(test_size);
+    startTime = performance.now()
+    await raw.writeFile(`${root}/test/_bench.dat`, data_bin)
+    endTime = performance.now()
+    log(` ${(endTime-startTime).toFixed(1)}ms\n`)
+
+    log(`Reading...`)
+    startTime = performance.now()
+    const actual_bin = await raw.readFile(`${root}/test/_bench.dat`)
+    endTime = performance.now()
+    log(` ${(endTime-startTime).toFixed(1)}ms\n`)
+
+    if (!areBytewiseEqual(data_bin, actual_bin)) {
+        log(`ERROR: content mismatch\n`)
+        success = false
+    }
+
+    /*
+     * Walk FS
+     */
+
+    log(`Listing FS...`)
+    startTime = performance.now()
+    const fs = await raw.walkFs()
+    endTime = performance.now()
+    log(` ${(endTime-startTime).toFixed(1)}ms\n`)
+
+    for (const fn of ['_bench.dat', '_bench.txt'])
+    {
+        const fd = findFile(fs, `${root}/test/${fn}`)
+        if (fd) {
+            if (fd.size !== test_size) {
+                log(`ERROR: ${fn} size mismatch\n`)
+                success = false
+            }
+        } else {
+            log(`ERROR: ${fn} not found\n`)
+            success = false
+        }
+    }
+
+    /*
+     * Cleanup
+     */
+
+    log(`Cleanup...`)
+    startTime = performance.now()
+    await raw.removeFile("test/_bench.dat")
+    await raw.removeFile("test/_bench.txt")
+    await raw.removeDir("test")
+    endTime = performance.now()
+    log(` ${(endTime-startTime).toFixed(1)}ms\n`)
+
+    return success
+}
+
+async function test_CPU(raw: any) {
+    const success = true;
+
+    const modes = [
+        { name: 'bytecode', decorator: '', cast: '' },
+        { name: 'native',   decorator: '@micropython.native', cast: '' },
+        { name: 'viper',    decorator: '@micropython.viper',  cast: 'int' },
+    ];
+
+    for (const i of modes) {
+        try {
+            await raw.exec(`
+try:
+    from time import ticks_ms as t
+    tms = 1
+except:
+    from time import monotonic_ns as t
+    tms = 1000000
+
+${i.decorator}
+def fib(n: int) -> int:
+   if n <= 1:
+       return n
+   else:
+       return ${i.cast}(fib(n-1)) + ${i.cast}(fib(n-2))
+
+${i.decorator}
+def prime(n: int) -> bool:
+    if n == 1:
+        return False
+    for i in range(2, n):
+        if (n % i) == 0:
+            return False
+    return True
+`)
+        } catch (err) {
+            console.log(err)
+            log(`Warning: ${i.decorator} not supported\n`)
+        }
+
+        try {
+            log(`fib(24) ${i.name}... `)
+            const rsp = await raw.exec(`
+beg = t()
+assert fib(24) == 46368
+end = t()
+print((end-beg)//tms)
+`, 15000)
+            log(rsp.trim() + 'ms\n')
+        } catch (err) {
+            console.log(err)
+            log('---\n')
+        }
+
+        try {
+            log(`prime(99929) ${i.name}... `)
+            const rsp = await raw.exec(`
+beg = t()
+assert prime(99929)
+end = t()
+print((end-beg)//tms)
+`, 10000)
+            log(rsp.trim() + 'ms\n')
+        } catch (err) {
+            console.log(err)
+            log('---\n')
+        }
+    }
+
+    return success
+}
+
+async function connectDevice(type: string) {
+    if (port) {
+        if (!confirm('Disconnect current device?')) { return }
+        await disconnectDevice()
+        return
+    }
+
+    const new_port = await prepareNewPort(type)
+    if (!new_port) { return }
+    // Connect new port
+    try {
+        await new_port.connect()
+    } catch (err: any) {
+        report('Cannot connect', err)
+        return
+    }
+
+    port = new_port
+
+    QID(`btn-conn-${type}`).classList.add('connected')
+
+    port.onActivity(indicateActivity)
+
+    port.onDisconnect(() => {
+        toastr.warning('Device disconnected')
+        disconnectDevice()
+    })
+
+    let success = true;
+    const raw = await MpRawMode.begin(port)
+    try {
+        const devinfo = await raw.getDeviceInfo()
+        Object.assign(devinfo, { connection: type })
+        log(JSON.stringify(devinfo) + '\n')
+
+        if (QID('test-fs').checked) {
+            success &&= await test_FS(raw, devinfo)
+        }
+        if (QID('test-cpu').checked) {
+            success &&= await test_CPU(raw)
+        }
+
+        if (success) {
+            log("\n === OK ===\n\n")
+        } else {
+            log("\n === FAILED ===\n\n")
+        }
+    } catch(err: any) {
+        log(err.stack + "\n")
+        log("\n === FAILED ===\n\n")
+    } finally {
+        await raw.end()
+        await disconnectDevice()
+    }
+}
+
+function generateRandomBuffer(size: number) {
+    const buffer = new ArrayBuffer(size);
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < size; i++) {
+        view[i] = Math.floor(Math.random() * 256);
+    }
+    return buffer;
+}
+
+function generateRandomString(size: number) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 {}[];!?,`~!@#$%^&*()_+-=\'\\|/"';
+    let randomString = '';
+    for (let i = 0; i < size; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        randomString += characters.charAt(randomIndex);
+    }
+    return randomString;
+}
+
+window.connectDevice = connectDevice

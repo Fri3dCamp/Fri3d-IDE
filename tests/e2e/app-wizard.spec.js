@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 async function installMicroPythonStub(page) {
-    await page.route('https://viper-ide.org/micropython.mjs', async route => {
+    await page.route('**/micropython.mjs', async route => {
         await route.fulfill({
             status: 200,
             contentType: 'text/javascript',
@@ -26,6 +26,8 @@ async function installMicroPythonStub(page) {
 test('app wizard collects manifest fields and icon', async ({ page }) => {
     await installMicroPythonStub(page)
     await page.goto('/')
+    // The legacy controller is loaded dynamically after the React shell mounts
+    await page.waitForFunction(() => typeof window.app?.showAppWizardDialog === 'function')
 
     await page.evaluate(() => {
         window.__wizardResult = window.app.showAppWizardDialog()
@@ -84,6 +86,8 @@ test('app wizard collects manifest fields and icon', async ({ page }) => {
 test('app wizard rejects invalid app id', async ({ page }) => {
     await installMicroPythonStub(page)
     await page.goto('/')
+    // The legacy controller is loaded dynamically after the React shell mounts
+    await page.waitForFunction(() => typeof window.app?.showAppWizardDialog === 'function')
 
     await page.evaluate(() => {
         window.__wizardResult = window.app.showAppWizardDialog()

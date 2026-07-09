@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rewriteUrl } from '../../src/package_mgr.js'
+import { rewriteUrl } from '../../src/package_mgr'
 
 describe('rewriteUrl', () => {
     it('upgrades http to https', () => {

@@ -38,6 +38,18 @@ Based on the original [ViperIDE](https://github.com/DrSkunk/Fri3d-IDE) project b
 [Documentation](./docs/)  
 [Discussion](https://github.com/orgs/micropython/discussions/15219)  
 
+## Development
+
+The project is a Vite + React + TypeScript app. React renders the page shells;
+the IDE logic lives in TypeScript controller modules.
+
+```sh
+npm install
+npm run dev      # dev server (fetches/generates runtime assets first)
+npm run build    # production build into build/
+npm run preview  # serve the production build
+```
+
 ## Testing
 
 This repository includes two layers of regression testing:

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 async function installMicroPythonStub(page) {
-    await page.route('https://viper-ide.org/micropython.mjs', async route => {
+    await page.route('**/micropython.mjs', async route => {
         await route.fulfill({
             status: 200,
             contentType: 'text/javascript',
