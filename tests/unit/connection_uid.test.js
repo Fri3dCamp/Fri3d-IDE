@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ConnectionUID } from '../../src/connection_uid.js'
+import { ConnectionUID } from '../../src/connection_uid'
 
 describe('ConnectionUID', () => {
     it('normalizes ambiguous characters while parsing', () => {

@@ -103,6 +103,12 @@
  * Sensible defaults
  */
 
+/* The React mount point must be transparent to the flex layouts that the
+   pages apply to <body>. */
+#root {
+    display: contents;
+}
+
 html, body {
     margin: 0;
     padding: 0;

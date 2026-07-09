@@ -1,0 +1,11 @@
+body {
+    padding: 20px;
+    line-height: 1.8rem;
+}
+.warning {
+    color: #ffd600;
+}
+#bridge-id {
+    font-size: 1.5rem;
+    line-height: 1.5em;
+}
