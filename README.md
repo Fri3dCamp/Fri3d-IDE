@@ -6,6 +6,8 @@ A web-based IDE for MicroPython(OS) development for [Fri3d Camp boards](https://
 
 Forked from the excellent [ViperIDE](https://github.com/vshymanskyy/ViperIDE) project by [vshymanskyy](https://github.com/vshymanskyy).
 
+Available online at [https://fri3dcamp.github.io/Fri3d-IDE/](https://fri3dcamp.github.io/Fri3d-IDE/).
+
 ## Development
 
 The project is a Vite + React + TypeScript app that bundles into a single-page application, making it hostable on any static web server.
