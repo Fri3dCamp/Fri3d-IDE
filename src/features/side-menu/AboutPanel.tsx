@@ -19,12 +19,15 @@ export function AboutPanel() {
             <div className="text-sm opacity-80">{VIPER_IDE_VERSION}</div>
             <div className="text-xs opacity-60">build {buildDate()}</div>
             <p className="mt-4 text-sm">
-                MicroPython Web IDE
+                Original <a className="text-fg-highlight underline" href="https://github.com/vshymanskyy/ViperIDE" target="_blank" rel="noreferrer">ViperIDE project</a> made by
                 <br />
                 {t('about.by', 'by')}{' '}
                 <a className="text-fg-highlight underline" href="https://x.com/vshymanskyy" target="_blank" rel="noreferrer">
                     Volodymyr Shymanskyy
-                </a>
+                </a>.</p>
+
+            <p>Adapted into Fri3d-IDE by{' '}
+                <a className="text-fg-highlight underline" href="https://www.sebastiaanjansen.be/" target="_blank" rel="noreferrer">Sebastiaan Jansen</a>
             </p>
             <hr className="my-4 border-black/30" />
             <p className="text-sm">

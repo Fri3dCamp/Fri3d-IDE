@@ -45,8 +45,8 @@
             "color-theme": "主题"
         },
         "about": {
-            "cta": "如果您喜欢 Fri3d-IDE，请<a id='gh-star'>在 GitHub 上给它一颗星</a> ⭐ 并在社交媒体上传播信息 📢",
-            "report-bug": "您还可以<a id='gh-issues'>报告错误</a> 🐞"
+            "cta": "如果您喜欢 Fri3d-IDE，请在 GitHub 上给它一颗星 ⭐ 并在社交媒体上传播信息 📢",
+            "report-bug": "您还可以报告错误 🐞"
         },
         "editor": {
             "md-edit": "编辑源码",

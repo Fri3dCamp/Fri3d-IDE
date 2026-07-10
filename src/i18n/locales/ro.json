@@ -45,8 +45,8 @@
             "color-theme": "Temă"
         },
         "about": {
-            "cta": "Dacă vă place Fri3d-IDE, vă rugăm <a id='gh-star'>dați-i o stea pe GitHub</a> ⭐ și răspândiți vestea pe rețelele sociale 📢",
-            "report-bug": "Puteți de asemenea să <a id='gh-issues'>raportați o eroare</a> 🐞"
+            "cta": "Dacă vă place Fri3d-IDE, vă rugăm dați-i o stea pe GitHub ⭐ și răspândiți vestea pe rețelele sociale 📢",
+            "report-bug": "Puteți de asemenea să raportați o eroare 🐞"
         },
         "editor": {
             "md-edit": "Editează sursă",
