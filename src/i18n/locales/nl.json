@@ -63,8 +63,8 @@
             "color-theme": "Thema"
         },
         "about": {
-            "cta": "Als je Fri3d-IDE leuk vindt, geef het dan alsjeblieft een <a id='gh-star'>ster op GitHub</a> ⭐ en vertel het verder op sociale media 📢",
-            "report-bug": "Je kunt ook een <a id='gh-issues'>fout melden</a> 🐞"
+            "cta": "Als je Fri3d-IDE leuk vindt, geef het dan alsjeblieft een ster op GitHub ⭐ en vertel het verder op sociale media 📢",
+            "report-bug": "Je kunt ook een fout melden 🐞"
         },
         "editor": {
             "md-edit": "Broncode bewerken",

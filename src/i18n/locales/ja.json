@@ -45,8 +45,8 @@
             "color-theme": "テーマ"
         },
         "about": {
-            "cta": "Fri3d-IDEが気に入ったら、<a id='gh-star'>GitHubでスターを付けてください</a> ⭐ そして、ソーシャルメディアで広めてください 📢",
-            "report-bug": "また、<a id='gh-issues'>バグを報告する</a> 🐞こともできます"
+            "cta": "Fri3d-IDEが気に入ったら、GitHubでスターを付けてください ⭐ そして、ソーシャルメディアで広めてください 📢",
+            "report-bug": "また、バグを報告する 🐞こともできます"
         },
         "editor": {
             "md-edit": "ソースを編集",
