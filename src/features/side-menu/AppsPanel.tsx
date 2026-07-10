@@ -308,6 +308,7 @@ function AppDetail({ app }: { app: AppInfo }) {
     const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
     const [folderChildren, setFolderChildren] = useState<Record<string, DeviceEntry[]>>({})
     const [loadingFolders, setLoadingFolders] = useState<Set<string>>(new Set())
+    const [selectedFolderPath, setSelectedFolderPath] = useState(app.path)
 
     const loadFolderChildren = useCallback(async (path: string) => {
         setLoadingFolders((prev) => {
@@ -335,6 +336,7 @@ function AppDetail({ app }: { app: AppInfo }) {
             setOpenFolders(new Set())
             setFolderChildren({})
             setLoadingFolders(new Set())
+            setSelectedFolderPath(app.path)
         } finally {
             setLoading(false)
         }
@@ -345,7 +347,7 @@ function AppDetail({ app }: { app: AppInfo }) {
     }, [reload])
 
     const addFile = async () => {
-        const r = await createInAppDialog(app.path)
+        const r = await createInAppDialog(selectedFolderPath)
         if (!r) return
         await createItem(r.parentPath, r.name, r.isFolder)
         await reload()
@@ -357,6 +359,7 @@ function AppDetail({ app }: { app: AppInfo }) {
     }
 
     const toggleFolder = (path: string) => {
+        setSelectedFolderPath(path)
         const isOpen = openFolders.has(path)
         setOpenFolders((prev) => {
             const next = new Set(prev)
@@ -441,7 +444,10 @@ function AppDetail({ app }: { app: AppInfo }) {
                         type="button"
                         className={`flex min-w-0 flex-1 items-center gap-1.5 text-left ${openInTab ? 'font-semibold' : ''}`}
                         title={e.path}
-                        onClick={() => void openAppFile(e.path)}
+                        onClick={() => {
+                            setSelectedFolderPath(parentFolder(e.path, app.path) ?? app.path)
+                            void openAppFile(e.path)
+                        }}
                     >
                         <FileCode2 size={13} className="shrink-0 opacity-70" aria-hidden />
                         <span className="truncate">{e.name}</span>
@@ -459,6 +465,11 @@ function AppDetail({ app }: { app: AppInfo }) {
                 </div>
             )
         })
+
+    const relativeTarget = selectedFolderPath.startsWith(app.path)
+        ? selectedFolderPath.slice(app.path.length)
+        : ''
+    const targetSegments = relativeTarget.split('/').filter(Boolean)
 
     return (
         <>
@@ -536,6 +547,32 @@ function AppDetail({ app }: { app: AppInfo }) {
                         )}
                     </button>
                 </span>
+            </div>
+
+            <div className="border-y border-black/20 px-2 py-1 text-xs">
+                <span className="opacity-65">{t('files.target-folder', 'Create target')}:</span>{' '}
+                <button
+                    type="button"
+                    className="underline underline-offset-2 hover:text-fg-highlight"
+                    onClick={() => setSelectedFolderPath(app.path)}
+                >
+                    /
+                </button>
+                {targetSegments.map((seg, idx) => {
+                    const path = `${app.path}/${targetSegments.slice(0, idx + 1).join('/')}`
+                    return (
+                        <span key={path}>
+                            {' / '}
+                            <button
+                                type="button"
+                                className="underline underline-offset-2 hover:text-fg-highlight"
+                                onClick={() => setSelectedFolderPath(path)}
+                            >
+                                {seg}
+                            </button>
+                        </span>
+                    )
+                })}
             </div>
 
             {/* Recursive file browser */}

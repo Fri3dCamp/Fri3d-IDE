@@ -312,10 +312,17 @@ export async function withRawMode<T>(task: (raw: MpRawMode) => Promise<T>): Prom
 /* ------------------------------------------------------------------ */
 
 type TerminalSink = (data: string) => void
+type TerminalLogListener = (lines: string[]) => void
 let terminalSink: TerminalSink | null = null
 let terminalClear: (() => void) | null = null
 const terminalBacklog: string[] = []
 const terminalLog: string[] = []
+const terminalLogListeners = new Set<TerminalLogListener>()
+
+function emitTerminalLog(): void {
+    const snapshot = [...terminalLog]
+    for (const l of terminalLogListeners) l(snapshot)
+}
 
 export function registerTerminalSink(sink: TerminalSink | null, clear?: () => void): void {
     terminalSink = sink
@@ -335,11 +342,25 @@ export function terminalWrite(data: string): void {
         terminalLog.push(line)
     }
     while (terminalLog.length > 500) terminalLog.shift()
+    emitTerminalLog()
 }
 
 export function clearTerminal(): void {
     terminalClear?.()
     terminalLog.length = 0
+    emitTerminalLog()
+}
+
+export function getTerminalLogSnapshot(): string[] {
+    return [...terminalLog]
+}
+
+export function subscribeTerminalLog(listener: TerminalLogListener): () => void {
+    terminalLogListeners.add(listener)
+    listener([...terminalLog])
+    return () => {
+        terminalLogListeners.delete(listener)
+    }
 }
 
 /* ------------------------------------------------------------------ */

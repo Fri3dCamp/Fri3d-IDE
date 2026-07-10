@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Expand, Monitor, Power, RotateCcw, TerminalSquare, Trash2 } from 'lucide-react'
 import { Terminal } from '@xterm/xterm'
@@ -13,7 +13,10 @@ import {
     registerTerminalSink,
     clearTerminal,
     reboot,
+    subscribeTerminalLog,
 } from '../../services/device.service'
+import { parseStackTrace } from '../../domain/python_utils'
+import { openFileAtLine } from '../../services/files.service'
 
 const XTERM_DARK = {
     foreground: '#F8F8F8', background: '#0a0a0e',
@@ -140,11 +143,19 @@ function useDockResize() {
 export function TerminalDock() {
     const { t } = useTranslation()
     const height = useUiStore((s) => s.terminalHeight)
+    const [traceback, setTraceback] = useState<ReturnType<typeof parseStackTrace>>()
     const terminalTab = useUiStore((s) => s.terminalTab)
     const setTerminalTab = useUiStore((s) => s.setTerminalTab)
     const displayTabVisible = useUiStore((s) => s.displayTabVisible)
     const dockRef = useRef<HTMLDivElement>(null)
     const onPointerDown = useDockResize()
+
+    useEffect(() => {
+        return subscribeTerminalLog((lines) => {
+            const parsed = parseStackTrace(lines.join('\n'))
+            setTraceback(parsed)
+        })
+    }, [])
 
     const tabClass = (active: boolean) =>
         `flex items-center gap-1.5 px-3 py-1 text-sm ${
@@ -227,6 +238,24 @@ export function TerminalDock() {
                     </button>
                 </div>
             </div>
+            {traceback && terminalTab === 'terminal' && (
+                <div className="border-y border-black/20 bg-icon-warning/15 px-2 py-1 text-xs">
+                    <div className="font-semibold">{traceback.type}: {traceback.message}</div>
+                    <div className="mt-0.5 flex flex-wrap gap-1.5">
+                        {traceback.frames.slice().reverse().map((f) => (
+                            <button
+                                key={`${f.file}:${f.line}:${f.scope}`}
+                                type="button"
+                                className="border border-black/40 px-1.5 py-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                                onClick={() => void openFileAtLine(f.file, f.line)}
+                                title={t('terminal.open-trace-line', 'Open {{file}}:{{line}}', { file: f.file, line: f.line })}
+                            >
+                                {f.file}:{f.line}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
             <div className={`min-h-0 flex-1 ${terminalTab === 'terminal' ? '' : 'hidden'}`}>
                 <XtermPane />
             </div>

@@ -7,6 +7,7 @@ import { useEditorTabsStore, type TabKind } from '../stores/editorTabs'
 import { useFileStore } from '../stores/files'
 import { useSettingsStore } from '../stores/settings'
 import { useUiStore, withLoader } from '../stores/ui'
+import { getLiveView } from '../features/editor/CodeEditor'
 import { refreshTreeVia, withRawMode, type ConnectUi } from './device.service'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
@@ -85,6 +86,26 @@ export async function openFile(fn: string): Promise<void> {
     )
 }
 
+/** Open a file and move caret to given 1-based line; used by traceback quick-jump. */
+export async function openFileAtLine(path: string, line: number): Promise<void> {
+    const fn = path.startsWith('/') ? path : `/${path}`
+    await openFile(fn)
+
+    const tabs = useEditorTabsStore.getState()
+    const tab = tabs.tabs.find((t) => t.fn === fn)
+    if (!tab) return
+    const view = getLiveView(tab.id)
+    if (!view) return
+
+    const safeLine = Math.max(1, Math.min(line || 1, view.state.doc.lines))
+    const target = view.state.doc.line(safeLine).from
+    view.dispatch({
+        selection: { anchor: target },
+        scrollIntoView: true,
+    })
+    view.focus()
+}
+
 export async function refreshFileTree(): Promise<void> {
     const { port } = useConnectionStore.getState()
     if (!port) return
@@ -144,7 +165,17 @@ export async function createItem(parentPath: string, name: string, isFolder: boo
 export async function removeItem(ui: ConnectUi, path: string, isDir: boolean): Promise<void> {
     const { port } = useConnectionStore.getState()
     if (!port) return
-    if (!(await ui.confirm(t('files.confirm-remove', 'Remove {{path}}?', { path })))) return
+
+    if (isDir && /^\/apps\/[^/]+$/.test(path)) {
+        const appId = path.split('/').at(-1) ?? path
+        const typed = await ui.prompt(
+            t('files.confirm-remove-app-root', 'Type {{id}} to delete app folder {{path}}', { id: appId, path }),
+            { value: '' },
+        )
+        if ((typed ?? '').trim() !== appId) return
+    } else if (!(await ui.confirm(t('files.confirm-remove', 'Remove {{path}}?', { path })))) {
+        return
+    }
 
     await withLoader(t('files.removing', 'Removing {{path}}…', { path }), () =>
         withRawMode(async (raw) => {
