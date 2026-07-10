@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { toast } from 'sonner'
+import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import { App } from './App'
 import { initI18n } from './i18n'
@@ -13,6 +14,7 @@ import { sleep } from './domain/utils'
 async function bootstrap(): Promise<void> {
     await initI18n()
     initTheme()
+    initPwa()
 
     // Domain errors → toasts.
     setReportHandler((title, err) => {
@@ -27,6 +29,42 @@ async function bootstrap(): Promise<void> {
     )
 
     handleUrlParams()
+}
+
+function initPwa(): void {
+    const updateSW = registerSW({
+        immediate: true,
+        onNeedRefresh() {
+            toast.info('Update available', {
+                description: 'A new version is ready. Reload to update now.',
+                duration: 12000,
+                action: {
+                    label: 'Reload',
+                    onClick: () => {
+                        void updateSW(true)
+                    },
+                },
+            })
+        },
+        onOfflineReady() {
+            toast.success('Offline ready', {
+                description: 'This app now works with cached assets while offline.',
+            })
+        },
+        onRegisterError(error) {
+            console.error('Service worker registration failed', error)
+        },
+    })
+
+    window.addEventListener('offline', () => {
+        toast.warning('You are offline', {
+            description: 'Some network-dependent actions may be unavailable.',
+        })
+    })
+
+    window.addEventListener('online', () => {
+        toast.success('Back online')
+    })
 }
 
 function handleUrlParams(): void {
