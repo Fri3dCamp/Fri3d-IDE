@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/*
+ * Fri3d design tokens. Raw values flip with [data-theme]; Tailwind v4 @theme
+ * maps them to utilities (bg-menu, text-fg, shadow-brutal, …).
+ */
+:root {
+    --fri3d-purple: #8835c9;
+    --fri3d-orange: #ffad64;
+    --fri3d-mint: #3ce8b3;
+
+    --raw-fg: #f0f0f0;
+    --raw-fg-highlight: var(--fri3d-orange);
+    --raw-bg: #141418;
+    --raw-bg-menu: #1c1c22;
+    --raw-bg-edit: #0a0a0e;
+    --raw-accent: var(--fri3d-purple);
+    --raw-accent-secondary: var(--fri3d-mint);
+    --raw-cta: var(--fri3d-orange);
+    --raw-cta-fg: #000000;
+    --raw-toolbar-bg: #1c1c22;
+    --raw-toolbar-border: var(--fri3d-mint);
+    --raw-tab-active-bg: var(--fri3d-purple);
+    --raw-tab-active-fg: #ffffff;
+    --raw-connected-passive: var(--fri3d-mint);
+    --raw-connected-active: var(--fri3d-orange);
+
+    --raw-icon-warning: #ffcc4d;
+    --raw-icon-success: #87c244;
+    --raw-icon-info: #5b9bd5;
+    --raw-icon-danger: #ff7272;
+    --raw-icon-error: #ed4337;
+
+    --raw-hex-hex: #f8f8f2;
+    --raw-hex-ascii: #e6db74;
+
+    color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+    --raw-fg: #000000;
+    --raw-fg-highlight: var(--fri3d-purple);
+    --raw-bg: var(--fri3d-mint);
+    --raw-bg-menu: #2acca0;
+    --raw-bg-edit: #fafafa;
+    --raw-accent: var(--fri3d-orange);
+    --raw-accent-secondary: var(--fri3d-purple);
+    --raw-cta: var(--fri3d-purple);
+    --raw-cta-fg: #ffffff;
+    --raw-toolbar-bg: var(--fri3d-orange);
+    --raw-toolbar-border: #000000;
+
+    --raw-icon-warning: var(--raw-fg);
+    --raw-icon-success: var(--raw-fg);
+    --raw-icon-info: var(--raw-fg);
+    --raw-icon-danger: var(--raw-fg);
+    --raw-icon-error: var(--raw-fg);
+
+    --raw-hex-hex: #1a1a2e;
+    --raw-hex-ascii: #7c5800;
+
+    color-scheme: light;
+}
+
+@theme inline {
+    --color-fg: var(--raw-fg);
+    --color-fg-highlight: var(--raw-fg-highlight);
+    --color-bg: var(--raw-bg);
+    --color-menu: var(--raw-bg-menu);
+    --color-edit: var(--raw-bg-edit);
+    --color-accent: var(--raw-accent);
+    --color-accent-secondary: var(--raw-accent-secondary);
+    --color-cta: var(--raw-cta);
+    --color-cta-fg: var(--raw-cta-fg);
+    --color-toolbar: var(--raw-toolbar-bg);
+    --color-toolbar-border: var(--raw-toolbar-border);
+    --color-tab-active: var(--raw-tab-active-bg);
+    --color-tab-active-fg: var(--raw-tab-active-fg);
+    --color-connected: var(--raw-connected-passive);
+    --color-connected-active: var(--raw-connected-active);
+    --color-icon-warning: var(--raw-icon-warning);
+    --color-icon-success: var(--raw-icon-success);
+    --color-icon-info: var(--raw-icon-info);
+    --color-icon-danger: var(--raw-icon-danger);
+    --color-icon-error: var(--raw-icon-error);
+    --color-hex-hex: var(--raw-hex-hex);
+    --color-hex-ascii: var(--raw-hex-ascii);
+
+    --font-heading: "Montserrat", system-ui, sans-serif;
+    --font-sans: "Open Sans", system-ui, sans-serif;
+    --font-mono: "Hack", "Droid Sans Mono", monospace;
+
+    --shadow-brutal: 4px 4px 0 #000000;
+    --shadow-brutal-lg: 6px 6px 0 #000000;
+
+    --border-width-3: 3px;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: var(--raw-bg);
+    color: var(--raw-fg);
+    font-family: var(--font-sans);
+    font-size: calc(14px * var(--app-zoom, 1));
+}
+
+/* Section label with rule lines both sides (legacy .title-lines). */
+.title-lines {
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-variant: small-caps;
+    opacity: 0.8;
+    margin: 0.7em 0 0.3em;
+}
+.title-lines::before,
+.title-lines::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid currentColor;
+    opacity: 0.35;
+}
+
+/* Thin styled scrollbars everywhere. */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--raw-bg-menu);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--raw-accent);
+}
+::-webkit-scrollbar-corner {
+    background: var(--raw-bg-menu);
+}
+
+/* xterm needs its container painted before fit() settles. */
+.xterm-host {
+    background: var(--raw-bg-edit);
+}
