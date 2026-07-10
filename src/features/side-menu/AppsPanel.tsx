@@ -419,7 +419,16 @@ function AppDetail({ app }: { app: AppInfo }) {
                         </div>
                         {isOpen &&
                             (children ? (
-                                renderLevel(children, depth + 1)
+                                children.length > 0 ? (
+                                    renderLevel(children, depth + 1)
+                                ) : (
+                                    <div
+                                        className="px-2 py-0.5 text-xs opacity-60"
+                                        style={{ paddingInlineStart: `${(depth + 1) * 14}px` }}
+                                    >
+                                        {t('files.folder-empty', 'Folder is empty')}
+                                    </div>
+                                )
                             ) : childLoading ? (
                                 <div
                                     className="flex items-center gap-1.5 px-2 py-0.5 text-sm opacity-70"

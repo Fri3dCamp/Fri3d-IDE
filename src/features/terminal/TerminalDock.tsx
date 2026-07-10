@@ -144,6 +144,7 @@ export function TerminalDock() {
     const { t } = useTranslation()
     const height = useUiStore((s) => s.terminalHeight)
     const [traceback, setTraceback] = useState<ReturnType<typeof parseStackTrace>>()
+    const activeTraceRef = useRef<HTMLButtonElement | null>(null)
     const terminalTab = useUiStore((s) => s.terminalTab)
     const setTerminalTab = useUiStore((s) => s.setTerminalTab)
     const displayTabVisible = useUiStore((s) => s.displayTabVisible)
@@ -156,6 +157,11 @@ export function TerminalDock() {
             setTraceback(parsed)
         })
     }, [])
+
+    useEffect(() => {
+        if (!traceback || terminalTab !== 'terminal') return
+        activeTraceRef.current?.focus()
+    }, [traceback, terminalTab])
 
     const tabClass = (active: boolean) =>
         `flex items-center gap-1.5 px-3 py-1 text-sm ${
@@ -242,17 +248,25 @@ export function TerminalDock() {
                 <div className="border-y border-black/20 bg-icon-warning/15 px-2 py-1 text-xs">
                     <div className="font-semibold">{traceback.type}: {traceback.message}</div>
                     <div className="mt-0.5 flex flex-wrap gap-1.5">
-                        {traceback.frames.slice().reverse().map((f) => (
-                            <button
-                                key={`${f.file}:${f.line}:${f.scope}`}
-                                type="button"
-                                className="border border-black/40 px-1.5 py-0.5 hover:bg-black/10 dark:hover:bg-white/10"
-                                onClick={() => void openFileAtLine(f.file, f.line)}
-                                title={t('terminal.open-trace-line', 'Open {{file}}:{{line}}', { file: f.file, line: f.line })}
-                            >
-                                {f.file}:{f.line}
-                            </button>
-                        ))}
+                        {traceback.frames.slice().reverse().map((f, idx) => {
+                            const isActive = idx === 0
+                            return (
+                                <button
+                                    key={`${f.file}:${f.line}:${f.scope}`}
+                                    ref={isActive ? activeTraceRef : undefined}
+                                    type="button"
+                                    className={`border px-1.5 py-0.5 focus:outline-none focus:ring-2 focus:ring-black/40 ${
+                                        isActive
+                                            ? 'border-black bg-icon-warning/30 font-semibold'
+                                            : 'border-black/40 hover:bg-black/10 dark:hover:bg-white/10'
+                                    }`}
+                                    onClick={() => void openFileAtLine(f.file, f.line)}
+                                    title={t('terminal.open-trace-line', 'Open {{file}}:{{line}}', { file: f.file, line: f.line })}
+                                >
+                                    {f.file}:{f.line}
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
             )}

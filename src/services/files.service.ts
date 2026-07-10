@@ -86,9 +86,33 @@ export async function openFile(fn: string): Promise<void> {
     )
 }
 
+async function revealInFileTree(path: string): Promise<void> {
+    useUiStore.getState().setSideMenuTab('files')
+
+    const treeStore = useFileStore.getState()
+    if (!treeStore.tree) {
+        await refreshFileTree()
+    }
+
+    const parts = path.split('/').filter(Boolean)
+    let acc = ''
+    for (const part of parts.slice(0, -1)) {
+        acc += '/' + part
+        useFileStore.getState().openFolder(acc)
+        try {
+            await loadFolder(acc)
+        } catch {
+            // best-effort reveal; opening file still proceeds
+        }
+    }
+    useFileStore.getState().select(path)
+}
+
 /** Open a file and move caret to given 1-based line; used by traceback quick-jump. */
 export async function openFileAtLine(path: string, line: number): Promise<void> {
     const fn = path.startsWith('/') ? path : `/${path}`
+
+    await revealInFileTree(fn)
     await openFile(fn)
 
     const tabs = useEditorTabsStore.getState()
