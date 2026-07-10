@@ -15,7 +15,6 @@ export function AboutPanel() {
     const { t } = useTranslation()
     return (
         <div className="min-h-0 flex-1 overflow-y-auto px-3 py-6 text-center">
-            <img src="/logo.png" alt={t('about.logo-alt', 'Fri3d-IDE logo')} className="mx-auto w-1/3" />
             <div className="mt-2 font-heading text-xl font-black">Fri3d-IDE</div>
             <div className="text-sm opacity-80">{VIPER_IDE_VERSION}</div>
             <div className="text-xs opacity-60">build {buildDate()}</div>
