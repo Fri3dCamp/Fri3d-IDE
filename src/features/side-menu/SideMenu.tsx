@@ -296,7 +296,7 @@ export function SideMenu() {
                 aria-label={t('menu.side-menu', 'Side menu')}
                 style={{ ['--side-w' as string]: `${width}px` }}
                 className={`z-50 flex flex-col border-e-2 border-black bg-menu
-                    max-md:fixed max-md:inset-y-0 max-md:start-0 max-md:w-3/4 max-md:transition-transform
+                    max-md:fixed max-md:inset-y-0 max-md:inset-s-0 max-md:w-3/4 max-md:transition-transform
                     ${drawerOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full max-md:rtl:translate-x-full'}
                     md:w-(--side-menu-width,300px) ${hidden ? 'md:hidden' : ''}`}
             >
