@@ -16,7 +16,7 @@ export async function installPkg(pkg: string, version: string | null = null): Pr
         return
     }
 
-    await withLoader(t('pkg.installing', 'Installing {{pkg}}…', { pkg }), () =>
+    await withLoader(t('pkg.installing', 'Installing {{pkg}}…', { pkg }), (loader) =>
         withRawMode(async (raw) => {
             try {
                 const dev = devInfo ?? (await raw.getDeviceInfo())
@@ -24,7 +24,14 @@ export async function installPkg(pkg: string, version: string | null = null): Pr
                     version,
                     dev,
                     prefer_source: useSettingsStore.getState().preferSource,
+                    onProgress: ({ message, progress }: { message?: string; progress?: number }) => {
+                        loader.update({
+                            message: message ?? t('pkg.installing', 'Installing {{pkg}}…', { pkg }),
+                            ...(progress !== undefined ? { progress } : {}),
+                        })
+                    },
                 })
+                loader.update({ progress: 1 })
                 const label = info.version ? `${info.name}@${info.version}` : info.name
                 toast.success(t('pkg.installed', 'Installed {{pkg}}', { pkg: label }))
                 await refreshTreeVia(raw)

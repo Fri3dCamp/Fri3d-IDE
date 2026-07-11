@@ -200,14 +200,20 @@ export async function rawInstallPkg(
 
     if ('hashes' in pkg_info) {
         for (let [fn, hash, ..._] of pkg_info.hashes) {
+            const targetFn = `${lib_path}/${fn}`
+            emit(`Downloading ${targetFn}…`, 0)
             const content = await fetchArrayBuffer(rewriteUrl(`${index.url}/file/${hash.slice(0,2)}/${hash}`))
-            fn = `${lib_path}/${fn}`
 
             // Ensure path exists
-            const [dirname, _] = splitPath(fn)
+            const [dirname, _] = splitPath(targetFn)
             await raw.makePath(dirname)
 
-            await raw.writeFile(fn, content, 128, true)
+            emit(`Writing ${targetFn}…`, 0)
+            await raw.writeFile(targetFn, content, 128, true, (sent: number, total: number) => {
+                emit(`Writing ${targetFn}…`, total > 0 ? sent / total : 1)
+            })
+            unitsDone += 1
+            emit(`Installed ${targetFn}`, 0)
         }
     }
 
@@ -220,6 +226,7 @@ export async function rawInstallPkg(
         for (let [fn, url, ..._] of pkg_info.urls) {
             url = rewriteUrl(url, { base: pkg_json, branch: version })
             url = expandVars(url, vars)
+            emit(`Downloading ${fn}…`, 0)
             let content: any = await fetchArrayBuffer(url)
 
             if (fn.startsWith('fs:')) {
@@ -231,6 +238,7 @@ export async function rawInstallPkg(
 
                 if (!prefer_source && fn.endsWith('.py')) {
                     try {
+                        emit(`Compiling ${fn}…`, 0)
                         content = await compilePython(fn, content, dev)
                         fn = fn.replace(/\.py$/, '.mpy')
                     } catch (_err) {
@@ -243,7 +251,12 @@ export async function rawInstallPkg(
             const [dirname, _] = splitPath(fn)
             await raw.makePath(dirname)
 
-            await raw.writeFile(fn, content, 128, true)
+            emit(`Writing ${fn}…`, 0)
+            await raw.writeFile(fn, content, 128, true, (sent: number, total: number) => {
+                emit(`Writing ${fn}…`, total > 0 ? sent / total : 1)
+            })
+            unitsDone += 1
+            emit(`Installed ${fn}`, 0)
         }
     }
 
@@ -257,9 +270,22 @@ export async function rawInstallPkg(
             } else {
                 throw new Error(`Only strings and arrays are supported in 'deps'`)
             }
-            await rawInstallPkg(raw, dep_pkg, { dev, version: dep_ver })
+
+            emit(`Installing dependency ${dep_pkg}…`, 0)
+            await rawInstallPkg(raw, dep_pkg, {
+                dev,
+                version: dep_ver,
+                prefer_source,
+                onProgress: ({ message, progress }: { message?: string, progress?: number }) => {
+                    const sub = progress ?? 0
+                    emit(message, sub)
+                },
+            })
+            unitsDone += 1
+            emit(`Installed dependency ${dep_pkg}`, 0)
         }
     }
 
+    emit(`Installed ${pkgLabel}`, 1)
     return pkg_info
 }
