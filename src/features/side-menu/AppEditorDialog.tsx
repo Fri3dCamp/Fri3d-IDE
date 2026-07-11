@@ -46,12 +46,27 @@ async function resizeImageFileToPng64(file: File): Promise<{ dataUrl: string; by
     if (!ctx) throw new Error('canvas-unavailable')
 
     ctx.clearRect(0, 0, 64, 64)
-    const scale = Math.min(64 / Math.max(1, img.width), 64 / Math.max(1, img.height))
-    const w = Math.max(1, Math.round(img.width * scale))
-    const h = Math.max(1, Math.round(img.height * scale))
-    const x = Math.floor((64 - w) / 2)
-    const y = Math.floor((64 - h) / 2)
-    ctx.drawImage(img, x, y, w, h)
+    ctx.fillStyle = '#000000'
+    ctx.fillRect(0, 0, 64, 64)
+
+    const srcRatio = img.width / Math.max(1, img.height)
+    const dstRatio = 1
+    let sx = 0
+    let sy = 0
+    let sw = img.width
+    let sh = img.height
+
+    if (srcRatio > dstRatio) {
+        sw = Math.round(img.height * dstRatio)
+        sx = Math.floor((img.width - sw) / 2)
+    } else if (srcRatio < dstRatio) {
+        sh = Math.round(img.width / dstRatio)
+        sy = Math.floor((img.height - sh) / 2)
+    }
+
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 64, 64)
 
     const dataUrl = canvas.toDataURL('image/png')
     return { dataUrl, bytes: dataUrlToBytes(dataUrl) }
@@ -176,11 +191,18 @@ function AppEditorDialog({ app, close }: { app: AppInfo; close: (r: boolean | nu
                     <div className="mb-3 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2">
                         <span className="text-sm">{t('apps.field-icon', 'Icon')}</span>
                         <div className="flex items-center gap-2">
-                            <div className="grid h-16 w-16 place-items-center border-2 border-black bg-edit">
+                            <div className="h-16 w-16 overflow-hidden border-2 border-black bg-edit">
                                 {iconDataUrl ? (
-                                    <img src={iconDataUrl} alt={t('apps.field-icon', 'Icon')} className="h-16 w-16 object-contain" />
+                                    <div
+                                        role="img"
+                                        aria-label={t('apps.field-icon', 'Icon')}
+                                        className="h-full w-full bg-cover bg-center"
+                                        style={{ backgroundImage: `url(${iconDataUrl})` }}
+                                    />
                                 ) : (
-                                    <span className="text-[10px] opacity-50">64×64</span>
+                                    <div className="grid h-full w-full place-items-center">
+                                        <span className="text-[10px] opacity-50">64×64</span>
+                                    </div>
                                 )}
                             </div>
                             <div>

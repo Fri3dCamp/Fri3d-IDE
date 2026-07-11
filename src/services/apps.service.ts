@@ -292,22 +292,33 @@ export async function openAppFile(path: string): Promise<void> {
 /** Delete whole app folder recursively, then refresh app registry + file tree. */
 export async function deleteApp(
     app: AppInfo,
-    prompt: (msg: string, options?: { value?: string }) => Promise<string | null>,
+    prompt: (msg: string, options?: { value?: string; placeholder?: string; password?: boolean }) => Promise<string | null>,
 ): Promise<boolean> {
     const { port } = useConnectionStore.getState()
     if (!port) return false
 
     const typed = await prompt(
-        t('apps.delete-confirm-type', 'Type {{id}} to delete app {{path}}', { id: app.fullname, path: app.path }),
-        { value: '' },
+        t(
+            'apps.delete-confirm-type',
+            'Delete app "{{name}}" ({{id}}).\n\nType **{{id}}** to confirm.',
+            { name: app.name || app.fullname, id: app.fullname },
+        ),
+        { value: '', placeholder: app.fullname },
     )
     if ((typed ?? '').trim() !== app.fullname) return false
 
-    const ok = await withLoader(
-        t('apps.deleting', 'Deleting {{app}}…', { app: app.name || app.fullname }),
-        async () => {
-            const result = await withRawMode(async (raw) => {
-                await raw.exec(`
+    try {
+        const ok = await withLoader(
+            t('apps.deleting', 'Deleting {{app}}…', { app: app.name || app.fullname }),
+            async (loader) => {
+                loader.update({
+                    message: t('apps.deleting-files', 'Deleting app files…'),
+                    progress: 0.05,
+                })
+
+                const result = await withRawMode(async (raw) => {
+                    await raw.exec(
+                        `
 import os
 
 def _rm(p):
@@ -325,32 +336,55 @@ def _rm(p):
   except: pass
 
 _rm('${app.path}')
-`)
+`,
+                        30_000,
+                    )
 
-                try {
-                    await raw.exec(`
+                    loader.update({
+                        message: t('apps.deleting-finalizing', 'Files deleted. Finalizing…'),
+                        progress: 0.75,
+                    })
+
+                    try {
+                        await raw.exec(
+                            `
 from mpos import AppManager
 AppManager.refresh_apps()
 AppManager.restart_launcher()
-`)
-                } catch {
-                    // non-MPOS device or missing AppManager
-                }
+`,
+                            15_000,
+                        )
+                    } catch {
+                        // non-MPOS device or missing AppManager
+                    }
 
-                await refreshTreeVia(raw)
-                useAppsStore.getState().setApps(await scanAppsVia(raw))
-                useAppsStore.getState().setSelected(null)
-                return true
-            })
-            return result === true
-        },
-    )
+                    loader.update({
+                        message: t('apps.deleting-refreshing', 'Refreshing file tree and rescanning apps…'),
+                        progress: 0.9,
+                    })
 
-    if (ok) {
-        useEditorTabsStore.getState().closeByPath(app.path, true)
-        toast.success(t('apps.deleted', 'Deleted {{app}}', { app: app.name || app.fullname }))
+                    await refreshTreeVia(raw)
+                    useAppsStore.getState().setApps(await scanAppsVia(raw))
+                    useAppsStore.getState().setSelected(null)
+
+                    loader.update({ progress: 1 })
+                    return true
+                })
+                return result === true
+            },
+        )
+
+        if (ok) {
+            useEditorTabsStore.getState().closeByPath(app.path, true)
+            toast.success(t('apps.deleted', 'Deleted {{app}}', { app: app.name || app.fullname }))
+        }
+        return ok
+    } catch (err) {
+        toast.error(t('apps.delete-failed', 'Delete failed'), {
+            description: err instanceof Error ? err.message : String(err),
+        })
+        return false
     }
-    return ok
 }
 
 /* ------------------------------------------------------------------ */
@@ -485,6 +519,7 @@ export async function parseMpk(file: File): Promise<MpkInstallPreview> {
 export async function installMpk(
     mpk: MpkInstallPreview,
     confirmOverwrite: (msg: string) => Promise<boolean>,
+    onProgress?: (state: { message?: string; progress?: number }) => void,
 ): Promise<boolean> {
     const { port } = useConnectionStore.getState()
     if (!port) {
@@ -548,21 +583,28 @@ _rm('${appRoot}')
                 for (let i = 0; i < mpk.files.length; i++) {
                     const f = mpk.files[i]
                     const base = writtenBytes
-                    loader.update({
-                        message: t('apps.installing-file', 'Installing {{name}} ({{index}}/{{total}})…', {
-                            name: f.devicePath,
-                            index: i + 1,
-                            total: mpk.files.length,
-                        }),
-                        progress: totalBytes > 0 ? base / totalBytes : 0,
+                    const message = t('apps.installing-file', 'Installing {{name}} ({{index}}/{{total}})…', {
+                        name: f.devicePath,
+                        index: i + 1,
+                        total: mpk.files.length,
                     })
+                    const progress = totalBytes > 0 ? base / totalBytes : 0
+                    loader.update({ message, progress })
+                    onProgress?.({ message, progress })
                     await raw.writeFile(f.devicePath, f.bytes, 128, false, (sent, total) => {
                         const current = base + (total > 0 ? sent : f.bytes.length)
-                        loader.update({ progress: totalBytes > 0 ? current / totalBytes : 0 })
+                        const p = totalBytes > 0 ? current / totalBytes : 0
+                        loader.update({ progress: p })
+                        onProgress?.({ progress: p })
                     })
                     writtenBytes += f.bytes.length
                 }
-                loader.update({ progress: 1 })
+                const finalizingMsg = t(
+                    'apps.installing-finalizing',
+                    'Files uploaded. Finalizing install: refreshing app registry, launcher, and app list…',
+                )
+                loader.update({ message: finalizingMsg, progress: 1 })
+                onProgress?.({ message: finalizingMsg, progress: 1 })
 
                 try {
                     await raw.exec(`
@@ -573,6 +615,10 @@ AppManager.restart_launcher()
                 } catch {
                     // non-MPOS device or missing AppManager; files still installed
                 }
+
+                const refreshingMsg = t('apps.installing-refreshing-tree', 'Refreshing file tree and rescanning apps…')
+                loader.update({ message: refreshingMsg, progress: 1 })
+                onProgress?.({ message: refreshingMsg, progress: 1 })
 
                 await refreshTreeVia(raw)
                 useAppsStore.getState().setApps(await scanAppsVia(raw))
@@ -649,9 +695,11 @@ export async function createApp(input: NewAppInput, confirmOverwrite: (msg: stri
     const fullname = validateAppFullname(input.fullname)
     const appRoot = `/apps/${fullname}`
 
+    const stageToastId = toast.loading(t('apps.creating', 'Creating app {{fullname}}…', { fullname }))
+
     const ok = await withLoader(
         t('apps.creating', 'Creating app {{fullname}}…', { fullname }),
-        async () => {
+        async (loader) => {
             const result = await withRawMode(async (raw) => {
                 const exists = (
                     await raw.exec(`
@@ -691,9 +739,20 @@ except:
                     ],
                 }
 
+                loader.update({ message: t('apps.creating-folders', 'Creating app folder…'), progress: 0.2 })
+                toast.loading(t('apps.creating-folders', 'Creating app folder…'), { id: stageToastId })
                 await raw.makePath(appRoot)
+
+                loader.update({ message: t('apps.creating-manifest', 'Writing MANIFEST.JSON…'), progress: 0.45 })
+                toast.loading(t('apps.creating-manifest', 'Writing MANIFEST.JSON…'), { id: stageToastId })
                 await raw.writeFile(`${appRoot}/MANIFEST.JSON`, JSON.stringify(manifest, null, 2) + '\n')
+
+                loader.update({ message: t('apps.creating-main', 'Writing main.py…'), progress: 0.65 })
+                toast.loading(t('apps.creating-main', 'Writing main.py…'), { id: stageToastId })
                 await raw.writeFile(`${appRoot}/main.py`, mainPyFor(manifest.name, input.template))
+
+                loader.update({ message: t('apps.creating-icon', 'Writing icon…'), progress: 0.8 })
+                toast.loading(t('apps.creating-icon', 'Writing icon…'), { id: stageToastId })
                 await raw.writeFile(`${appRoot}/icon_64x64.png`, input.iconPng)
 
                 // Refresh launcher; non-fatal when unsupported.
@@ -707,15 +766,25 @@ AppManager.restart_launcher()
                     toast.warning(t('apps.launcher-refresh-failed', 'Scaffold created, but launcher refresh failed'))
                 }
 
+                loader.update({ message: t('apps.creating-refresh', 'Refreshing app list…'), progress: 0.92 })
+                toast.loading(t('apps.creating-refresh', 'Refreshing app list…'), { id: stageToastId })
                 await refreshTreeVia(raw)
                 useAppsStore.getState().setApps(await scanAppsVia(raw))
+
+                loader.update({ message: t('apps.creating-open', 'Opening main.py…'), progress: 0.98 })
+                toast.loading(t('apps.creating-open', 'Opening main.py…'), { id: stageToastId })
                 await openFileContent(raw, `${appRoot}/main.py`)
+                loader.update({ progress: 1 })
                 return true
             })
             return result === true
         },
     )
 
-    if (ok) toast.success(t('apps.created', 'Created app {{fullname}}', { fullname }))
+    if (ok) {
+        toast.success(t('apps.created', 'Created app {{fullname}}', { fullname }), { id: stageToastId })
+    } else {
+        toast.dismiss(stageToastId)
+    }
     return ok
 }

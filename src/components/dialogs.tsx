@@ -1,4 +1,5 @@
 import {
+    Fragment,
     createContext,
     useCallback,
     useContext,
@@ -175,6 +176,24 @@ interface PromptOptions {
     password?: boolean
 }
 
+function renderMessageWithBold(message: string) {
+    return message.split('\n').map((line, lineIdx) => {
+        const parts = line.split(/(\*\*[^*]+\*\*)/g)
+        return (
+            <Fragment key={lineIdx}>
+                {lineIdx > 0 && <br />}
+                {parts.map((part, idx) =>
+                    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
+                        <strong key={idx}>{part.slice(2, -2)}</strong>
+                    ) : (
+                        <Fragment key={idx}>{part}</Fragment>
+                    ),
+                )}
+            </Fragment>
+        )
+    })
+}
+
 function PromptDialog({
     message,
     options,
@@ -200,7 +219,7 @@ function PromptDialog({
                 close(inputRef.current?.value ?? '')
             }}
         >
-            <div className="whitespace-pre-line">{message}</div>
+            <div>{renderMessageWithBold(message)}</div>
             <input
                 ref={inputRef}
                 type={options.password ? 'password' : 'text'}
