@@ -15,12 +15,24 @@
                 "ble": "Verbind Bluetooth",
                 "usb": "Verbind USB/Serieel"
             },
-            "terminal": "Terminal"
+            "terminal": "Terminal",
+            "display": "Scherm",
+            "hard-reset": "Harde reset",
+            "run-short": "Uitvoeren",
+            "save-short": "Opslaan",
+            "soft-reset": "Zachte reset",
+            "stop": "Stoppen"
         },
         "menu": {
             "package-mgr": "Pakketbeheerder",
             "file-mgr": "Bestandsbeheerder",
-            "settings": "Instellingen"
+            "settings": "Instellingen",
+            "about": "Over",
+            "docs": "documentatie",
+            "resize-sidebar": "Zijbalk vergroten/verkleinen",
+            "side-menu": "Zijmenu",
+            "toggle": "Menu tonen/verbergen",
+            "tools": "Hulpmiddelen"
         },
         "files": {
             "no-files": "geen bestanden",
@@ -46,7 +58,35 @@
             "name-folder": "mapnaam",
             "prompt-new-name": "Geef de bestandsnaam:",
             "type-file": "Bestand",
-            "type-folder": "Map"
+            "type-folder": "Map",
+            "confirm-remove-app-root": "Typ {{id}} om app-map {{path}} te verwijderen",
+            "create": "Maken",
+            "folder-empty": "Map is leeg",
+            "format-clean": "Al geformatteerd",
+            "format-failed": "Kan niet formatteren",
+            "format-unavailable": "Formatter kon niet laden",
+            "formatting": "Formatteren…",
+            "modified": "gewijzigd",
+            "no-folders": "Geen submappen",
+            "opening": "{{fn}} openen…",
+            "prettify": "Huidig bestand netjes maken",
+            "remove": "Verwijderen",
+            "removing": "{{path}} verwijderen…",
+            "saving": "{{fn}} opslaan…",
+            "select-folder": "Selecteer map",
+            "target-folder": "Doelmap",
+            "type": "Type",
+            "up-folder": "Map omhoog",
+            "upload": "Uploaden",
+            "upload-destination": "Doelmap",
+            "upload-done": "{{n}} bestand(en) geüpload",
+            "upload-drop": "Sleep bestanden hierheen of klik om te bladeren",
+            "upload-target-for": "Doelbestandsnaam voor {{name}}",
+            "upload-targets": "Doelbestanden",
+            "upload-title-simple": "Bestanden uploaden",
+            "uploading-many": "{{n}} bestanden uploaden…",
+            "uploading-one": "{{name}} uploaden ({{index}}/{{total}})…",
+            "validating": "{{fn}} valideren…"
         },
         "settings": {
             "conn": "verbinding",
@@ -60,15 +100,27 @@
             "use-natural-sort": "Natuurlijke sortering",
             "lang": "Lokalisatie",
             "zoom": "Inzoomen",
-            "color-theme": "Thema"
+            "color-theme": "Thema",
+            "advanced-mode": "Geavanceerde modus",
+            "prefer-source": "Bij voorkeur broncode (.py) installeren",
+            "theme-system": "Systeem",
+            "theme-light": "Licht",
+            "theme-dark": "Donker",
+            "help": "hulp",
+            "restart-tour": "Welkomsttour opnieuw tonen"
         },
         "about": {
             "cta": "Als je Fri3d-IDE leuk vindt, geef het dan alsjeblieft een ster op GitHub ⭐ en vertel het verder op sociale media 📢",
-            "report-bug": "Je kunt ook een fout melden 🐞"
+            "report-bug": "Je kunt ook een fout melden 🐞",
+            "by": "door",
+            "cta-pre": "Als je Fri3d-IDE leuk vindt,",
+            "cta-star": "geef het dan een GitHub-ster"
         },
         "editor": {
             "md-edit": "Broncode bewerken",
-            "md-preview": "Voorbeeld"
+            "md-preview": "Voorbeeld",
+            "close": "Sluiten",
+            "new-file": "Nieuw bestand"
         },
         "app": {
             "scaffold-btn": "Nieuwe app-sjabloon maken",
@@ -130,45 +182,67 @@
             "offline": "Offline",
             "prompt-pkg-url": "Geef een pakketnaam of URL:",
             "prompt-webrepl-pass": "WebREPL-wachtwoord:",
-            "prompt-webrepl-url": "Geef het WebREPL-adres van het apparaat.\nOndersteunde protocollen: ws wss rtc"
+            "prompt-webrepl-url": "Geef het WebREPL-adres van het apparaat.\nOndersteunde protocollen: ws wss rtc",
+            "cannot-connect": "Kan geen verbinding maken",
+            "connect-device": "Verbind apparaat",
+            "connecting": "Verbinden…",
+            "disconnect": "Verbreken",
+            "disconnect-device": "Apparaat loskoppelen",
+            "err-read-board": "Fout bij lezen van bordinformatie",
+            "not-responding": "Apparaat reageert niet",
+            "reading-device": "Apparaat lezen…"
         },
         "onboarding": {
             "step": "Stap {{current}} van {{total}}",
             "skip": "Tour overslaan",
+            "back": "Terug",
             "next": "Volgende →",
-            "get-started": "Beginnen! 🚀",
+            "get-started": "Aan de slag! 🚀",
+            "welcome-title": "Welkom bij Fri3d-IDE! 👋",
+            "welcome-text": "Laat me je rondleiden! Je kunt de tour volgen met je echte Fri3d-badge, of eerst veilig verkennen met een demo-apparaat.",
+            "choose-real": "Verbind mijn badge (USB)",
+            "choose-demo": "Probeer met een demo-apparaat",
+            "fallback-demo": "Gebruik toch een demo-apparaat",
+            "connect-title": "Verbind je badge",
+            "connect-text": "Sluit je Fri3d-badge met een USB-C-kabel aan op deze computer, klik daarna op de gemarkeerde knop “Verbind apparaat” en kies de seriële poort in de browser-popup. De tour gaat automatisch verder zodra je verbonden bent.",
+            "demo-device": "Fri3d Badge (demo)",
             "steps": {
-                "welcome": {
-                    "title": "Welkom bij Fri3d-IDE! 👋",
-                    "text": "Hallo! Ik ben je Fri3d-gids. Laat me je een korte rondleiding geven zodat je meteen kunt beginnen met coderen!"
+                "connection": {
+                    "title": "Je bent verbonden",
+                    "text": "Hier zie je je verbindingsstatus: de naam van de badge en een knipperende activiteitsindicator. Verbreek hier de verbinding; opnieuw verbinden kan altijd met de Verbind-knop die op dezelfde plek verschijnt."
                 },
-                "toolbar": {
-                    "title": "Hoofdwerkbalk",
-                    "text": "Dit is je hoofdwerkbalk. Sla bestanden op, voer je code uit op de badge en verbind je Fri3d-apparaat vanaf hier."
+                "apps": {
+                    "title": "Jouw apps",
+                    "text": "Het tabblad Apps toont alle apps die op de badge zijn geïnstalleerd. Klik op een app om de details te openen — en met “Nieuwe app maken” zet je in één klik een nieuwe app op vanuit een sjabloon."
                 },
-                "connect": {
-                    "title": "Verbinden via USB",
-                    "text": "Klik op deze knop om je Fri3d-badge te verbinden via USB/Serieel. Je kunt ook Bluetooth 🦷 of WebREPL 🌐 gebruiken!"
+                "open-app": {
+                    "title": "Binnen in een app",
+                    "text": "Als je een app opent zie je de bestanden. Klik op een bestand om het in de editor te openen — meer is er niet nodig om te beginnen met bewerken."
                 },
-                "side-menu": {
-                    "title": "Zijmenu",
-                    "text": "Dit paneel heeft tabbladen voor Bestandsbeheer, Pakketbeheer, Hulpmiddelen, Instellingen en Info. Alles wat je nodig hebt!"
+                "launch": {
+                    "title": "Start de app",
+                    "text": "De 🚀 Start app-knop start de app op de badge, precies zoals wanneer je hem uit het badge-menu kiest."
                 },
-                "files": {
-                    "title": "Bestandsbeheer",
-                    "text": "Blader en beheer bestanden op je verbonden badge. Verbind eerst een apparaat om de bestanden te bekijken en te bewerken!"
-                },
-                "editor": {
-                    "title": "Code-editor",
-                    "text": "Schrijf je MicroPython-code hier! Syntaxmarkering, automatisch aanvullen en linting zijn allemaal ingebouwd. 🐍"
+                "launch-toolbar": {
+                    "title": "Starten tijdens het bewerken",
+                    "text": "Wanneer je een bestand bewerkt dat bij een app hoort, verschijnt deze Start app-knop in de werkbalk — zo start je de app rechtstreeks vanuit de editor."
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "De terminal toont de uitvoer van je badge. Je kunt ook direct opdrachten invoeren in de REPL wanneer je verbonden bent."
+                    "text": "Alle uitvoer van je badge verschijnt hier. Het is ook een live MicroPython REPL: klik erin en typ Python rechtstreeks op het apparaat."
+                },
+                "files": {
+                    "title": "Bestandsbeheer — pure MicroPython",
+                    "text": "Werk je liever zonder de app-structuur? Bestandsbeheer toont elk bestand op de badge. Open een willekeurig .py-bestand en voer het direct uit — gewone MicroPython, zonder verpakking."
+                },
+                "save-run": {
+                    "title": "Opslaan vs. Uitvoeren",
+                    "text": "Of je nu een app of een los .py-bestand bewerkt: Opslaan (Ctrl/Cmd+S) schrijft het naar de badge-opslag zodat het een herstart overleeft, en Uitvoeren (F5) voert het geopende bestand direct uit. Uitvoeren slaat niet automatisch op — sla eerst op om je wijzigingen te bewaren!"
                 },
                 "done": {
-                    "title": "Alles klaar! 🚀",
-                    "text": "Dat was de tour! Verbind je Fri3d-badge en begin met het bouwen van geweldige dingen. Veel plezier met coderen!"
+                    "title": "Je bent er klaar voor! 🚀",
+                    "text": "Dat was de tour! Je badge is verbonden en klaar. Begin met het bouwen van geweldige dingen. Veel programmeerplezier!",
+                    "text-demo": "Dat was de tour! Het demo-apparaat wordt nu losgekoppeld — sluit je Fri3d-badge aan met een USB-C-kabel en begin met bouwen. Veel programmeerplezier!"
                 }
             }
         },
@@ -176,7 +250,99 @@
             "installing": "{{pkg}} wordt geïnstalleerd…",
             "installed": "{{pkg}} geïnstalleerd",
             "install-overwrite": "Let op: je bestanden kunnen overschreven worden!",
-            "install-connect": "Verbind je board om {{pkg}} te installeren"
+            "install-connect": "Verbind je board om {{pkg}} te installeren",
+            "install": "{{pkg}} installeren",
+            "install-failed": "Installeren mislukt",
+            "install-via-url": "Pakket installeren via link",
+            "loading": "Pakketindex laden…",
+            "native": "Efficiënte native module"
+        },
+        "apps": {
+            "back": "Terug naar apps",
+            "confirm-overwrite": "App-map {{path}} bestaat al. Scaffold-bestanden overschrijven?",
+            "create": "Maken",
+            "create-title": "Nieuwe app maken",
+            "created": "App {{fullname}} aangemaakt",
+            "creating": "App {{fullname}} aanmaken…",
+            "creating-folders": "App-map aanmaken…",
+            "creating-icon": "Icoon schrijven…",
+            "creating-main": "main.py schrijven…",
+            "creating-manifest": "MANIFEST.JSON schrijven…",
+            "creating-open": "main.py openen…",
+            "creating-refresh": "App-lijst vernieuwen…",
+            "delete-app": "App verwijderen",
+            "delete-confirm-type": "App \"{{name}}\" ({{id}}) verwijderen.\n\nTyp **{{id}}** ter bevestiging.",
+            "delete-failed": "Verwijderen mislukt",
+            "deleted": "{{app}} verwijderd",
+            "deleting": "{{app}} verwijderen…",
+            "deleting-files": "App-bestanden verwijderen…",
+            "deleting-finalizing": "Bestanden verwijderd. Afronden…",
+            "deleting-refreshing": "Bestandsboom vernieuwen en apps opnieuw scannen…",
+            "edit-details": "App-details bewerken",
+            "field-category": "Categorie",
+            "field-description": "Beschrijving",
+            "field-icon": "Icoon",
+            "field-id": "App-ID",
+            "field-long-desc": "Lange beschrijving",
+            "field-name": "Weergavenaam",
+            "field-optional": "optioneel",
+            "field-publisher": "Uitgever",
+            "field-short-desc": "Korte beschrijving",
+            "field-template": "Sjabloon",
+            "field-version": "Versie",
+            "files": "Bestanden",
+            "icon-bg": "Achtergrond",
+            "icon-bg-choice": "Icoonachtergrond {{name}}",
+            "icon-reset": "Herstellen",
+            "icon-upload-hint": "Elke afbeelding. Wordt automatisch omgezet naar 64×64 PNG.",
+            "install-files": "Bestanden",
+            "install-location": "Installatielocatie",
+            "install-mpk": "MPK installeren",
+            "install-mpk-drop": "Sleep een .mpk hierheen of klik om te bladeren",
+            "install-mpk-pick": "Selecteer .mpk-bestand",
+            "install-mpk-title": "MPK-app installeren",
+            "install-plan": "Installatieplan",
+            "install-size": "Pakketgrootte",
+            "installed": "{{app}} geïnstalleerd",
+            "installing": "{{app}} installeren…",
+            "installing-file": "{{name}} installeren ({{index}}/{{total}})…",
+            "installing-finalizing": "Bestanden geüpload. Installatie afronden: app-lijst vernieuwen…",
+            "installing-refreshing-tree": "Bestandsboom vernieuwen en apps opnieuw scannen…",
+            "installing-short": "Installeren…",
+            "launch": "{{app}} starten",
+            "launch-app": "Start app",
+            "launch-failed": "Starten mislukt",
+            "launch-short": "Starten",
+            "launched": "{{app}} gestart",
+            "launcher-refresh-failed": "Scaffold aangemaakt, maar vernieuwen van de launcher is mislukt",
+            "loading-details": "App van apparaat lezen…",
+            "mpk-confirm-overwrite": "App-map {{path}} bestaat. Vervangen door MPK-inhoud?",
+            "mpk-empty": "MPK is leeg",
+            "mpk-id-mismatch": "MANIFEST-fullname komt niet overeen met de MPK-mapnaam",
+            "mpk-layout": "Ongeldige MPK-indeling: archief moet precies één app-map bevatten",
+            "mpk-manifest-invalid": "MANIFEST.JSON is geen geldige JSON",
+            "mpk-manifest-missing": "MPK mist MANIFEST.JSON",
+            "no-files": "Geen bestanden",
+            "none": "Geen apps geïnstalleerd",
+            "not-mpos": "Apparaat draait geen MicroPythonOS",
+            "not-mpos-hint": "Apps starten vereist de mpos-module",
+            "refresh-list": "App-lijst vernieuwen",
+            "save": "Opslaan",
+            "saved": "{{app}} opgeslagen",
+            "saving": "{{app}} opslaan…",
+            "scanning": "Apps scannen…",
+            "scanning-progress": "Apps scannen ({{done}}/{{total}})… {{app}}",
+            "template-blank": "Leeg",
+            "template-hello": "Hello World",
+            "title": "Apps",
+            "upload-icon": "Icoon uploaden",
+            "validate-chars": "App-ID mag alleen letters, cijfers, punten, streepjes en underscores bevatten",
+            "validate-dot": "App-ID moet minstens één punt bevatten, bijv. com.example.app",
+            "validate-required": "App-ID is verplicht"
+        },
+        "terminal": {
+            "open-trace-line": "Open {{file}}:{{line}}",
+            "resize": "Terminal vergroten/verkleinen"
         }
     }
 }

@@ -116,7 +116,7 @@ function AppList() {
                     </button>
                 </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto pb-1">
+            <div data-tour-id="tour-app-list" className="min-h-0 flex-1 overflow-y-auto pb-1">
                 {apps?.map((app) => <AppRow key={app.fullname} app={app} />)}
                 {apps !== null && apps.length === 0 && !scanning && (
                     <div className="px-3 pb-1 text-sm opacity-60">{t('apps.none', 'No apps installed')}</div>
@@ -132,6 +132,7 @@ function AppList() {
                 <div className="grid grid-cols-1 gap-2">
                     <button
                         type="button"
+                        data-tour-id="tour-create-app"
                         className="flex w-full items-center justify-center gap-2 border-2 border-black bg-(--fri3d-purple) px-3 py-2 font-semibold text-white shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
                         aria-label={t('apps.create-title', 'Create New App')}
                         onClick={() => void createAppDialog()}
@@ -556,6 +557,7 @@ function AppDetail({ app }: { app: AppInfo }) {
                 {!app.broken && (
                     <button
                         type="button"
+                        data-tour-id="tour-launch-app"
                         disabled={launching || deleting}
                         aria-label={t('apps.launch', 'Launch {{app}}', { app: app.name })}
                         className="group/icon relative shrink-0 p-1 text-icon-success opacity-80 hover:opacity-100 disabled:opacity-40"
@@ -657,7 +659,7 @@ function AppDetail({ app }: { app: AppInfo }) {
             </div>
 
             {/* Recursive file browser */}
-            <div className="min-h-0 flex-1 overflow-y-auto pb-1" role="tree" aria-label={t('apps.files', 'Files')}>
+            <div data-tour-id="tour-app-detail" className="min-h-0 flex-1 overflow-y-auto pb-1" role="tree" aria-label={t('apps.files', 'Files')}>
                 {rootEntries ? renderLevel(rootEntries, 1) : null}
                 {rootEntries !== null && rootEntries.length === 0 && !loading && (
                     <div className="px-3 py-1 text-sm opacity-60">{t('apps.no-files', 'No files')}</div>

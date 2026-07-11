@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
+import { Compass } from 'lucide-react'
 import { useSettingsStore, type Settings } from '../../stores/settings'
 import { LANGUAGES, i18next } from '../../i18n'
+import { restartOnboardingTour } from '../onboarding/GuidedTour'
 
 function Toggle({ id, label, extra }: { id: keyof Settings & string; label: string; extra?: React.ReactNode }) {
     const value = useSettingsStore((s) => s[id] as boolean)
@@ -107,6 +109,16 @@ export function SettingsPanel() {
                 onChange={(v) => set('colorTheme', v)}
             />
             <Toggle id="naturalSort" label={t('settings.use-natural-sort', 'Use natural sorting')} />
+
+            <div className="title-lines text-xs">{t('settings.help', 'help')}</div>
+            <button
+                type="button"
+                onClick={restartOnboardingTour}
+                className="mt-1 flex items-center gap-2 border-2 border-black bg-transparent px-3 py-1.5 text-sm font-semibold text-fg transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+            >
+                <Compass size={15} aria-hidden />
+                {t('settings.restart-tour', 'Show welcome tour again')}
+            </button>
         </div>
     )
 }

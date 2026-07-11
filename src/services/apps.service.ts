@@ -7,6 +7,7 @@ import { useEditorTabsStore } from '../stores/editorTabs'
 import { withLoader } from '../stores/ui'
 import { withRawMode, refreshTreeVia } from './device.service'
 import { openFileContent } from './files.service'
+import { tryDemoListDir } from './demoDevice'
 import type { MpRawMode } from '../domain/rawmode'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
@@ -201,6 +202,8 @@ export async function loadAppDetails(
 export async function listDirectory(path: string): Promise<
     Array<{ name: string; path: string; isDir: true } | { name: string; path: string; size: number; isDir: false }> | undefined
 > {
+    const demo = tryDemoListDir(path)
+    if (demo !== null) return demo
     return withRawMode(async (raw) => {
         const rawEntries = (await raw.listDir(path)) as Array<
             { name: string; path: string; size: number } | { name: string; path: string; content: unknown[] }

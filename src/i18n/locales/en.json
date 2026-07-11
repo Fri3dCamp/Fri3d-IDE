@@ -18,12 +18,21 @@
                 "ble": "Connect Bluetooth",
                 "usb": "Connect USB/Serial"
             },
-            "terminal": "Terminal"
+            "terminal": "Terminal",
+            "display": "Display",
+            "soft-reset": "Soft Reset",
+            "hard-reset": "Hard Reset"
         },
         "menu": {
             "package-mgr": "Package Manager",
             "file-mgr": "File Manager",
-            "settings": "Settings"
+            "settings": "Settings",
+            "resize-sidebar": "Resize sidebar",
+            "toggle": "Toggle menu",
+            "tools": "Tools",
+            "about": "About",
+            "docs": "documentation",
+            "side-menu": "Side menu"
         },
         "files": {
             "no-files": "no files",
@@ -49,7 +58,35 @@
             "read-only": "File is read only",
             "saved": "File Saved",
             "not-executable": "{{fn}} file is not executable",
-            "confirm-close-unsaved": "{{fn}} has unsaved changes. Close without saving?"
+            "confirm-close-unsaved": "{{fn}} has unsaved changes. Close without saving?",
+            "formatting": "Formatting…",
+            "format-unavailable": "Formatter failed to load",
+            "format-failed": "Cannot format",
+            "format-clean": "Already formatted",
+            "opening": "Opening {{fn}}…",
+            "saving": "Saving {{fn}}…",
+            "validating": "Validating {{fn}}…",
+            "uploading-many": "Uploading {{n}} files…",
+            "uploading-one": "Uploading {{name}} ({{index}}/{{total}})…",
+            "upload-done": "Uploaded {{n}} file(s)",
+            "confirm-remove-app-root": "Type {{id}} to delete app folder {{path}}",
+            "removing": "Removing {{path}}…",
+            "type": "Type",
+            "create": "Create",
+            "upload": "Upload",
+            "prettify": "Prettify current file",
+            "remove": "Remove",
+            "modified": "modified",
+            "select-folder": "Select folder",
+            "up-folder": "Up folder",
+            "no-folders": "No subfolders",
+            "folder-empty": "Folder is empty",
+            "target-folder": "Create target",
+            "upload-destination": "Destination folder",
+            "upload-title-simple": "Upload files",
+            "upload-drop": "Drop files here or click to browse",
+            "upload-targets": "Target files",
+            "upload-target-for": "Target filename for {{name}}"
         },
         "settings": {
             "conn": "connection",
@@ -63,55 +100,81 @@
             "use-natural-sort": "Natural sorting",
             "lang": "Localization",
             "zoom": "Zoom",
-            "color-theme": "Theme"
+            "color-theme": "Theme",
+            "help": "help",
+            "restart-tour": "Show welcome tour again",
+            "advanced-mode": "Advanced mode",
+            "prefer-source": "Prefer installing sources (.py)",
+            "theme-system": "System",
+            "theme-light": "Light",
+            "theme-dark": "Dark"
         },
         "about": {
             "cta": "If you like Fri3d-IDE, please give it a GitHub star ⭐ and spread the word on social media 📢",
-            "report-bug": "You can also report a bug 🐞"
+            "report-bug": "You can also report a bug 🐞",
+            "by": "by",
+            "cta-pre": "If you like Fri3d-IDE, please",
+            "cta-star": "give it a GitHub star"
         },
         "onboarding": {
             "step": "Step {{current}} of {{total}}",
             "skip": "Skip tour",
+            "back": "Back",
             "next": "Next →",
             "get-started": "Get started! 🚀",
+            "welcome-title": "Welcome to Fri3d-IDE! 👋",
+            "welcome-text": "Let me show you around! You can follow the tour with your real Fri3d badge, or explore safely with a demo device first.",
+            "choose-real": "Connect my badge (USB)",
+            "choose-demo": "Try with a demo device",
+            "fallback-demo": "Use demo device instead",
+            "connect-title": "Connect your badge",
+            "connect-text": "Plug your Fri3d badge into this computer with a USB-C cable, then click the highlighted “Connect device” button and pick the serial port from the browser popup. The tour continues automatically once connected.",
+            "demo-device": "Fri3d Badge (demo)",
             "steps": {
-                "welcome": {
-                    "title": "Welcome to Fri3d-IDE! 👋",
-                    "text": "Hi there! I'm your Fri3d guide. Let me give you a quick tour so you can start coding right away!"
+                "connection": {
+                    "title": "You are connected",
+                    "text": "This shows your connection status: the badge name and a blinking activity dot. Disconnect here; reconnect any time with the Connect button that appears in its place."
                 },
-                "toolbar": {
-                    "title": "Main Toolbar",
-                    "text": "This is your main toolbar. Save files, run your code on the badge, and connect to your Fri3d device from here."
+                "apps": {
+                    "title": "Your apps",
+                    "text": "The Apps tab lists every app installed on the badge. Click an app to open its details — and “Create New App” scaffolds a fresh one from a template."
                 },
-                "connect": {
-                    "title": "Connect via USB",
-                    "text": "Click this button to connect your Fri3d badge via USB/Serial. You can also use Bluetooth 🦷 or WebREPL 🌐!"
+                "open-app": {
+                    "title": "Inside an app",
+                    "text": "Opening an app shows its files. Click any file to open it in the editor — that’s all it takes to start editing."
                 },
-                "side-menu": {
-                    "title": "Side Menu",
-                    "text": "This panel has tabs for the File Manager, Package Manager, Tools, Settings, and About. Everything you need!"
+                "launch": {
+                    "title": "Launch the app",
+                    "text": "The 🚀 Launch app button starts the app on the badge, exactly like picking it from the badge menu."
                 },
-                "files": {
-                    "title": "File Manager",
-                    "text": "Browse and manage files on your connected badge here. Connect a device first to see and edit its files!"
-                },
-                "editor": {
-                    "title": "Code Editor",
-                    "text": "Write your MicroPython code here! Syntax highlighting, auto-complete, and linting are all built in. 🐍"
+                "launch-toolbar": {
+                    "title": "Launch while editing",
+                    "text": "When you are editing a file that belongs to an app, this Launch app button appears in the toolbar — so you can start the app right from the editor."
                 },
                 "terminal": {
                     "title": "Terminal",
-                    "text": "The terminal shows output from your badge. You can also type commands directly into the REPL when connected."
+                    "text": "All output from your badge appears here. It is also a live MicroPython REPL: click it and type Python directly on the device."
+                },
+                "files": {
+                    "title": "File browser — plain MicroPython",
+                    "text": "Prefer working without the app structure? The File Manager shows every file on the badge. Open any .py file and run it directly — regular MicroPython, no packaging needed."
+                },
+                "save-run": {
+                    "title": "Save vs Run",
+                    "text": "Whether you edit an app or a plain .py file: Save (Ctrl/Cmd+S) writes it to badge storage so it survives a reboot, and Run (F5) executes the open file immediately. Run does not save automatically — save first to keep your changes!"
                 },
                 "done": {
                     "title": "You're all set! 🚀",
-                    "text": "That's the tour! Connect your Fri3d badge and start building amazing things. Happy coding!"
+                    "text": "That was the tour! Your badge is connected and ready. Start building amazing things. Happy coding!",
+                    "text-demo": "That was the tour! The demo device will now disconnect — plug in your Fri3d badge with a USB-C cable and start building. Happy coding!"
                 }
             }
         },
         "editor": {
             "md-edit": "Edit raw",
-            "md-preview": "Preview"
+            "md-preview": "Preview",
+            "close": "Close",
+            "new-file": "New file"
         },
         "app": {
             "scaffold-btn": "Create new app scaffold",
@@ -173,13 +236,113 @@
             "err-conn-type": "Unknown connection type",
             "device-disconnected": "Device disconnected",
             "device-connected": "Device connected",
-            "update-available": "New Fri3d-IDE version {{version}} is available"
+            "update-available": "New Fri3d-IDE version {{version}} is available",
+            "connecting": "Connecting…",
+            "cannot-connect": "Cannot connect",
+            "reading-device": "Reading device…",
+            "not-responding": "Device is not responding",
+            "err-read-board": "Error reading board info",
+            "disconnect-device": "Disconnect device",
+            "disconnect": "Disconnect",
+            "connect-device": "Connect device"
         },
         "pkg": {
             "installing": "Installing {{pkg}}…",
             "installed": "Installed {{pkg}}",
             "install-overwrite": "Warning: your files may be overwritten!",
-            "install-connect": "Connect your board to install {{pkg}}"
+            "install-connect": "Connect your board to install {{pkg}}",
+            "install-failed": "Installing failed",
+            "loading": "Loading package index…",
+            "native": "Efficient native module",
+            "install": "Install {{pkg}}",
+            "install-via-url": "Install package via link"
+        },
+        "apps": {
+            "scanning": "Scanning apps…",
+            "scanning-progress": "Scanning apps ({{done}}/{{total}})… {{app}}",
+            "launched": "Launched {{app}}",
+            "not-mpos": "Device does not run MicroPythonOS",
+            "not-mpos-hint": "Launching apps requires the mpos module",
+            "launch-failed": "Launch failed",
+            "saving": "Saving {{app}}…",
+            "saved": "Saved {{app}}",
+            "delete-confirm-type": "Delete app \"{{name}}\" ({{id}}).\n\nType **{{id}}** to confirm.",
+            "deleting": "Deleting {{app}}…",
+            "deleting-files": "Deleting app files…",
+            "deleting-finalizing": "Files deleted. Finalizing…",
+            "deleting-refreshing": "Refreshing file tree and rescanning apps…",
+            "deleted": "Deleted {{app}}",
+            "delete-failed": "Delete failed",
+            "mpk-empty": "MPK is empty",
+            "mpk-layout": "Invalid MPK layout: archive must contain exactly one top-level app folder",
+            "mpk-manifest-missing": "MPK missing MANIFEST.JSON",
+            "mpk-manifest-invalid": "MANIFEST.JSON is not valid JSON",
+            "mpk-id-mismatch": "MANIFEST fullname does not match MPK folder name",
+            "installing": "Installing {{app}}…",
+            "mpk-confirm-overwrite": "App folder {{path}} exists. Replace with MPK contents?",
+            "installing-file": "Installing {{name}} ({{index}}/{{total}})…",
+            "installing-finalizing": "Files uploaded. Finalizing install: refreshing app registry, launcher, and app list…",
+            "installing-refreshing-tree": "Refreshing file tree and rescanning apps…",
+            "installed": "Installed {{app}}",
+            "validate-required": "App ID is required",
+            "validate-dot": "App ID should include at least one dot, e.g. com.example.myapp",
+            "validate-chars": "App ID may only contain letters, numbers, dots, dashes and underscores",
+            "creating": "Creating app {{fullname}}…",
+            "confirm-overwrite": "App folder {{path}} already exists. Overwrite scaffold files?",
+            "creating-folders": "Creating app folder…",
+            "creating-manifest": "Writing MANIFEST.JSON…",
+            "creating-main": "Writing main.py…",
+            "creating-icon": "Writing icon…",
+            "launcher-refresh-failed": "Scaffold created, but launcher refresh failed",
+            "creating-refresh": "Refreshing app list…",
+            "creating-open": "Opening main.py…",
+            "created": "Created app {{fullname}}",
+            "launch": "Launch {{app}}",
+            "launch-app": "Launch app",
+            "field-version": "Version",
+            "field-publisher": "Publisher",
+            "install-location": "Install location",
+            "install-files": "Files",
+            "install-size": "Package size",
+            "install-plan": "Install plan",
+            "install-mpk-title": "Install MPK App",
+            "install-mpk-drop": "Drop .mpk here or click to browse",
+            "install-mpk-pick": "Select .mpk file",
+            "installing-short": "Installing…",
+            "install-mpk": "Install MPK",
+            "launch-short": "Launch",
+            "loading-details": "Reading app from device…",
+            "field-icon": "Icon",
+            "upload-icon": "Upload icon",
+            "icon-upload-hint": "Any image. Auto-converted to 64×64 PNG.",
+            "field-name": "Display name",
+            "field-short-desc": "Short description",
+            "field-long-desc": "Long description",
+            "field-category": "Category",
+            "save": "Save",
+            "title": "Apps",
+            "refresh-list": "Refresh app list",
+            "none": "No apps installed",
+            "create-title": "Create New App",
+            "back": "Back to apps",
+            "delete-app": "Delete app",
+            "files": "Files",
+            "edit-details": "Edit app details",
+            "no-files": "No files",
+            "field-id": "App ID",
+            "field-optional": "optional",
+            "field-description": "Description",
+            "field-template": "Template",
+            "template-hello": "Hello World",
+            "template-blank": "Blank",
+            "icon-reset": "Reset",
+            "icon-bg": "Background",
+            "icon-bg-choice": "Icon background {{name}}",
+            "create": "Create"
+        },
+        "terminal": {
+            "resize": "Resize terminal",
+            "open-trace-line": "Open {{file}}:{{line}}"
         }
     }
 }

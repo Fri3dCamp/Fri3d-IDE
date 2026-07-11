@@ -146,3 +146,43 @@ body {
 .xterm-host {
     background: var(--raw-bg-edit);
 }
+
+/* ---------------------------------------------------------------- */
+/* Guided tour: spotlight cutout, anchored card, animated Fri3d logo */
+/* ---------------------------------------------------------------- */
+@keyframes tour-pulse {
+    0%,
+    100% {
+        outline-color: color-mix(in srgb, var(--raw-accent) 90%, transparent);
+        outline-offset: 0px;
+    }
+    50% {
+        outline-color: color-mix(in srgb, var(--fri3d-orange) 90%, transparent);
+        outline-offset: 3px;
+    }
+}
+
+/* Spotlight: giant box-shadow dims everything except the target. */
+.tour-highlight {
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.6);
+    outline: 3px solid var(--raw-accent);
+    animation: tour-pulse 1.6s ease-in-out infinite;
+    transition:
+        left 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        top 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        width 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        height 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Card glides between anchor positions like a tooltip. */
+.tour-card {
+    transition:
+        left 400ms cubic-bezier(0.22, 1, 0.36, 1),
+        top 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tour-highlight {
+        animation: none;
+    }
+}

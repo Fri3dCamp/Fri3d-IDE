@@ -66,6 +66,7 @@ function MenuTabs() {
                         aria-selected={tab === x.id}
                         title={x.label}
                         aria-label={x.label}
+                        data-tour-id={`tour-tab-${x.id}`}
                         className={iconTabClass(tab === x.id)}
                         onClick={() => {
                             setTab(x.id)
@@ -154,7 +155,7 @@ function ConnectionFooter() {
     const TransportIcon = transportType === 'ble' ? Bluetooth : transportType === 'ws' ? LinkIcon : Usb
 
     return (
-        <div className="flex items-center gap-2 border-t border-black/20 p-2">
+        <div data-tour-id="tour-connection" className="flex items-center gap-2 border-t border-black/20 p-2">
             {/* Status: dot + transport icon + machine name */}
             <span
                 className="flex min-w-0 flex-1 items-center gap-1.5 text-xs"

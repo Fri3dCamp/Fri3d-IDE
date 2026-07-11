@@ -170,7 +170,7 @@ export function TerminalDock() {
     const btnClass = 'p-1.5 opacity-70 hover:opacity-100'
 
     return (
-        <div ref={dockRef} style={{ height }} className="flex shrink-0 flex-col border-t-2 border-black">
+        <div ref={dockRef} style={{ height }} data-tour-id="tour-terminal" className="flex shrink-0 flex-col border-t-2 border-black">
             <div
                 onPointerDown={onPointerDown}
                 className="flex cursor-ns-resize touch-none items-center justify-between bg-menu"

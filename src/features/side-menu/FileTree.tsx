@@ -199,7 +199,7 @@ export function ConnectDeviceButton() {
         'flex w-full items-center justify-center gap-2 border-2 border-black bg-transparent px-3 py-1.5 text-sm font-semibold text-fg transition-colors hover:bg-black/10 disabled:opacity-60 dark:hover:bg-white/10'
 
     return (
-        <div className="space-y-2 px-2 py-2">
+        <div className="space-y-2 px-2 py-2" data-tour-id="tour-connect">
             <button
                 type="button"
                 disabled={connecting}

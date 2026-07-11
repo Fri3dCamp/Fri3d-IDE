@@ -110,15 +110,17 @@ function LaunchAppButton() {
     if (!targetAppId || !connected) return null
 
     return (
-        <ToolbarButton
-            title={t('apps.launch', 'Launch {{app}}', { app: targetAppId })}
-            label={t('apps.launch-app', 'Launch app')}
-            onClick={() => {
-                if (!launching) void launchApp(targetAppId)
-            }}
-        >
-            <Rocket size={18} aria-hidden className={launching ? 'opacity-40' : 'text-icon-success'} />
-        </ToolbarButton>
+        <span data-tour-id="tour-launch-toolbar" className="inline-flex">
+            <ToolbarButton
+                title={t('apps.launch', 'Launch {{app}}', { app: targetAppId })}
+                label={t('apps.launch-app', 'Launch app')}
+                onClick={() => {
+                    if (!launching) void launchApp(targetAppId)
+                }}
+            >
+                <Rocket size={18} aria-hidden className={launching ? 'opacity-40' : 'text-icon-success'} />
+            </ToolbarButton>
+        </span>
     )
 }
 
@@ -132,7 +134,7 @@ export function ToolPanel() {
     const [fullscreenOk] = useState(() => document.fullscreenEnabled)
 
     return (
-        <header className="flex items-center justify-between gap-2 border-b-3 border-toolbar-border bg-toolbar px-2 py-1.5">
+        <header data-tour-id="toolbar" className="flex items-center justify-between gap-2 border-b-3 border-toolbar-border bg-toolbar px-2 py-1.5">
             <div className="flex items-center gap-2">
                 <ToolbarButton title={t('menu.toggle', 'Toggle menu')} onClick={toggleSideMenu}>
                     <Menu size={18} aria-hidden />
@@ -140,24 +142,28 @@ export function ToolPanel() {
                 <span className="mx-1 select-none font-heading text-lg font-black tracking-tight">
                     Fri3d-IDE
                 </span>
-                <ToolbarButton
-                    title={`${t('tool.save', 'Save File')} [${metaKey}+S]`}
-                    label={t('tool.save-short', 'Save')}
-                    onClick={() => void saveCurrentFile({ confirm, prompt })}
-                >
-                    <Save size={18} aria-hidden />
-                </ToolbarButton>
-                <ToolbarButton
-                    title={`${t('tool.run', 'Run File')} [F5]`}
-                    label={isRunning ? t('tool.stop', 'Stop') : t('tool.run-short', 'Run')}
-                    onClick={() => void runCurrentFile()}
-                >
-                    {isRunning ? (
-                        <CircleStop size={18} aria-hidden className="text-icon-danger" />
-                    ) : (
-                        <CirclePlay size={18} aria-hidden />
-                    )}
-                </ToolbarButton>
+                <span data-tour-id="tour-save-run" className="flex items-center gap-2">
+                    <ToolbarButton
+                        title={`${t('tool.save', 'Save File')} [${metaKey}+S]`}
+                        label={t('tool.save-short', 'Save')}
+                        onClick={() => void saveCurrentFile({ confirm, prompt })}
+                    >
+                        <Save size={18} aria-hidden />
+                    </ToolbarButton>
+                    <span data-tour-id="tour-run" className="inline-flex">
+                        <ToolbarButton
+                            title={`${t('tool.run', 'Run File')} [F5]`}
+                            label={isRunning ? t('tool.stop', 'Stop') : t('tool.run-short', 'Run')}
+                            onClick={() => void runCurrentFile()}
+                        >
+                            {isRunning ? (
+                                <CircleStop size={18} aria-hidden className="text-icon-danger" />
+                            ) : (
+                                <CirclePlay size={18} aria-hidden />
+                            )}
+                        </ToolbarButton>
+                    </span>
+                </span>
                 <LaunchAppButton />
             </div>
 
