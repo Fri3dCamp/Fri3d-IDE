@@ -3,6 +3,7 @@ import { unzipSync } from 'fflate'
 import { i18next } from '../i18n'
 import { useConnectionStore } from '../stores/connection'
 import { useAppsStore, type AppInfo } from '../stores/apps'
+import { useEditorTabsStore } from '../stores/editorTabs'
 import { withLoader } from '../stores/ui'
 import { withRawMode, refreshTreeVia } from './device.service'
 import { openFileContent } from './files.service'
@@ -260,6 +261,70 @@ export async function openAppFile(path: string): Promise<void> {
     await withLoader(t('files.opening', 'Opening {{fn}}…', { fn: path }), () =>
         withRawMode((raw) => openFileContent(raw, path)),
     )
+}
+
+/** Delete whole app folder recursively, then refresh app registry + file tree. */
+export async function deleteApp(
+    app: AppInfo,
+    prompt: (msg: string, options?: { value?: string }) => Promise<string | null>,
+): Promise<boolean> {
+    const { port } = useConnectionStore.getState()
+    if (!port) return false
+
+    const typed = await prompt(
+        t('apps.delete-confirm-type', 'Type {{id}} to delete app {{path}}', { id: app.fullname, path: app.path }),
+        { value: '' },
+    )
+    if ((typed ?? '').trim() !== app.fullname) return false
+
+    const ok = await withLoader(
+        t('apps.deleting', 'Deleting {{app}}…', { app: app.name || app.fullname }),
+        async () => {
+            const result = await withRawMode(async (raw) => {
+                await raw.exec(`
+import os
+
+def _rm(p):
+ try:
+  st=os.stat(p)
+ except:
+  return
+ if st[0] & 0x4000:
+  for n in os.listdir(p):
+   _rm(p+'/'+n)
+  try: os.rmdir(p)
+  except: pass
+ else:
+  try: os.remove(p)
+  except: pass
+
+_rm('${app.path}')
+`)
+
+                try {
+                    await raw.exec(`
+from mpos import AppManager
+AppManager.refresh_apps()
+AppManager.restart_launcher()
+`)
+                } catch {
+                    // non-MPOS device or missing AppManager
+                }
+
+                await refreshTreeVia(raw)
+                useAppsStore.getState().setApps(await scanAppsVia(raw))
+                useAppsStore.getState().setSelected(null)
+                return true
+            })
+            return result === true
+        },
+    )
+
+    if (ok) {
+        useEditorTabsStore.getState().closeByPath(app.path, true)
+        toast.success(t('apps.deleted', 'Deleted {{app}}', { app: app.name || app.fullname }))
+    }
+    return ok
 }
 
 /* ------------------------------------------------------------------ */

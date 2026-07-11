@@ -15,6 +15,7 @@ import {
     Plus,
     RefreshCw,
     Rocket,
+    Trash2,
     TriangleAlert,
     Upload,
     X,
@@ -23,7 +24,7 @@ import { useAppsStore, type AppInfo } from '../../stores/apps'
 import { useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { sizeFmt } from '../../domain/utils'
-import { refreshApps, launchApp, openAppFile, listDirectory } from '../../services/apps.service'
+import { refreshApps, launchApp, openAppFile, listDirectory, deleteApp } from '../../services/apps.service'
 import { createItem, removeItem } from '../../services/files.service'
 import { uploadFilesToPaths } from '../../services/device.service'
 import { useConfirm, usePrompt, useOpenDialog, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
@@ -324,6 +325,7 @@ function AppDetail({ app }: { app: AppInfo }) {
     const uploadInputRef = useRef<HTMLInputElement>(null)
     const [rootEntries, setRootEntries] = useState<DeviceEntry[] | null>(null)
     const [loading, setLoading] = useState(false)
+    const [deleting, setDeleting] = useState(false)
     const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
     const [folderChildren, setFolderChildren] = useState<Record<string, DeviceEntry[]>>({})
     const [loadingFolders, setLoadingFolders] = useState<Set<string>>(new Set())
@@ -384,6 +386,15 @@ function AppDetail({ app }: { app: AppInfo }) {
         const paths = files.map((f) => `${base}${f.name.replace(/[\\/]+/g, '')}`)
         await uploadFilesToPaths(files, paths)
         await reload()
+    }
+
+    const removeApp = async () => {
+        setDeleting(true)
+        try {
+            await deleteApp(app, prompt)
+        } finally {
+            setDeleting(false)
+        }
     }
 
     const toggleFolder = (path: string) => {
@@ -528,10 +539,24 @@ function AppDetail({ app }: { app: AppInfo }) {
                         {app.version ? ` · ${app.version}` : ''}
                     </span>
                 </span>
+                <button
+                    type="button"
+                    disabled={deleting || launching}
+                    aria-label={t('apps.delete-app', 'Delete app')}
+                    className="group/icon relative shrink-0 p-1 text-icon-error opacity-80 hover:opacity-100 disabled:opacity-40"
+                    onClick={() => void removeApp()}
+                >
+                    {deleting ? (
+                        <Loader2 size={16} className="animate-spin" aria-hidden />
+                    ) : (
+                        <Trash2 size={16} aria-hidden />
+                    )}
+                    <span aria-hidden className={iconHintClass}>{t('apps.delete-app', 'Delete app')}</span>
+                </button>
                 {!app.broken && (
                     <button
                         type="button"
-                        disabled={launching}
+                        disabled={launching || deleting}
                         aria-label={t('apps.launch', 'Launch {{app}}', { app: app.name })}
                         className="group/icon relative shrink-0 p-1 text-icon-success opacity-80 hover:opacity-100 disabled:opacity-40"
                         onClick={() => void launchApp(app.fullname)}
