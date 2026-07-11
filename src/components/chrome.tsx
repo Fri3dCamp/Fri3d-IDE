@@ -31,10 +31,23 @@ export function LoaderStack() {
             {loaders.map((l) => (
                 <div
                     key={l.id}
-                    className="flex items-center gap-2 border-2 border-black bg-menu px-3 py-2 text-sm shadow-brutal"
+                    className="min-w-64 border-2 border-black bg-menu px-3 py-2 text-sm shadow-brutal"
                 >
-                    <Loader2 size={14} className="animate-spin" aria-hidden />
-                    {l.message}
+                    <div className="flex items-center gap-2">
+                        <Loader2 size={14} className="animate-spin" aria-hidden />
+                        <span className="min-w-0 flex-1 truncate">{l.message}</span>
+                        {l.progress !== undefined && (
+                            <span className="shrink-0 text-xs opacity-70">{Math.round(l.progress * 100)}%</span>
+                        )}
+                    </div>
+                    {l.progress !== undefined && (
+                        <div className="mt-1 h-1.5 border border-black/30 bg-black/10">
+                            <div
+                                className="h-full bg-accent transition-[width] duration-150"
+                                style={{ width: `${Math.max(0, Math.min(100, l.progress * 100))}%` }}
+                            />
+                        </div>
+                    )}
                 </div>
             ))}
         </div>

@@ -127,7 +127,13 @@ with open('${fn}','rb') as f:
         }
     }
 
-    async writeFile(fn: string, data: any, chunk_size=128, direct=false) {
+    async writeFile(
+        fn: string,
+        data: any,
+        chunk_size=128,
+        direct=false,
+        onProgress?: (sentBytes: number, totalBytes: number) => void,
+    ) {
         console.log(`Writing ${fn}`)
         if (typeof data === 'string' || data instanceof String) {
             const encoder = new (TextEncoder as any)('utf-8')
@@ -168,6 +174,9 @@ w=lambda d: f.write(h(d))
 o=f.write
 `)
 
+        const totalBytes = data.byteLength ?? 0
+        onProgress?.(0, totalBytes)
+
         // Split into chunks and send
         for (let i = 0; i < data.byteLength; i += chunk_size) {
             const chunk = data.slice(i, i + chunk_size)
@@ -179,6 +188,8 @@ o=f.write
             } else {
                 await this.exec(cmdRepr)
             }
+            const sent = Math.min(totalBytes, i + chunk.length)
+            onProgress?.(sent, totalBytes)
         }
         if (direct) {
             await this.exec(`f.close()`)

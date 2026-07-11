@@ -126,7 +126,19 @@ async function loadPkgInfo(url: string, { base=null, version=null }: any = {}): 
     }
 }
 
-export async function rawInstallPkg(raw: any, name: string, { dev=null, version=null, index=null, pkg_info=null, pkg_json=null, prefer_source=false }: any = {}) {
+export async function rawInstallPkg(
+    raw: any,
+    name: string,
+    {
+        dev=null,
+        version=null,
+        index=null,
+        pkg_info=null,
+        pkg_json=null,
+        prefer_source=false,
+        onProgress,
+    }: any = {},
+) {
     // Find the first `lib` folder in sys.path
     const lib_path = dev.sys_path.find((x: string) => x.endsWith('/lib'))
     if (!lib_path) {
@@ -172,6 +184,19 @@ export async function rawInstallPkg(raw: any, name: string, { dev=null, version=
     if (!pkg_info.name) {
         pkg_info.name = name
     }
+
+    const pkgLabel = pkg_info.name || name
+    const fileCount = (pkg_info.hashes?.length ?? 0) + (pkg_info.urls?.length ?? 0)
+    const depCount = pkg_info.deps?.length ?? 0
+    const totalUnits = Math.max(1, fileCount + depCount)
+    let unitsDone = 0
+    const emit = (message?: string, unitProgress=0) => {
+        if (!onProgress) return
+        const progress = Math.max(0, Math.min(1, (unitsDone + unitProgress) / totalUnits))
+        onProgress({ message, progress })
+    }
+
+    emit(`Resolving ${pkgLabel}…`, 0)
 
     if ('hashes' in pkg_info) {
         for (let [fn, hash, ..._] of pkg_info.hashes) {

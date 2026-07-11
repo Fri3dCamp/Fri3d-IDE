@@ -1,8 +1,14 @@
 import { create } from 'zustand'
 
+export interface LoaderUpdate {
+    message?: string
+    /** 0..1 */
+    progress?: number
+}
+
 export interface LoaderHandle {
     id: number
-    update(message: string): void
+    update(input: string | LoaderUpdate): void
     hide(): void
 }
 
@@ -16,7 +22,7 @@ interface UiStore {
     terminalTab: 'terminal' | 'display'
     displayTabVisible: boolean
     terminalHeight: number
-    loaders: Array<{ id: number; message: string }>
+    loaders: Array<{ id: number; message: string; progress?: number }>
     isRunning: boolean
     offline: boolean
 
@@ -67,9 +73,16 @@ export const useUiStore = create<UiStore>((set, get) => ({
         set((s) => ({ loaders: [...s.loaders, { id, message }] }))
         return {
             id,
-            update: (msg) =>
+            update: (input) =>
                 set((s) => ({
-                    loaders: s.loaders.map((l) => (l.id === id ? { ...l, message: msg } : l)),
+                    loaders: s.loaders.map((l) => {
+                        if (l.id !== id) return l
+                        if (typeof input === 'string') return { ...l, message: input }
+                        const next = { ...l }
+                        if (input.message !== undefined) next.message = input.message
+                        if (input.progress !== undefined) next.progress = Math.max(0, Math.min(1, input.progress))
+                        return next
+                    }),
                 })),
             hide: () => set((s) => ({ loaders: s.loaders.filter((l) => l.id !== id) })),
         }

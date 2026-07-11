@@ -18,35 +18,42 @@ const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
  * Docs: https://docs.micropythonos.com/apps/creating-apps/
  */
 
-/** One-command scan: list /apps folders + dump each MANIFEST.JSON. */
-async function scanAppsVia(raw: MpRawMode): Promise<AppInfo[]> {
-    // Emits one line per app: <fullname>\t<manifest-json-or-empty>
-    const rsp = await raw.exec(`
-import os,json
-try:
- for n in os.listdir('/apps'):
-  p='/apps/'+n
-  try:
-   if os.stat(p)[0] & 0x4000:
-    try:
-     with open(p+'/MANIFEST.JSON') as f: m=f.read().replace('\\n','').replace('\\t','')
-    except: m=''
-    print(n+'\\t'+m)
-  except: pass
-except OSError: pass
-`)
+/** Scan /apps and parse each MANIFEST.JSON with optional progress callback. */
+async function scanAppsVia(
+    raw: MpRawMode,
+    onProgress?: (done: number, total: number, currentAppId?: string) => void,
+): Promise<AppInfo[]> {
+    let entries: Array<{ name: string; path: string; content: unknown[] } | { name: string; path: string; size: number }> = []
+    try {
+        entries = (await raw.listDir('/apps')) as typeof entries
+    } catch {
+        return []
+    }
+
+    const appDirs = entries
+        .filter((e): e is { name: string; path: string; content: unknown[] } => 'content' in e)
+        .map((e) => e.name)
+        .sort((a, b) => a.localeCompare(b))
+
+    const total = appDirs.length
+    onProgress?.(0, total)
+
     const apps: AppInfo[] = []
-    for (const line of rsp.split('\n')) {
-        if (!line.trim()) continue
-        const idx = line.indexOf('\t')
-        if (idx < 0) continue
-        const fullname = line.slice(0, idx).trim()
-        const rawManifest = line.slice(idx + 1).trim()
+    for (let i = 0; i < appDirs.length; i++) {
+        const fullname = appDirs[i]
         const path = `/apps/${fullname}`
-        if (!rawManifest) {
+        onProgress?.(i, total, fullname)
+
+        let rawManifest = ''
+        try {
+            const bytes = await raw.readFile(`${path}/MANIFEST.JSON`)
+            rawManifest = new TextDecoder().decode(bytes)
+        } catch {
             apps.push({ fullname, name: fullname, version: '', activities: [], path, broken: true })
+            onProgress?.(i + 1, total, fullname)
             continue
         }
+
         try {
             const m = JSON.parse(rawManifest)
             apps.push({
@@ -62,7 +69,10 @@ except OSError: pass
         } catch {
             apps.push({ fullname, name: fullname, version: '', activities: [], path, broken: true })
         }
+
+        onProgress?.(i + 1, total, fullname)
     }
+
     apps.sort((a, b) => a.name.localeCompare(b.name))
     return apps
 }
@@ -74,8 +84,24 @@ export async function refreshApps(): Promise<void> {
     if (store.scanning) return
     store.setScanning(true)
     try {
-        await withRawMode(async (raw) => {
-            useAppsStore.getState().setApps(await scanAppsVia(raw))
+        await withLoader(t('apps.scanning', 'Scanning apps…'), async (loader) => {
+            await withRawMode(async (raw) => {
+                const apps = await scanAppsVia(raw, (done, total, currentAppId) => {
+                    loader.update({
+                        message:
+                            total > 0
+                                ? t('apps.scanning-progress', 'Scanning apps ({{done}}/{{total}})… {{app}}', {
+                                      done,
+                                      total,
+                                      app: currentAppId ?? '',
+                                  }).trim()
+                                : t('apps.scanning', 'Scanning apps…'),
+                        progress: total > 0 ? done / total : 1,
+                    })
+                })
+                loader.update({ progress: 1 })
+                useAppsStore.getState().setApps(apps)
+            })
         })
     } catch (err) {
         console.warn('app scan failed:', err)
@@ -469,7 +495,7 @@ export async function installMpk(
     const appRoot = mpk.location
     const ok = await withLoader(
         t('apps.installing', 'Installing {{app}}…', { app: mpk.appName || mpk.appId }),
-        async () => {
+        async (loader) => {
             const result = await withRawMode(async (raw) => {
                 const exists = (
                     await raw.exec(`
@@ -516,9 +542,27 @@ _rm('${appRoot}')
                 for (const dir of mpk.directories) {
                     await raw.makePath(dir)
                 }
-                for (const f of mpk.files) {
-                    await raw.writeFile(f.devicePath, f.bytes)
+
+                const totalBytes = mpk.files.reduce((acc, f) => acc + f.bytes.length, 0)
+                let writtenBytes = 0
+                for (let i = 0; i < mpk.files.length; i++) {
+                    const f = mpk.files[i]
+                    const base = writtenBytes
+                    loader.update({
+                        message: t('apps.installing-file', 'Installing {{name}} ({{index}}/{{total}})…', {
+                            name: f.devicePath,
+                            index: i + 1,
+                            total: mpk.files.length,
+                        }),
+                        progress: totalBytes > 0 ? base / totalBytes : 0,
+                    })
+                    await raw.writeFile(f.devicePath, f.bytes, 128, false, (sent, total) => {
+                        const current = base + (total > 0 ? sent : f.bytes.length)
+                        loader.update({ progress: totalBytes > 0 ? current / totalBytes : 0 })
+                    })
+                    writtenBytes += f.bytes.length
                 }
+                loader.update({ progress: 1 })
 
                 try {
                     await raw.exec(`

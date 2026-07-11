@@ -469,9 +469,12 @@ export async function saveCurrentFile(ui: ConnectUi): Promise<void> {
             if (backtrace) toast.warning(backtrace.type, { description: backtrace.summary })
         }
 
-        loader.update(t('files.saving', 'Saving {{fn}}…', { fn }))
+        loader.update({ message: t('files.saving', 'Saving {{fn}}…', { fn }), progress: 0 })
         await withRawMode(async (raw) => {
-            await raw.writeFile(fn, content)
+            await raw.writeFile(fn, content, 128, false, (sent, total) => {
+                loader.update({ progress: total > 0 ? sent / total : 1 })
+            })
+            loader.update({ progress: 1 })
             await refreshTreeVia(raw)
         })
 
@@ -491,6 +494,9 @@ export async function uploadFilesToPaths(files: File[], paths: string[]): Promis
     const { port } = useConnectionStore.getState()
     if (!port || !files.length) return
 
+    const totalBytes = files.reduce((acc, f) => acc + f.size, 0)
+    let uploadedBytes = 0
+
     await withLoader(
         t('files.uploading-many', 'Uploading {{n}} files…', { n: files.length }),
         async (loader) => {
@@ -499,15 +505,30 @@ export async function uploadFilesToPaths(files: File[], paths: string[]): Promis
                     const target = paths[i]
                     const [dirname] = splitPath(target)
                     if (dirname && dirname !== '/') await raw.makePath(dirname)
-                    loader.update(
-                        t('files.uploading-one', 'Uploading {{name}} ({{index}}/{{total}})…', {
+
+                    const fileBytes = new Uint8Array(await files[i].arrayBuffer())
+                    const baseUploaded = uploadedBytes
+
+                    loader.update({
+                        message: t('files.uploading-one', 'Uploading {{name}} ({{index}}/{{total}})…', {
                             name: target,
                             index: i + 1,
                             total: files.length,
                         }),
-                    )
-                    await raw.writeFile(target, new Uint8Array(await files[i].arrayBuffer()))
+                        progress: totalBytes > 0 ? baseUploaded / totalBytes : 0,
+                    })
+
+                    await raw.writeFile(target, fileBytes, 128, false, (sent, total) => {
+                        const current = baseUploaded + (total > 0 ? sent : fileBytes.length)
+                        loader.update({
+                            progress: totalBytes > 0 ? current / totalBytes : 0,
+                        })
+                    })
+
+                    uploadedBytes += fileBytes.length
                 }
+
+                loader.update({ progress: 1 })
                 await refreshTreeVia(raw)
             })
         },

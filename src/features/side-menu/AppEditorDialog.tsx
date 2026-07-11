@@ -61,6 +61,7 @@ function AppEditorDialog({ app, close }: { app: AppInfo; close: (r: boolean | nu
     const { t } = useTranslation()
     const launching = useAppsStore((s) => s.launching !== null)
     const [loading, setLoading] = useState(true)
+    const [readProgress, setReadProgress] = useState(0)
     const [saving, setSaving] = useState(false)
     const [iconDataUrl, setIconDataUrl] = useState<string | null>(null)
     const [iconBytes, setIconBytes] = useState<Uint8Array | undefined>(undefined)
@@ -79,6 +80,7 @@ function AppEditorDialog({ app, close }: { app: AppInfo; close: (r: boolean | nu
     useEffect(() => {
         let cancelled = false
         void (async () => {
+            setReadProgress(0.05)
             const details = await loadAppDetails(app)
             if (!cancelled && details) {
                 const m = details.manifest
@@ -92,11 +94,13 @@ function AppEditorDialog({ app, close }: { app: AppInfo; close: (r: boolean | nu
                         typeof m.long_description === 'string' ? m.long_description : prev.long_description,
                     category: typeof m.category === 'string' ? m.category : prev.category,
                 }))
+                setReadProgress(0.7)
             }
 
             const icon = await loadAppIconDataUrl(app)
             if (!cancelled) {
                 setIconDataUrl(icon ?? null)
+                setReadProgress(1)
                 setLoading(false)
             }
         })()
@@ -154,9 +158,18 @@ function AppEditorDialog({ app, close }: { app: AppInfo; close: (r: boolean | nu
             <div className="mb-3 truncate font-mono text-xs opacity-50">{app.fullname}</div>
 
             {loading ? (
-                <div className="flex items-center gap-2 py-6 text-sm opacity-70">
-                    <Loader2 size={15} className="animate-spin" aria-hidden />
-                    {t('apps.loading-details', 'Reading app from device…')}
+                <div className="py-6 text-sm opacity-70">
+                    <div className="mb-2 flex items-center gap-2">
+                        <Loader2 size={15} className="animate-spin" aria-hidden />
+                        {t('apps.loading-details', 'Reading app from device…')}
+                        <span className="text-xs">{Math.round(readProgress * 100)}%</span>
+                    </div>
+                    <div className="h-1.5 border border-black/30 bg-black/10">
+                        <div
+                            className="h-full bg-accent transition-[width] duration-150"
+                            style={{ width: `${Math.max(0, Math.min(100, readProgress * 100))}%` }}
+                        />
+                    </div>
                 </div>
             ) : (
                 <>
