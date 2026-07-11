@@ -33,6 +33,8 @@ import { useAppEditorDialog } from './AppEditorDialog'
 import { ConnectDeviceButton } from './FileTree'
 
 const headBtn = 'p-1 opacity-70 hover:opacity-100'
+const iconHintClass =
+    'pointer-events-none absolute right-0 top-full z-20 mt-1 whitespace-nowrap border-2 border-black bg-edit px-2 py-1 text-[11px] font-semibold opacity-0 shadow-brutal invisible transition-opacity duration-100 delay-200 group-hover/icon:visible group-hover/icon:opacity-100 group-focus-visible/icon:visible group-focus-visible/icon:opacity-100'
 
 type DeviceEntry =
     | { name: string; path: string; size: number; isDir: false }
@@ -68,9 +70,8 @@ function AppRow({ app }: { app: AppInfo }) {
                 <button
                     type="button"
                     disabled={anyLaunching}
-                    title={t('apps.launch', 'Launch {{app}}', { app: app.name })}
                     aria-label={t('apps.launch', 'Launch {{app}}', { app: app.name })}
-                    className="invisible shrink-0 p-0.5 text-icon-success opacity-80 hover:opacity-100 group-hover:visible disabled:opacity-40"
+                    className="group/icon invisible relative shrink-0 p-0.5 text-icon-success opacity-80 hover:opacity-100 group-hover:visible disabled:opacity-40"
                     onClick={() => void launchApp(app.fullname)}
                 >
                     {launching ? (
@@ -78,6 +79,7 @@ function AppRow({ app }: { app: AppInfo }) {
                     ) : (
                         <CirclePlay size={14} aria-hidden />
                     )}
+                    <span aria-hidden className={iconHintClass}>{t('apps.launch', 'Launch {{app}}', { app: app.name })}</span>
                 </button>
             )}
         </div>
@@ -100,8 +102,7 @@ function AppList() {
                     </span>
                     <button
                         type="button"
-                        className={`${headBtn} group relative`}
-                        title={t('apps.refresh-list', 'Refresh app list')}
+                        className={`${headBtn} group/icon relative`}
                         aria-label={t('apps.refresh-list', 'Refresh app list')}
                         onClick={() => void refreshApps()}
                     >
@@ -110,9 +111,7 @@ function AppList() {
                         ) : (
                             <RefreshCw size={15} aria-hidden />
                         )}
-                        <span className="pointer-events-none absolute right-0 top-full z-20 mt-1 hidden whitespace-nowrap border-2 border-black bg-edit px-2 py-1 text-[11px] font-semibold shadow-brutal group-hover:block group-focus-visible:block">
-                            {t('apps.refresh-list', 'Refresh app list')}
-                        </span>
+                        <span aria-hidden className={iconHintClass}>{t('apps.refresh-list', 'Refresh app list')}</span>
                     </button>
                 </div>
             </div>
@@ -133,7 +132,6 @@ function AppList() {
                     <button
                         type="button"
                         className="flex w-full items-center justify-center gap-2 border-2 border-black bg-(--fri3d-purple) px-3 py-2 font-semibold text-white shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
-                        title={t('apps.create-title', 'Create New App')}
                         aria-label={t('apps.create-title', 'Create New App')}
                         onClick={() => void createAppDialog()}
                     >
@@ -143,7 +141,6 @@ function AppList() {
                     <button
                         type="button"
                         className="flex w-full items-center justify-center gap-2 border-2 border-black bg-tab-active px-3 py-2 font-semibold text-tab-active-fg shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
-                        title={t('apps.install-mpk-title', 'Install MPK App')}
                         aria-label={t('apps.install-mpk-title', 'Install MPK App')}
                         onClick={() => void installMpkDialog()}
                     >
@@ -246,16 +243,16 @@ function CreateInAppDialog({
                     <code className="truncate text-xs">{currentPath}</code>
                     <button
                         type="button"
-                        className="p-1 opacity-70 hover:opacity-100 disabled:opacity-40"
+                        className="group/icon relative p-1 opacity-70 hover:opacity-100 disabled:opacity-40"
                         disabled={parentFolder(currentPath, appPath) === null}
                         onClick={() => {
                             const up = parentFolder(currentPath, appPath)
                             if (up) setCurrentPath(up)
                         }}
-                        title={t('files.up-folder', 'Up folder')}
                         aria-label={t('files.up-folder', 'Up folder')}
                     >
                         <ArrowUp size={14} aria-hidden />
+                        <span aria-hidden className={iconHintClass}>{t('files.up-folder', 'Up folder')}</span>
                     </button>
                 </div>
                 <div className="max-h-40 overflow-y-auto p-1">
@@ -440,12 +437,12 @@ function AppDetail({ app }: { app: AppInfo }) {
                             </button>
                             <button
                                 type="button"
-                                title={t('files.remove', 'Remove')}
                                 aria-label={t('files.remove', 'Remove')}
-                                className="invisible shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
+                                className="group/icon invisible relative shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
                                 onClick={() => void removeEntry(e)}
                             >
                                 <X size={13} aria-hidden />
+                                <span aria-hidden className={iconHintClass}>{t('files.remove', 'Remove')}</span>
                             </button>
                         </div>
                         {isOpen &&
@@ -494,12 +491,12 @@ function AppDetail({ app }: { app: AppInfo }) {
                     </button>
                     <button
                         type="button"
-                        title={t('files.remove', 'Remove')}
                         aria-label={t('files.remove', 'Remove')}
-                        className="invisible shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
+                        className="group/icon invisible relative shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
                         onClick={() => void removeEntry(e)}
                     >
                         <X size={13} aria-hidden />
+                        <span aria-hidden className={iconHintClass}>{t('files.remove', 'Remove')}</span>
                     </button>
                     <span className="shrink-0 text-xs opacity-50">{sizeFmt(e.size)}</span>
                 </div>
@@ -517,12 +514,12 @@ function AppDetail({ app }: { app: AppInfo }) {
             <div className="flex items-center gap-1 border-b border-black/20 px-1 py-1.5">
                 <button
                     type="button"
-                    className={headBtn}
-                    title={t('apps.back', 'Back to apps')}
+                    className={`${headBtn} group/icon relative`}
                     aria-label={t('apps.back', 'Back to apps')}
                     onClick={() => setSelected(null)}
                 >
                     <ArrowLeft size={15} aria-hidden />
+                    <span aria-hidden className={iconHintClass}>{t('apps.back', 'Back to apps')}</span>
                 </button>
                 <span className="min-w-0 flex-1">
                     <span className="block truncate font-heading text-sm font-bold">{app.name}</span>
@@ -535,9 +532,8 @@ function AppDetail({ app }: { app: AppInfo }) {
                     <button
                         type="button"
                         disabled={launching}
-                        title={t('apps.launch', 'Launch {{app}}', { app: app.name })}
                         aria-label={t('apps.launch', 'Launch {{app}}', { app: app.name })}
-                        className="shrink-0 p-1 text-icon-success opacity-80 hover:opacity-100 disabled:opacity-40"
+                        className="group/icon relative shrink-0 p-1 text-icon-success opacity-80 hover:opacity-100 disabled:opacity-40"
                         onClick={() => void launchApp(app.fullname)}
                     >
                         {launching ? (
@@ -545,6 +541,7 @@ function AppDetail({ app }: { app: AppInfo }) {
                         ) : (
                             <Rocket size={16} aria-hidden />
                         )}
+                        <span aria-hidden className={iconHintClass}>{t('apps.launch', 'Launch {{app}}', { app: app.name })}</span>
                     </button>
                 )}
             </div>
@@ -557,35 +554,34 @@ function AppDetail({ app }: { app: AppInfo }) {
                 <span className="flex items-center">
                     <button
                         type="button"
-                        className={headBtn}
-                        title={t('apps.edit-details', 'Edit app details')}
+                        className={`${headBtn} group/icon relative`}
                         aria-label={t('apps.edit-details', 'Edit app details')}
                         onClick={() => void editDetails(app)}
                     >
                         <Pencil size={14} aria-hidden />
+                        <span aria-hidden className={iconHintClass}>{t('apps.edit-details', 'Edit app details')}</span>
                     </button>
                     <button
                         type="button"
-                        className={headBtn}
-                        title={t('files.create', 'Create')}
+                        className={`${headBtn} group/icon relative`}
                         aria-label={t('files.create', 'Create')}
                         onClick={() => void addFile()}
                     >
                         <Plus size={14} aria-hidden />
+                        <span aria-hidden className={iconHintClass}>{t('files.create', 'Create')}</span>
                     </button>
                     <button
                         type="button"
-                        className={headBtn}
-                        title={t('files.upload', 'Upload')}
+                        className={`${headBtn} group/icon relative`}
                         aria-label={t('files.upload', 'Upload')}
                         onClick={() => uploadInputRef.current?.click()}
                     >
                         <Upload size={14} aria-hidden />
+                        <span aria-hidden className={iconHintClass}>{t('files.upload', 'Upload')}</span>
                     </button>
                     <button
                         type="button"
-                        className={headBtn}
-                        title={t('files.refresh', 'Refresh')}
+                        className={`${headBtn} group/icon relative`}
                         aria-label={t('files.refresh', 'Refresh')}
                         onClick={() => void reload()}
                     >
@@ -594,6 +590,7 @@ function AppDetail({ app }: { app: AppInfo }) {
                         ) : (
                             <RefreshCw size={14} aria-hidden />
                         )}
+                        <span aria-hidden className={iconHintClass}>{t('files.refresh', 'Refresh')}</span>
                     </button>
                     <input
                         ref={uploadInputRef}
