@@ -16,6 +16,7 @@ import {
     RefreshCw,
     Rocket,
     TriangleAlert,
+    Upload,
     X,
 } from 'lucide-react'
 import { useAppsStore, type AppInfo } from '../../stores/apps'
@@ -24,8 +25,10 @@ import { useEditorTabsStore } from '../../stores/editorTabs'
 import { sizeFmt } from '../../domain/utils'
 import { refreshApps, launchApp, openAppFile, listDirectory } from '../../services/apps.service'
 import { createItem, removeItem } from '../../services/files.service'
+import { uploadFilesToPaths } from '../../services/device.service'
 import { useConfirm, usePrompt, useOpenDialog, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
 import { useCreateAppDialog } from './AppBrowser'
+import { useInstallMpkDialog } from './MpkInstallerDialog'
 import { useAppEditorDialog } from './AppEditorDialog'
 import { ConnectDeviceButton } from './FileTree'
 
@@ -86,6 +89,7 @@ function AppList() {
     const apps = useAppsStore((s) => s.apps)
     const scanning = useAppsStore((s) => s.scanning)
     const createAppDialog = useCreateAppDialog()
+    const installMpkDialog = useInstallMpkDialog()
 
     return (
         <>
@@ -96,28 +100,21 @@ function AppList() {
                     </span>
                     <button
                         type="button"
-                        className={headBtn}
-                        title={t('files.refresh', 'Refresh')}
-                        aria-label={t('files.refresh', 'Refresh')}
+                        className={`${headBtn} group relative`}
+                        title={t('apps.refresh-list', 'Refresh app list')}
+                        aria-label={t('apps.refresh-list', 'Refresh app list')}
                         onClick={() => void refreshApps()}
                     >
                         {scanning ? (
-                            <Loader2 size={14} className="animate-spin" aria-hidden />
+                            <Loader2 size={15} className="animate-spin" aria-hidden />
                         ) : (
-                            <RefreshCw size={14} aria-hidden />
+                            <RefreshCw size={15} aria-hidden />
                         )}
+                        <span className="pointer-events-none absolute right-0 top-full z-20 mt-1 hidden whitespace-nowrap border-2 border-black bg-edit px-2 py-1 text-[11px] font-semibold shadow-brutal group-hover:block group-focus-visible:block">
+                            {t('apps.refresh-list', 'Refresh app list')}
+                        </span>
                     </button>
                 </div>
-                <button
-                    type="button"
-                    className="flex w-full items-center justify-center gap-2 border-2 border-black bg-(--fri3d-purple) px-3 py-2 font-semibold text-white shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
-                    title={t('apps.create-title', 'Create New App')}
-                    aria-label={t('apps.create-title', 'Create New App')}
-                    onClick={() => void createAppDialog()}
-                >
-                    <PackagePlus size={16} aria-hidden />
-                    {t('apps.create-title', 'Create New App')}
-                </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto pb-1">
                 {apps?.map((app) => <AppRow key={app.fullname} app={app} />)}
@@ -130,6 +127,30 @@ function AppList() {
                         {t('apps.scanning', 'Scanning apps…')}
                     </div>
                 )}
+            </div>
+            <div className="border-t border-black/20 px-2 py-2">
+                <div className="grid grid-cols-1 gap-2">
+                    <button
+                        type="button"
+                        className="flex w-full items-center justify-center gap-2 border-2 border-black bg-(--fri3d-purple) px-3 py-2 font-semibold text-white shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
+                        title={t('apps.create-title', 'Create New App')}
+                        aria-label={t('apps.create-title', 'Create New App')}
+                        onClick={() => void createAppDialog()}
+                    >
+                        <PackagePlus size={16} aria-hidden />
+                        {t('apps.create-title', 'Create New App')}
+                    </button>
+                    <button
+                        type="button"
+                        className="flex w-full items-center justify-center gap-2 border-2 border-black bg-tab-active px-3 py-2 font-semibold text-tab-active-fg shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
+                        title={t('apps.install-mpk-title', 'Install MPK App')}
+                        aria-label={t('apps.install-mpk-title', 'Install MPK App')}
+                        onClick={() => void installMpkDialog()}
+                    >
+                        <Upload size={16} aria-hidden />
+                        {t('apps.install-mpk', 'Install MPK')}
+                    </button>
+                </div>
             </div>
         </>
     )
@@ -303,6 +324,7 @@ function AppDetail({ app }: { app: AppInfo }) {
     const openTabs = useEditorTabsStore((s) => s.tabs)
     const editDetails = useAppEditorDialog()
 
+    const uploadInputRef = useRef<HTMLInputElement>(null)
     const [rootEntries, setRootEntries] = useState<DeviceEntry[] | null>(null)
     const [loading, setLoading] = useState(false)
     const [openFolders, setOpenFolders] = useState<Set<string>>(new Set())
@@ -355,6 +377,15 @@ function AppDetail({ app }: { app: AppInfo }) {
 
     const removeEntry = async (e: DeviceEntry) => {
         await removeItem({ confirm, prompt }, e.path, e.isDir)
+        await reload()
+    }
+
+    const uploadToSelectedFolder = async (list: FileList | null) => {
+        if (!list || list.length === 0) return
+        const files = Array.from(list)
+        const base = selectedFolderPath === '/' ? '/' : `${selectedFolderPath.replace(/\/+$/, '')}/`
+        const paths = files.map((f) => `${base}${f.name.replace(/[\\/]+/g, '')}`)
+        await uploadFilesToPaths(files, paths)
         await reload()
     }
 
@@ -518,7 +549,7 @@ function AppDetail({ app }: { app: AppInfo }) {
                 )}
             </div>
 
-            {/* Toolbar: edit details, add file, refresh */}
+            {/* Toolbar: edit details, add file/folder, upload, refresh */}
             <div className="flex items-center justify-between px-2 py-1">
                 <span className="text-xs font-semibold uppercase tracking-wide opacity-70">
                     {t('apps.files', 'Files')}
@@ -545,6 +576,15 @@ function AppDetail({ app }: { app: AppInfo }) {
                     <button
                         type="button"
                         className={headBtn}
+                        title={t('files.upload', 'Upload')}
+                        aria-label={t('files.upload', 'Upload')}
+                        onClick={() => uploadInputRef.current?.click()}
+                    >
+                        <Upload size={14} aria-hidden />
+                    </button>
+                    <button
+                        type="button"
+                        className={headBtn}
                         title={t('files.refresh', 'Refresh')}
                         aria-label={t('files.refresh', 'Refresh')}
                         onClick={() => void reload()}
@@ -555,6 +595,16 @@ function AppDetail({ app }: { app: AppInfo }) {
                             <RefreshCw size={14} aria-hidden />
                         )}
                     </button>
+                    <input
+                        ref={uploadInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                            void uploadToSelectedFolder(e.currentTarget.files)
+                            e.currentTarget.value = ''
+                        }}
+                    />
                 </span>
             </div>
 
@@ -606,6 +656,7 @@ function AppDetail({ app }: { app: AppInfo }) {
 /* ------------------------------------------------------------------ */
 
 export function AppsPanel() {
+    const { t } = useTranslation()
     const connected = useConnectionStore((s) => s.status === 'connected')
     const apps = useAppsStore((s) => s.apps)
     const selected = useAppsStore((s) => s.selected)
@@ -617,8 +668,17 @@ export function AppsPanel() {
 
     if (!connected) {
         return (
-            <div className="min-h-0 flex-1 overflow-y-auto">
-                <ConnectDeviceButton />
+            <div className="flex min-h-0 flex-1 flex-col">
+                <div className="px-2 py-1.5">
+                    <div className="mb-1 flex items-center justify-between">
+                        <span className="font-heading text-sm font-bold uppercase tracking-wide">
+                            {t('apps.title', 'Apps')}
+                        </span>
+                    </div>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                    <ConnectDeviceButton />
+                </div>
             </div>
         )
     }

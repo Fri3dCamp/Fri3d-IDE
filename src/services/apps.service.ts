@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { unzipSync } from 'fflate'
 import { i18next } from '../i18n'
 import { useConnectionStore } from '../stores/connection'
 import { useAppsStore, type AppInfo } from '../stores/apps'
@@ -259,6 +260,221 @@ export async function openAppFile(path: string): Promise<void> {
     await withLoader(t('files.opening', 'Opening {{fn}}…', { fn: path }), () =>
         withRawMode((raw) => openFileContent(raw, path)),
     )
+}
+
+/* ------------------------------------------------------------------ */
+/* MPK install                                                         */
+/* ------------------------------------------------------------------ */
+
+export interface MpkFileEntry {
+    archivePath: string
+    devicePath: string
+    bytes: Uint8Array
+}
+
+export interface MpkInstallPreview {
+    fileName: string
+    appId: string
+    appName: string
+    version: string
+    publisher: string
+    description: string
+    location: string
+    iconDataUrl?: string
+    files: MpkFileEntry[]
+    directories: string[]
+    totalBytes: number
+}
+
+function bytesToDataUrlPng(bytes: Uint8Array): string {
+    let bin = ''
+    for (const b of bytes) bin += String.fromCharCode(b)
+    return `data:image/png;base64,${btoa(bin)}`
+}
+
+function splitTop(path: string): [string, string] {
+    const clean = path.replace(/^\/+/, '')
+    const slash = clean.indexOf('/')
+    return slash < 0 ? [clean, ''] : [clean.slice(0, slash), clean.slice(slash + 1)]
+}
+
+function normalizeZipPath(path: string): string {
+    return path
+        .replaceAll('\\', '/')
+        .replace(/^\.\//, '')
+        .replace(/\/+/g, '/')
+}
+
+function isIgnorableZipEntry(path: string): boolean {
+    if (!path) return true
+    if (path === '__MACOSX' || path.startsWith('__MACOSX/')) return true
+    const base = path.endsWith('/') ? path.slice(0, -1).split('/').pop() ?? '' : path.split('/').pop() ?? ''
+    return base === '.DS_Store' || base.startsWith('._')
+}
+
+/** Parse .mpk (zip) and build install preview/plan. */
+export async function parseMpk(file: File): Promise<MpkInstallPreview> {
+    const buf = new Uint8Array(await file.arrayBuffer())
+    const unzipped = unzipSync(buf)
+    const entries = Object.entries(unzipped)
+        .map(([archivePath, bytes]) => ({ archivePath: normalizeZipPath(archivePath), bytes }))
+        .filter(({ archivePath }) => !isIgnorableZipEntry(archivePath))
+
+    if (entries.length === 0) throw new Error(t('apps.mpk-empty', 'MPK is empty'))
+
+    const topDirs = new Set<string>()
+    for (const { archivePath } of entries) {
+        const [top] = splitTop(archivePath)
+        if (top) topDirs.add(top)
+    }
+    if (topDirs.size !== 1) {
+        throw new Error(
+            t('apps.mpk-layout', 'Invalid MPK layout: archive must contain exactly one top-level app folder'),
+        )
+    }
+
+    const appId = [...topDirs][0]
+    validateAppFullname(appId)
+
+    const files: MpkFileEntry[] = []
+    const dirs = new Set<string>([`/apps/${appId}`])
+    let totalBytes = 0
+
+    for (const { archivePath, bytes } of entries.sort((a, b) => a.archivePath.localeCompare(b.archivePath))) {
+        const [, rest] = splitTop(archivePath)
+        if (!rest) continue
+        const devicePath = `/apps/${appId}/${rest}`.replace(/\/+/g, '/')
+
+        if (archivePath.endsWith('/')) {
+            dirs.add(devicePath.replace(/\/+$/, ''))
+            continue
+        }
+
+        const folder = devicePath.slice(0, devicePath.lastIndexOf('/'))
+        if (folder) dirs.add(folder)
+        files.push({ archivePath, devicePath, bytes })
+        totalBytes += bytes.length
+    }
+
+    const manifestFile = files.find((f) => f.archivePath.toUpperCase() === `${appId}/MANIFEST.JSON`.toUpperCase())
+    if (!manifestFile) throw new Error(t('apps.mpk-manifest-missing', 'MPK missing MANIFEST.JSON'))
+
+    let manifest: Record<string, unknown>
+    try {
+        manifest = JSON.parse(new TextDecoder().decode(manifestFile.bytes))
+    } catch {
+        throw new Error(t('apps.mpk-manifest-invalid', 'MANIFEST.JSON is not valid JSON'))
+    }
+
+    const manifestId = String(manifest.fullname ?? appId)
+    if (manifestId !== appId) {
+        throw new Error(
+            t('apps.mpk-id-mismatch', 'MANIFEST fullname does not match MPK folder name'),
+        )
+    }
+
+    const iconBytes = files.find((f) => f.archivePath.toLowerCase() === `${appId}/icon_64x64.png`.toLowerCase())?.bytes
+
+    return {
+        fileName: file.name,
+        appId,
+        appName: String(manifest.name ?? appId),
+        version: String(manifest.version ?? ''),
+        publisher: String(manifest.publisher ?? ''),
+        description: String(manifest.short_description ?? ''),
+        location: `/apps/${appId}`,
+        iconDataUrl: iconBytes ? bytesToDataUrlPng(iconBytes) : undefined,
+        files,
+        directories: [...dirs].sort((a, b) => a.length - b.length || a.localeCompare(b)),
+        totalBytes,
+    }
+}
+
+/** Install parsed MPK onto board under /apps/<fullname>. */
+export async function installMpk(
+    mpk: MpkInstallPreview,
+    confirmOverwrite: (msg: string) => Promise<boolean>,
+): Promise<boolean> {
+    const { port } = useConnectionStore.getState()
+    if (!port) {
+        toast.info(t('app.connect-first', 'Connect your board first'))
+        return false
+    }
+
+    const appRoot = mpk.location
+    const ok = await withLoader(
+        t('apps.installing', 'Installing {{app}}…', { app: mpk.appName || mpk.appId }),
+        async () => {
+            const result = await withRawMode(async (raw) => {
+                const exists = (
+                    await raw.exec(`
+import os
+try:
+ os.stat('${appRoot}')
+ print('1')
+except:
+ print('0')
+`)
+                )
+                    .trim()
+                    .endsWith('1')
+
+                if (exists) {
+                    const confirmed = await confirmOverwrite(
+                        t('apps.mpk-confirm-overwrite', 'App folder {{path}} exists. Replace with MPK contents?', {
+                            path: appRoot,
+                        }),
+                    )
+                    if (!confirmed) return false
+
+                    await raw.exec(`
+import os
+
+def _rm(p):
+ try:
+  st=os.stat(p)
+ except:
+  return
+ if st[0] & 0x4000:
+  for n in os.listdir(p):
+   _rm(p+'/'+n)
+  try: os.rmdir(p)
+  except: pass
+ else:
+  try: os.remove(p)
+  except: pass
+
+_rm('${appRoot}')
+`)
+                }
+
+                for (const dir of mpk.directories) {
+                    await raw.makePath(dir)
+                }
+                for (const f of mpk.files) {
+                    await raw.writeFile(f.devicePath, f.bytes)
+                }
+
+                try {
+                    await raw.exec(`
+from mpos import AppManager
+AppManager.refresh_apps()
+AppManager.restart_launcher()
+`)
+                } catch {
+                    // non-MPOS device or missing AppManager; files still installed
+                }
+
+                await refreshTreeVia(raw)
+                useAppsStore.getState().setApps(await scanAppsVia(raw))
+                return true
+            })
+            return result === true
+        },
+    )
+
+    if (ok) toast.success(t('apps.installed', 'Installed {{app}}', { app: mpk.appName || mpk.appId }))
+    return ok
 }
 
 /* ------------------------------------------------------------------ */
