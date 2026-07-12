@@ -261,6 +261,12 @@
         },
         "apps": {
             "back": "Terug naar apps",
+            "exporting": "{{app}} exporteren…",
+            "exporting-file": "{{name}} lezen ({{index}}/{{total}})…",
+            "exporting-zip": ".mpk samenstellen…",
+            "exported": "{{app}}.mpk geëxporteerd",
+            "export-empty": "App-map is leeg",
+            "export-mpk": "Exporteren als MPK",
             "confirm-overwrite": "App-map {{path}} bestaat al. Scaffold-bestanden overschrijven?",
             "create": "Maken",
             "create-title": "Nieuwe app maken",

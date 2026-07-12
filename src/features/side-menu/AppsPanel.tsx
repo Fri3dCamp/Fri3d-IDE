@@ -5,6 +5,7 @@ import {
     ArrowUp,
     ChevronRight,
     CirclePlay,
+    Download,
     FileCode2,
     Folder,
     FolderClosed,
@@ -24,7 +25,7 @@ import { useAppsStore, type AppInfo } from '../../stores/apps'
 import { useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { sizeFmt } from '../../domain/utils'
-import { refreshApps, launchApp, openAppFile, listDirectory, deleteApp } from '../../services/apps.service'
+import { refreshApps, launchApp, openAppFile, listDirectory, deleteApp, exportMpk } from '../../services/apps.service'
 import { createItem, removeItem } from '../../services/files.service'
 import { uploadFilesToPaths } from '../../services/device.service'
 import { useConfirm, usePrompt, useOpenDialog, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
@@ -574,6 +575,16 @@ function AppDetail({ app }: { app: AppInfo }) {
                         {app.version ? ` · ${app.version}` : ''}
                     </span>
                 </span>
+                <button
+                    type="button"
+                    disabled={deleting || launching}
+                    aria-label={t('apps.export-mpk', 'Export as MPK')}
+                    className="group/icon relative shrink-0 p-1 opacity-80 hover:opacity-100 disabled:opacity-40"
+                    onClick={() => void exportMpk(app)}
+                >
+                    <Download size={16} aria-hidden />
+                    <span aria-hidden className={iconHintClass}>{t('apps.export-mpk', 'Export as MPK')}</span>
+                </button>
                 <button
                     type="button"
                     disabled={deleting || launching}

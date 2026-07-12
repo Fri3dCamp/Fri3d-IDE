@@ -1,5 +1,5 @@
 import { toast } from 'sonner'
-import { unzipSync } from 'fflate'
+import { unzipSync, zipSync } from 'fflate'
 import { i18next } from '../i18n'
 import { useConnectionStore } from '../stores/connection'
 import { useAppsStore, type AppInfo } from '../stores/apps'
@@ -292,8 +292,76 @@ export async function openAppFile(path: string): Promise<void> {
     )
 }
 
-/** Delete whole app folder recursively, then refresh app registry + file tree. */
-export async function deleteApp(
+/** Recursively collect device file paths under `root` (relative names). */
+async function walkAppFiles(
+    raw: MpRawMode,
+    root: string,
+    rel = '',
+): Promise<Array<{ rel: string; path: string; size: number }>> {
+    const entries = (await raw.listDir(rel ? `${root}/${rel}` : root)) as Array<
+        { name: string; path: string; size: number } | { name: string; path: string; content: unknown[] }
+    >
+    const out: Array<{ rel: string; path: string; size: number }> = []
+    for (const e of entries) {
+        const childRel = rel ? `${rel}/${e.name}` : e.name
+        if ('content' in e) out.push(...(await walkAppFiles(raw, root, childRel)))
+        else out.push({ rel: childRel, path: e.path, size: e.size })
+    }
+    return out
+}
+
+/** Export app folder from device as .mpk (zip with <fullname>/ top-level dir),
+ *  downloaded through the browser. */
+export async function exportMpk(app: AppInfo): Promise<boolean> {
+    const { port } = useConnectionStore.getState()
+    if (!port) {
+        toast.info(t('app.connect-first', 'Connect your board first'))
+        return false
+    }
+
+    const ok = await withLoader(
+        t('apps.exporting', 'Exporting {{app}}…', { app: app.name || app.fullname }),
+        async (loader) => {
+            const zipped = await withRawMode(async (raw) => {
+                const files = await walkAppFiles(raw, app.path)
+                if (files.length === 0) throw new Error(t('apps.export-empty', 'App folder is empty'))
+                const totalBytes = files.reduce((acc, f) => acc + f.size, 0)
+                const tree: Record<string, Uint8Array> = {}
+                let read = 0
+                for (let i = 0; i < files.length; i++) {
+                    const f = files[i]
+                    loader.update({
+                        message: t('apps.exporting-file', 'Reading {{name}} ({{index}}/{{total}})…', {
+                            name: f.rel,
+                            index: i + 1,
+                            total: files.length,
+                        }),
+                        progress: totalBytes > 0 ? read / totalBytes : 0,
+                    })
+                    tree[`${app.fullname}/${f.rel}`] = await raw.readFile(f.path)
+                    read += f.size
+                }
+                loader.update({ message: t('apps.exporting-zip', 'Building .mpk…'), progress: 1 })
+                return zipSync(tree)
+            })
+            if (!zipped) return false
+
+            const blob = new Blob([zipped as BlobPart], { type: 'application/zip' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${app.fullname}.mpk`
+            a.click()
+            setTimeout(() => URL.revokeObjectURL(url), 10000)
+            return true
+        },
+    )
+
+    if (ok) toast.success(t('apps.exported', 'Exported {{app}}.mpk', { app: app.fullname }))
+    return ok === true
+}
+
+/** Delete whole app folder recursively, then refresh app registry + file tree. */export async function deleteApp(
     app: AppInfo,
     prompt: (msg: string, options?: { value?: string; placeholder?: string; password?: boolean }) => Promise<string | null>,
 ): Promise<boolean> {
