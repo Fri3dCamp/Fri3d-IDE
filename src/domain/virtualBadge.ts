@@ -101,26 +101,97 @@ export class VirtualBadgeTransport extends Transport {
             zIndex: '50',
         } as Partial<CSSStyleDeclaration>)
 
-        // Visible handlebar above the badge (iframe swallows pointer events,
-        // so dragging needs an element outside it).
-        const bar = document.createElement('div')
-        bar.title = 'Drag to move'
-        Object.assign(bar.style, {
-            width: '120px',
-            height: '12px',
-            margin: '0 auto 6px',
-            borderRadius: '6px',
-            background: '#5a2d73',
-            border: '2px solid #e8a6a0',
-            boxShadow: '0 2px 8px rgba(0,0,0,.4)',
-            cursor: 'move',
+        // Title bar: full-width drag surface with grip dots + hide/show
+        // toggle. Neubrutalist styling to match the IDE (square corners,
+        // black border, hard shadow, Fri3d purple).
+        const barRow = document.createElement('div')
+        Object.assign(barRow.style, {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            height: '30px',
+            width: '100px',
+            margin: '0 0 8px auto',
+            padding: '0 8px',
+            marginBottom: '8px',
+            background: 'var(--fri3d-purple, #8835c9)',
+            border: '2px solid #000',
+            boxShadow: '4px 4px 0 #000',
+            cursor: 'grab',
+            userSelect: 'none',
+            touchAction: 'none',
+        } as Partial<CSSStyleDeclaration>)
+        barRow.title = 'Drag to move'
+
+        // Grip dots (visual affordance, centered).
+        const grip = document.createElement('div')
+        grip.textContent = '⋮⋮⋮'
+        Object.assign(grip.style, {
+            flex: '1',
+            textAlign: 'center',
+            color: '#fff',
+            font: 'bold 14px/1 system-ui',
+            letterSpacing: '2px',
+            pointerEvents: 'none',
+            opacity: '.9',
+        } as Partial<CSSStyleDeclaration>)
+        barRow.appendChild(grip)
+
+        // Hide/show toggle: collapses the badge to just the bar
+        // (iframe kept alive — the VM keeps running while hidden).
+        const toggle = document.createElement('button')
+        toggle.type = 'button'
+        toggle.textContent = '▾'
+        toggle.title = 'Hide badge'
+        toggle.setAttribute('aria-label', 'Hide badge')
+        Object.assign(toggle.style, {
+            width: '22px',
+            height: '22px',
+            padding: '0',
+            lineHeight: '1',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#000',
+            background: 'var(--fri3d-mint, #3ce8b3)',
+            border: '2px solid #000',
+            cursor: 'pointer',
             userSelect: 'none',
         } as Partial<CSSStyleDeclaration>)
-        container.appendChild(bar)
+        toggle.addEventListener('pointerdown', (e) => e.stopPropagation())
+        let badgeHidden = false
+        toggle.addEventListener('click', () => {
+            badgeHidden = !badgeHidden
+            // Animate collapse/expand: iframe keeps rendering (VM stays
+            // alive), wrapper height+opacity transition does the motion.
+            iframeWrap.style.maxHeight = badgeHidden ? '0px' : `${iframe.offsetHeight}px`
+            iframeWrap.style.opacity = badgeHidden ? '0' : '1'
+            toggle.textContent = badgeHidden ? '▴' : '▾'
+            toggle.title = badgeHidden ? 'Show badge' : 'Hide badge'
+            toggle.setAttribute('aria-label', toggle.title)
+        })
+        barRow.appendChild(toggle)
+        container.appendChild(barRow)
 
-        // Simple drag support.
+        // Drag: whole bar is the handle; capture follows outside the window,
+        // position clamped so the bar can never leave the viewport.
         let drag: { x: number; y: number; r: number; b: number } | null = null
-        bar.addEventListener('pointerdown', (e) => {
+        const onMove = (e: PointerEvent) => {
+            if (!drag) return
+            const w = container.offsetWidth
+            const r = Math.min(Math.max(drag.r - (e.clientX - drag.x), 8 - w + 40), window.innerWidth - 48)
+            const b = Math.min(
+                Math.max(drag.b - (e.clientY - drag.y), 8 - container.offsetHeight + 36),
+                window.innerHeight - 36,
+            )
+            container.style.right = `${r}px`
+            container.style.bottom = `${b}px`
+        }
+        const endDrag = () => {
+            drag = null
+            barRow.style.cursor = 'grab'
+        }
+        barRow.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0) return
             const rect = container.getBoundingClientRect()
             drag = {
                 x: e.clientX,
@@ -128,28 +199,38 @@ export class VirtualBadgeTransport extends Transport {
                 r: window.innerWidth - rect.right,
                 b: window.innerHeight - rect.bottom,
             }
-            bar.setPointerCapture(e.pointerId)
+            barRow.style.cursor = 'grabbing'
+            barRow.setPointerCapture(e.pointerId)
         })
-        bar.addEventListener('pointermove', (e) => {
-            if (!drag) return
-            container.style.right = `${drag.r - (e.clientX - drag.x)}px`
-            container.style.bottom = `${drag.b - (e.clientY - drag.y)}px`
-        })
-        bar.addEventListener('pointerup', () => (drag = null))
+        barRow.addEventListener('pointermove', onMove)
+        barRow.addEventListener('pointerup', endDrag)
+        barRow.addEventListener('pointercancel', endDrag)
+        barRow.addEventListener('lostpointercapture', endDrag)
+
+        const iframeWrap = document.createElement('div')
+        Object.assign(iframeWrap.style, {
+            overflow: 'hidden',
+            maxHeight: '2000px',
+            opacity: '1',
+            transition: 'max-height .25s ease, opacity .2s ease',
+        } as Partial<CSSStyleDeclaration>)
 
         const iframe = document.createElement('iframe')
         iframe.title = 'MicroPythonOS virtual badge'
         iframe.src = this.pageUrl
         iframe.setAttribute('allowtransparency', 'true')
         Object.assign(iframe.style, {
-            width: '640px',
-            height: '360px',
+            // Matches badge size in vbadge/index.html (119x54mm @ --u:6.75px/mm
+            // + 2px border) so the load-time shrink-wrap doesn't visibly jump.
+            width: '808px',
+            height: '369px',
             border: 'none',
             display: 'block',
             background: 'transparent',
             colorScheme: 'normal',
         } as Partial<CSSStyleDeclaration>)
-        container.appendChild(iframe)
+        iframeWrap.appendChild(iframe)
+        container.appendChild(iframeWrap)
 
         document.body.appendChild(container)
         this.container = container

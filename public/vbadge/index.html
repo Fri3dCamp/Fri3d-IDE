@@ -6,96 +6,119 @@
   <meta name="color-scheme" content="only light">
   <title>MicroPythonOS Virtual Badge</title>
   <style>
+    /* ---- Tuning knobs ------------------------------------------------ */
+    /* Layout uses the silkscreen SVG coordinate system (viewBox 119x54 mm).
+       --u = CSS px per mm; element centers below come straight from the SVG.
+       Elements are positioned by --cx/--cy (mm, center point). */
+    :root {
+      --u: 6.75px;             /* px per svg mm -- overall badge size */
+      --joy-size: 14;          /* joystick pad (mm) */
+      --nub-size: 7;           /* joystick nub (mm) */
+      --btn-size: 6.5;         /* X/Y/A/B buttons (mm) */
+      --btn-size-bottom: 5.5;  /* MENU/START buttons (mm) */
+      --led-size: 5.5;         /* NeoPixel square (mm) */
+      --led-pitch: 10.007;     /* LED center-to-center (mm): (79.3-39.271)/4 */
+      --screen-cx: 59.5;       /* screen center (mm) */
+      --screen-cy: 22.5;
+    }
+
     html, body { margin: 0; height: 100%; overflow: hidden;
       display: flex; align-items: flex-start; justify-content: center;
       background: transparent !important; }
 
-    /* Badge body: purple PCB with rounded corners, like the Fri3d 2026 badge. */
+    /* Badge body: fixed 119x54 mm PCB with silkscreen overlay. */
     #badge {
       position: relative;
-      display: grid;
-      grid-template-areas:
-        "joy    screen  pads"
-        "bottom bottom  bottom";
-      grid-template-columns: 120px auto 140px;
-      align-items: center;
-      justify-items: center;
-      gap: 0 8px;
-      padding: 14px 10px 10px;
-      background: #5a2d73;
+      width: calc(var(--u) * 119);
+      height: calc(var(--u) * 54);
+      background: #411657;
       border: 2px solid #e8a6a0;
-      border-radius: 26px;
+      border-radius: calc(var(--u) * 4);
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
     }
+    /* Silkscreen artwork layer: above PCB colour, below screen/controls. */
+    #badge::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('../badge_silkscreen.svg') center / 100% 100% no-repeat;
+      pointer-events: none;
+    }
+    /* Children paint above the silkscreen, centered on SVG mm coords. */
+    #badge > * {
+      position: absolute;
+      z-index: 1;
+      left: calc(var(--u) * var(--cx, 0));
+      top: calc(var(--u) * var(--cy, 0));
+      transform: translate(-50%, -50%);
+    }
 
-    #status { position: absolute; top: 2px; left: 0; right: 0; text-align: center;
-      color: #ffe9ff; font: 11px system-ui; pointer-events: none; }
+    #status { --cx: 59.5; --cy: 2;
+      white-space: nowrap; color: #ffe9ff; font: 11px system-ui; pointer-events: none; }
 
-    #screen { grid-area: screen; display: flex; }
+    /* Screen: top edge flush with badge top, horizontally centered. */
+    #screen { --cx: var(--screen-cx); --cy: 0; display: flex;
+      transform: translate(-50%, 0); }
     canvas { image-rendering: pixelated; background: #000; outline: none;
       border: 4px solid #111; border-radius: 3px;
       touch-action: none; user-select: none; -webkit-user-select: none; }
 
-    /* Joystick (left, grey square pad with round nub). */
-    #joy-wrap { grid-area: joy; }
+    /* Joystick pad centered on its silkscreen footprint. */
+    #joy-wrap { --cx: 16.6; --cy: 27; }
     #joystick {
       position: relative;
-      width: 96px; height: 96px;
-      border-radius: 18px;
+      width: calc(var(--u) * var(--joy-size)); height: calc(var(--u) * var(--joy-size));
+      border-radius: 18%;
       background: #a9a9ad;
       box-shadow: inset 0 2px 6px rgba(255,255,255,.5), inset 0 -3px 6px rgba(0,0,0,.3);
       touch-action: none;
     }
     #joystick-nub {
       position: absolute; left: 50%; top: 50%;
-      width: 44px; height: 44px; margin: -22px 0 0 -22px;
+      width: calc(var(--u) * var(--nub-size)); height: calc(var(--u) * var(--nub-size));
+      margin: calc(var(--u) * var(--nub-size) / -2) 0 0 calc(var(--u) * var(--nub-size) / -2);
       border-radius: 50%;
       background: #8f8f94;
       border: 2px solid #77777c;
       cursor: grab;
     }
 
-    /* X/Y/A/B diamond (right): magenta keycaps with blue bezel, gold labels. */
-    #buttons {
-      grid-area: pads;
-      display: grid;
-      grid-template-areas:
-        ".  x  ."
-        "y  .  a"
-        ".  b  .";
-      gap: 6px;
-    }
+    /* Buttons: black keycaps centered on silkscreen positions. */
     .pad-button {
-      position: relative;
-      width: 42px; height: 42px;
-      border-radius: 12px;
+      width: calc(var(--u) * var(--btn-size)); height: calc(var(--u) * var(--btn-size));
+      border-radius: 25%;
       background: #111;
       border: 3px solid #333;
       cursor: pointer;
       touch-action: none;
       box-shadow: 0 2px 0 rgba(0,0,0,.35);
-    }
-    .pad-button {
       color: #d4a017; font: bold 13px system-ui;
     }
     .pad-button:active, .pad-button.pressed {
       background: #2a2a2a;
       box-shadow: 0 0 8px 2px rgba(255, 255, 255, .25);
-      transform: translateY(1px);
     }
+    .pad-button[data-button="x"] { --cx: 105.1; --cy: 17.5; }
+    .pad-button[data-button="b"] { --cx: 105.1; --cy: 38.2; }
+    .pad-button[data-button="y"] { --cx: 95.7;  --cy: 27.7; }
+    .pad-button[data-button="a"] { --cx: 114;   --cy: 27.7; }
+    .pad-button[data-button="menu"], .pad-button[data-button="start"] {
+      width: calc(var(--u) * var(--btn-size-bottom)); height: calc(var(--u) * var(--btn-size-bottom));
+    }
+    .pad-button[data-button="menu"]  { --cx: 46;   --cy: 49.5; }
+    .pad-button[data-button="start"] { --cx: 72.8; --cy: 49.5; }
 
-    /* Bottom row: MENU — 5 NeoPixels — START, like the physical badge. */
-    #bottom {
-      grid-area: bottom;
-      display: flex; align-items: center; gap: 14px;
-      margin-top: 10px;
+    /* NeoPixels: LED1..LED5 centers from (39.271, 43.2) to (79.3, 43.2). */
+    #leds {
+      --cx: 59.2855; /* midpoint of LED1..LED5 */
+      --cy: 43.2;
+      display: flex;
+      gap: calc(var(--u) * (var(--led-pitch) - var(--led-size)));
     }
-    #bottom .pad-button { width: 36px; height: 36px; }
-    #leds { display: flex; gap: 16px; }
     .led {
-      width: 18px; height: 18px;
+      width: calc(var(--u) * var(--led-size)); height: calc(var(--u) * var(--led-size));
       border-radius: 3px;
       background: #ddd;
       border: 1px solid #bbb;
@@ -113,17 +136,13 @@
       <canvas id="canvas" width="320" height="240" tabindex="0"
               oncontextmenu="event.preventDefault()"></canvas>
     </div>
-    <div id="buttons">
-      <button class="pad-button" data-button="x" data-label="X" style="grid-area: x" type="button">X</button>
-      <button class="pad-button" data-button="y" data-label="Y" style="grid-area: y" type="button">Y</button>
-      <button class="pad-button" data-button="a" data-label="A" style="grid-area: a" type="button">A</button>
-      <button class="pad-button" data-button="b" data-label="B" style="grid-area: b" type="button">B</button>
-    </div>
-    <div id="bottom">
-      <button class="pad-button" data-button="menu" data-label="M" type="button">M</button>
-      <div id="leds"></div>
-      <button class="pad-button" data-button="start" data-label="S" type="button">S</button>
-    </div>
+    <button class="pad-button" data-button="x" type="button">X</button>
+    <button class="pad-button" data-button="y" type="button">Y</button>
+    <button class="pad-button" data-button="a" type="button">A</button>
+    <button class="pad-button" data-button="b" type="button">B</button>
+    <button class="pad-button" data-button="menu" type="button">M</button>
+    <button class="pad-button" data-button="start" type="button">S</button>
+    <div id="leds"></div>
   </div>
   <script>
     var canvas = document.getElementById('canvas');
