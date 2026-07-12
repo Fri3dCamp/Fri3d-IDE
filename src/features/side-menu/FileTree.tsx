@@ -13,6 +13,7 @@ import {
     FolderOpen,
     Link,
     Loader2,
+    MonitorSmartphone,
     Plus,
     X,
 } from 'lucide-react'
@@ -20,7 +21,9 @@ import { useFileStore, isFolder, type FsNode } from '../../stores/files'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useSettingsStore } from '../../stores/settings'
 import { sizeFmt } from '../../domain/utils'
-import { openFile, createItem, removeItem, loadFolder } from '../../services/files.service'
+import { openFile, createItem, removeItem, loadFolder, refreshFileTree } from '../../services/files.service'
+import { uploadFilesToPaths } from '../../services/device.service'
+import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
 import { connectDevice } from '../../services/device.service'
 import { useConnectionStore, type TransportType } from '../../stores/connection'
 import { useConfirm, usePrompt, useCreateItemDialog } from '../../components/dialogs'
@@ -53,6 +56,13 @@ const rowClass =
 const actionClass =
     'invisible shrink-0 rounded-none p-0.5 opacity-70 hover:opacity-100 group-hover:visible'
 
+/** Upload dropped files into `dir` on the device, then refresh that folder. */
+async function uploadDroppedFiles(files: File[], dir: string): Promise<void> {
+    await uploadFilesToPaths(files, dropTargetPaths(files, dir))
+    if (dir === '/') await refreshFileTree()
+    else await loadFolder(dir)
+}
+
 function FolderRow({ node, depth }: { node: Extract<FsNode, { content: FsNode[] }>; depth: number }) {
     const { t } = useTranslation()
     const confirm = useConfirm()
@@ -61,6 +71,7 @@ function FolderRow({ node, depth }: { node: Extract<FsNode, { content: FsNode[] 
     const open = useFileStore((s) => s.openFolders.has(node.path))
     const toggle = useFileStore((s) => s.toggleFolder)
     const childrenLoading = useFileStore((s) => s.loadingFolders.has(node.path))
+    const [dropOver, dropProps] = useFolderDropTarget(node.path, uploadDroppedFiles)
 
     const onToggle = () => {
         toggle(node.path)
@@ -70,7 +81,11 @@ function FolderRow({ node, depth }: { node: Extract<FsNode, { content: FsNode[] 
 
     return (
         <>
-            <div className={rowClass} style={{ paddingInlineStart: `${depth * 14}px` }}>
+            <div
+                className={`${rowClass} ${dropOver ? dropHighlightClass : ''}`}
+                style={{ paddingInlineStart: `${depth * 14}px` }}
+                {...dropProps}
+            >
                 <button
                     type="button"
                     className="flex min-w-0 flex-1 items-center gap-1.5"
@@ -191,6 +206,7 @@ export function ConnectDeviceButton() {
     const prompt = usePrompt()
     const status = useConnectionStore((s) => s.status)
     const advancedMode = useSettingsStore((s) => s.advancedMode)
+    const virtualBadge = useSettingsStore((s) => s.virtualBadge)
     const connecting = status === 'connecting'
 
     const connect = (type: TransportType) => void connectDevice(type, { confirm, prompt })
@@ -225,6 +241,12 @@ export function ConnectDeviceButton() {
                         <Link size={15} aria-hidden />
                         {t('tool.conn.ws', 'Connect WebREPL')}
                     </button>
+                    {virtualBadge && (
+                        <button type="button" disabled={connecting} onClick={() => connect('vm')} className={secondaryClass}>
+                            <MonitorSmartphone size={15} aria-hidden />
+                            {t('tool.conn.vm', 'Connect to virtual badge')}
+                        </button>
+                    )}
                 </>
             )}
         </div>
@@ -237,6 +259,7 @@ export function FileTree() {
     const tree = useFileStore((s) => s.tree)
     const loading = useFileStore((s) => s.loading)
     const connected = useConnectionStore((s) => s.status === 'connected')
+    const [rootDropOver, rootDropProps] = useFolderDropTarget('/', uploadDroppedFiles)
 
     if (!connected) {
         return (
@@ -247,14 +270,19 @@ export function FileTree() {
     }
 
     return (
-        <div className="min-h-0 flex-1 overflow-y-auto" role="tree" aria-label={t('menu.file-mgr', 'File Manager')}>
+        <div
+            className="min-h-0 flex-1 overflow-y-auto"
+            role="tree"
+            aria-label={t('menu.file-mgr', 'File Manager')}
+            {...rootDropProps}
+        >
             {loading && (
                 <div className="flex items-center gap-2 px-2 py-1 text-sm opacity-80">
                     <Loader2 size={14} className="animate-spin" aria-hidden />
                     {loading}
                 </div>
             )}
-            <div className={rowClass}>
+            <div className={`${rowClass} ${rootDropOver ? dropHighlightClass : ''}`}>
                 <span className="flex min-w-0 flex-1 items-center gap-1.5">
                     <FolderClosed size={14} className="shrink-0 opacity-80" aria-hidden />
                     <span>/</span>

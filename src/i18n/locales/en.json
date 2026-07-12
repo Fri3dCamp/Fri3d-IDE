@@ -85,6 +85,8 @@
             "folder-empty": "Folder is empty",
             "target-folder": "Create target",
             "upload-destination": "Destination folder",
+            "drop-upload-title": "Upload dropped files?",
+            "drop-upload-confirm": "Upload {{n}} file(s) to {{dir}}?",
             "upload-title-simple": "Upload files",
             "upload-drop": "Drop files here or click to browse",
             "upload-targets": "Target files",
@@ -115,7 +117,8 @@
             "vbadge-reset-confirm": "Erase the virtual badge storage? All files and installed apps on the virtual device will be lost.",
             "vbadge-reset-done": "Virtual badge storage erased",
             "vbadge-reset-failed": "Reset failed",
-            "vbadge-disconnect-first": "Disconnect the virtual badge first"
+            "vbadge-disconnect-first": "Disconnect the virtual badge first",
+            "virtual-badge-enable": "Enable virtual badge"
         },
         "about": {
             "cta": "If you like Fri3d-IDE, please give it a GitHub star ⭐ and spread the word on social media 📢",

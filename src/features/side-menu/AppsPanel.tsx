@@ -28,6 +28,7 @@ import { refreshApps, launchApp, openAppFile, listDirectory, deleteApp } from '.
 import { createItem, removeItem } from '../../services/files.service'
 import { uploadFilesToPaths } from '../../services/device.service'
 import { useConfirm, usePrompt, useOpenDialog, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
+import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
 import { useCreateAppDialog } from './AppBrowser'
 import { useInstallMpkDialog } from './MpkInstallerDialog'
 import { useAppEditorDialog } from './AppEditorDialog'
@@ -310,6 +311,31 @@ function useCreateInAppDialog(): (appPath: string) => Promise<CreateInAppResult 
 }
 
 /* ------------------------------------------------------------------ */
+/* Drop-target wrapper for app folder rows                             */
+/* ------------------------------------------------------------------ */
+
+function AppDropRow({
+    dir,
+    onUpload,
+    className,
+    style,
+    children,
+}: {
+    dir: string
+    onUpload: (files: File[], dir: string) => Promise<void>
+    className: string
+    style?: React.CSSProperties
+    children: React.ReactNode
+}) {
+    const [over, dropProps] = useFolderDropTarget(dir, onUpload)
+    return (
+        <div className={`${className} ${over ? dropHighlightClass : ''}`} style={style} {...dropProps}>
+            {children}
+        </div>
+    )
+}
+
+/* ------------------------------------------------------------------ */
 /* App detail (inline view: files + tools)                             */
 /* ------------------------------------------------------------------ */
 
@@ -383,11 +409,17 @@ function AppDetail({ app }: { app: AppInfo }) {
     const uploadToSelectedFolder = async (list: FileList | null) => {
         if (!list || list.length === 0) return
         const files = Array.from(list)
-        const base = selectedFolderPath === '/' ? '/' : `${selectedFolderPath.replace(/\/+$/, '')}/`
-        const paths = files.map((f) => `${base}${f.name.replace(/[\\/]+/g, '')}`)
-        await uploadFilesToPaths(files, paths)
+        await uploadFilesToPaths(files, dropTargetPaths(files, selectedFolderPath))
         await reload()
     }
+
+    const uploadDropped = useCallback(
+        async (files: File[], dir: string) => {
+            await uploadFilesToPaths(files, dropTargetPaths(files, dir))
+            await reload()
+        },
+        [reload],
+    )
 
     const removeApp = async () => {
         setDeleting(true)
@@ -420,7 +452,9 @@ function AppDetail({ app }: { app: AppInfo }) {
                 const childLoading = loadingFolders.has(e.path)
                 return (
                     <div key={e.path}>
-                        <div
+                        <AppDropRow
+                            dir={e.path}
+                            onUpload={uploadDropped}
                             className="group flex items-center gap-1.5 px-2 py-0.5 text-sm hover:bg-black/10 dark:hover:bg-white/10"
                             style={{ paddingInlineStart: `${depth * 14}px` }}
                         >
@@ -456,7 +490,7 @@ function AppDetail({ app }: { app: AppInfo }) {
                                 <X size={13} aria-hidden />
                                 <span aria-hidden className={iconHintClass}>{t('files.remove', 'Remove')}</span>
                             </button>
-                        </div>
+                        </AppDropRow>
                         {isOpen &&
                             (children ? (
                                 children.length > 0 ? (
@@ -659,18 +693,24 @@ function AppDetail({ app }: { app: AppInfo }) {
             </div>
 
             {/* Recursive file browser */}
-            <div data-tour-id="tour-app-detail" className="min-h-0 flex-1 overflow-y-auto pb-1" role="tree" aria-label={t('apps.files', 'Files')}>
-                {rootEntries ? renderLevel(rootEntries, 1) : null}
-                {rootEntries !== null && rootEntries.length === 0 && !loading && (
-                    <div className="px-3 py-1 text-sm opacity-60">{t('apps.no-files', 'No files')}</div>
-                )}
-                {rootEntries === null && (
-                    <div className="flex items-center gap-2 px-3 py-1 text-sm opacity-70">
-                        <Loader2 size={14} className="animate-spin" aria-hidden />
-                        {t('apps.loading-details', 'Reading app from device…')}
-                    </div>
-                )}
-            </div>
+            <AppDropRow
+                dir={app.path}
+                onUpload={uploadDropped}
+                className="min-h-0 flex-1 overflow-y-auto pb-1"
+            >
+                <div data-tour-id="tour-app-detail" role="tree" aria-label={t('apps.files', 'Files')}>
+                    {rootEntries ? renderLevel(rootEntries, 1) : null}
+                    {rootEntries !== null && rootEntries.length === 0 && !loading && (
+                        <div className="px-3 py-1 text-sm opacity-60">{t('apps.no-files', 'No files')}</div>
+                    )}
+                    {rootEntries === null && (
+                        <div className="flex items-center gap-2 px-3 py-1 text-sm opacity-70">
+                            <Loader2 size={14} className="animate-spin" aria-hidden />
+                            {t('apps.loading-details', 'Reading app from device…')}
+                        </div>
+                    )}
+                </div>
+            </AppDropRow>
         </>
     )
 }

@@ -79,6 +79,8 @@
             "up-folder": "Map omhoog",
             "upload": "Uploaden",
             "upload-destination": "Doelmap",
+            "drop-upload-title": "Gesleepte bestanden uploaden?",
+            "drop-upload-confirm": "{{n}} bestand(en) uploaden naar {{dir}}?",
             "upload-done": "{{n}} bestand(en) geüpload",
             "upload-drop": "Sleep bestanden hierheen of klik om te bladeren",
             "upload-target-for": "Doelbestandsnaam voor {{name}}",
