@@ -99,17 +99,20 @@ export class VirtualBadgeTransport extends Transport {
             right: '16px',
             bottom: '16px',
             zIndex: '50',
-            border: '2px solid #000',
-            background: '#111',
-            boxShadow: '0 4px 24px rgba(0,0,0,.5)',
         } as Partial<CSSStyleDeclaration>)
 
+        // Visible handlebar above the badge (iframe swallows pointer events,
+        // so dragging needs an element outside it).
         const bar = document.createElement('div')
-        bar.textContent = 'Virtual badge — MicroPythonOS'
+        bar.title = 'Drag to move'
         Object.assign(bar.style, {
-            color: '#9ad',
-            font: '12px system-ui',
-            padding: '4px 8px',
+            width: '120px',
+            height: '12px',
+            margin: '0 auto 6px',
+            borderRadius: '6px',
+            background: '#5a2d73',
+            border: '2px solid #e8a6a0',
+            boxShadow: '0 2px 8px rgba(0,0,0,.4)',
             cursor: 'move',
             userSelect: 'none',
         } as Partial<CSSStyleDeclaration>)
@@ -137,11 +140,14 @@ export class VirtualBadgeTransport extends Transport {
         const iframe = document.createElement('iframe')
         iframe.title = 'MicroPythonOS virtual badge'
         iframe.src = this.pageUrl
+        iframe.setAttribute('allowtransparency', 'true')
         Object.assign(iframe.style, {
-            width: '336px',
-            height: '280px',
+            width: '640px',
+            height: '360px',
             border: 'none',
             display: 'block',
+            background: 'transparent',
+            colorScheme: 'normal',
         } as Partial<CSSStyleDeclaration>)
         container.appendChild(iframe)
 
@@ -150,7 +156,24 @@ export class VirtualBadgeTransport extends Transport {
         this.iframe = iframe
 
         await new Promise<void>((resolve, reject) => {
-            iframe.addEventListener('load', () => resolve(), { once: true })
+            iframe.addEventListener(
+                'load',
+                () => {
+                    // Shrink-wrap the iframe to the badge element (same-origin)
+                    // so no dead transparent area hangs below it.
+                    const badge = iframe.contentDocument?.getElementById('badge')
+                    if (badge) {
+                        const fit = () => {
+                            iframe.style.width = `${badge.offsetWidth + 4}px`
+                            iframe.style.height = `${badge.offsetHeight + 4}px`
+                        }
+                        fit()
+                        new ResizeObserver(fit).observe(badge)
+                    }
+                    resolve()
+                },
+                { once: true },
+            )
             iframe.addEventListener('error', () => reject(new Error('Failed to load virtual badge')), {
                 once: true,
             })

@@ -3,26 +3,235 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="color-scheme" content="only light">
   <title>MicroPythonOS Virtual Badge</title>
   <style>
-    html, body { margin: 0; height: 100%; background: #111; overflow: hidden;
-      display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    html, body { margin: 0; height: 100%; overflow: hidden;
+      display: flex; align-items: flex-start; justify-content: center;
+      background: transparent !important; }
+
+    /* Badge body: purple PCB with rounded corners, like the Fri3d 2026 badge. */
+    #badge {
+      position: relative;
+      display: grid;
+      grid-template-areas:
+        "joy    screen  pads"
+        "bottom bottom  bottom";
+      grid-template-columns: 120px auto 140px;
+      align-items: center;
+      justify-items: center;
+      gap: 0 8px;
+      padding: 14px 10px 10px;
+      background: #5a2d73;
+      border: 2px solid #e8a6a0;
+      border-radius: 26px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    #status { position: absolute; top: 2px; left: 0; right: 0; text-align: center;
+      color: #ffe9ff; font: 11px system-ui; pointer-events: none; }
+
+    #screen { grid-area: screen; display: flex; }
     canvas { image-rendering: pixelated; background: #000; outline: none;
+      border: 4px solid #111; border-radius: 3px;
       touch-action: none; user-select: none; -webkit-user-select: none; }
-    #status { color: #9ad; font: 12px system-ui; min-height: 14px; margin-bottom: 4px; }
+
+    /* Joystick (left, grey square pad with round nub). */
+    #joy-wrap { grid-area: joy; }
+    #joystick {
+      position: relative;
+      width: 96px; height: 96px;
+      border-radius: 18px;
+      background: #a9a9ad;
+      box-shadow: inset 0 2px 6px rgba(255,255,255,.5), inset 0 -3px 6px rgba(0,0,0,.3);
+      touch-action: none;
+    }
+    #joystick-nub {
+      position: absolute; left: 50%; top: 50%;
+      width: 44px; height: 44px; margin: -22px 0 0 -22px;
+      border-radius: 50%;
+      background: #8f8f94;
+      border: 2px solid #77777c;
+      cursor: grab;
+    }
+
+    /* X/Y/A/B diamond (right): magenta keycaps with blue bezel, gold labels. */
+    #buttons {
+      grid-area: pads;
+      display: grid;
+      grid-template-areas:
+        ".  x  ."
+        "y  .  a"
+        ".  b  .";
+      gap: 6px;
+    }
+    .pad-button {
+      position: relative;
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: #111;
+      border: 3px solid #333;
+      cursor: pointer;
+      touch-action: none;
+      box-shadow: 0 2px 0 rgba(0,0,0,.35);
+    }
+    .pad-button {
+      color: #d4a017; font: bold 13px system-ui;
+    }
+    .pad-button:active, .pad-button.pressed {
+      background: #2a2a2a;
+      box-shadow: 0 0 8px 2px rgba(255, 255, 255, .25);
+      transform: translateY(1px);
+    }
+
+    /* Bottom row: MENU — 5 NeoPixels — START, like the physical badge. */
+    #bottom {
+      grid-area: bottom;
+      display: flex; align-items: center; gap: 14px;
+      margin-top: 10px;
+    }
+    #bottom .pad-button { width: 36px; height: 36px; }
+    #leds { display: flex; gap: 16px; }
+    .led {
+      width: 18px; height: 18px;
+      border-radius: 3px;
+      background: #ddd;
+      border: 1px solid #bbb;
+      box-shadow: inset 0 0 4px rgba(0,0,0,.35);
+    }
   </style>
 </head>
 <body>
-  <div id="status">Loading MicroPythonOS…</div>
-  <canvas id="canvas" width="320" height="240" tabindex="0"
-          oncontextmenu="event.preventDefault()"></canvas>
+  <div id="badge">
+    <div id="status">Loading MicroPythonOS…</div>
+    <div id="joy-wrap">
+      <div id="joystick"><div id="joystick-nub"></div></div>
+    </div>
+    <div id="screen">
+      <canvas id="canvas" width="320" height="240" tabindex="0"
+              oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <div id="buttons">
+      <button class="pad-button" data-button="x" data-label="X" style="grid-area: x" type="button">X</button>
+      <button class="pad-button" data-button="y" data-label="Y" style="grid-area: y" type="button">Y</button>
+      <button class="pad-button" data-button="a" data-label="A" style="grid-area: a" type="button">A</button>
+      <button class="pad-button" data-button="b" data-label="B" style="grid-area: b" type="button">B</button>
+    </div>
+    <div id="bottom">
+      <button class="pad-button" data-button="menu" data-label="M" type="button">M</button>
+      <div id="leds"></div>
+      <button class="pad-button" data-button="start" data-label="S" type="button">S</button>
+    </div>
+  </div>
   <script>
     var canvas = document.getElementById('canvas');
     var statusEl = document.getElementById('status');
     console.log('[vbadge iframe] page booted');
 
+    // --- Emulated badge peripherals (_webio bridge) ------------------------
+    // Python side: staged neopixel shim calls _webio.leds_write() ->
+    // Module.__webio.onLeds(Uint8Array of packed RGB); the fake WebExpander
+    // polls Module.__webio.buttons (bitmask, bit positions == Fri3d 2026
+    // expander digital tuple indices) and joy_x/joy_y (0..4095, 2048 center).
+    var webio = { buttons: 0, joy_x: 2048, joy_y: 2048, onLeds: null };
+
+    // NeoPixel dots. LED count adapts to the buffer length on first write.
+    var ledsEl = document.getElementById('leds');
+    for (var _i = 0; _i < 5; _i++) {
+      var _dot = document.createElement('span');
+      _dot.className = 'led';
+      ledsEl.appendChild(_dot);
+    }
+    webio.onLeds = function (rgb) {
+      var n = Math.floor(rgb.length / 3);
+      while (ledsEl.children.length < n) {
+        var dot = document.createElement('span');
+        dot.className = 'led';
+        ledsEl.appendChild(dot);
+      }
+      for (var i = 0; i < n; i++) {
+        var r = rgb[i * 3], g = rgb[i * 3 + 1], b = rgb[i * 3 + 2];
+        var el = ledsEl.children[i];
+        if (r || g || b) {
+          el.style.background = 'rgb(' + r + ',' + g + ',' + b + ')';
+          el.style.boxShadow = '0 0 10px 3px rgba(' + r + ',' + g + ',' + b + ',0.9)';
+        } else {
+          el.style.background = '#ddd';
+          el.style.boxShadow = 'inset 0 0 4px rgba(0,0,0,.35)';
+        }
+      }
+    };
+
+    // Buttons: bit positions match the expander digital tuple
+    // (1 joy_right, 2 joy_left, 3 joy_down, 4 joy_up,
+    //  5 menu, 6 b, 7 a, 8 y, 9 x). START is not on the physical expander
+    //  (GPIO 0 on the badge), so it uses bit 12 — outside the 12-entry
+    //  digital tuple — and is read separately by the web START indev.
+    var BUTTON_BITS = { menu: 5, b: 6, a: 7, y: 8, x: 9, start: 12 };
+    document.querySelectorAll('.pad-button').forEach(function (btn) {
+      var bit = BUTTON_BITS[btn.dataset.button];
+      function down(e) { e.preventDefault(); btn.classList.add('pressed'); webio.buttons |= (1 << bit); }
+      function up() { btn.classList.remove('pressed'); webio.buttons &= ~(1 << bit); }
+      btn.addEventListener('pointerdown', down);
+      btn.addEventListener('pointerup', up);
+      btn.addEventListener('pointerleave', up);
+      btn.addEventListener('pointercancel', up);
+    });
+
+    // Joystick: draggable nub. Sets analog joy_x/joy_y AND the digital
+    // direction bits (threshold at ~40% deflection) that the expander indev
+    // driver maps to arrow keys.
+    (function () {
+      var pad = document.getElementById('joystick');
+      var nub = document.getElementById('joystick-nub');
+      var JOY_BITS = { right: 1, left: 2, down: 3, up: 4 };
+      var dragging = false;
+      function setJoy(dx, dy) { // dx/dy in -1..1
+        nub.style.transform = 'translate(' + (dx * 26) + 'px,' + (dy * 26) + 'px)';
+        webio.joy_x = Math.round(2048 + dx * 2047);
+        webio.joy_y = Math.round(2048 + dy * 2047);
+        var bits = webio.buttons & ~((1 << JOY_BITS.right) | (1 << JOY_BITS.left) | (1 << JOY_BITS.down) | (1 << JOY_BITS.up));
+        if (dx > 0.4) bits |= (1 << JOY_BITS.right);
+        if (dx < -0.4) bits |= (1 << JOY_BITS.left);
+        if (dy > 0.4) bits |= (1 << JOY_BITS.down);
+        if (dy < -0.4) bits |= (1 << JOY_BITS.up);
+        webio.buttons = bits;
+      }
+      function move(e) {
+        if (!dragging) return;
+        var rect = pad.getBoundingClientRect();
+        var dx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        var dy = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+        var mag = Math.sqrt(dx * dx + dy * dy);
+        if (mag > 1) { dx /= mag; dy /= mag; }
+        setJoy(dx, dy);
+      }
+      pad.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        dragging = true;
+        pad.setPointerCapture(e.pointerId);
+        move(e);
+      });
+      pad.addEventListener('pointermove', move);
+      function release() { dragging = false; setJoy(0, 0); }
+      pad.addEventListener('pointerup', release);
+      pad.addEventListener('pointercancel', release);
+      pad.addEventListener('lostpointercapture', release);
+      // Pointer can leave the iframe document entirely (capture breaks at
+      // the frame boundary) — also release on window-level events and blur.
+      window.addEventListener('pointerup', release);
+      window.addEventListener('pointercancel', release);
+      window.addEventListener('blur', release);
+      document.addEventListener('pointerleave', release);
+    })();
+
     var Module = {
       canvas: canvas,
+      // Emulated badge peripherals; read/written by the _webio C module
+      // (webio_js_init merges into this object at first Python access).
+      __webio: webio,
       arguments: ['-X', 'heapsize=16M', '-m', 'main'],
       print: function (t) { console.log('[vbadge stdout-print]', t); },
       printErr: function (t) { console.error('[vbadge stderr]', t); },
