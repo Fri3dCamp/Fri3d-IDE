@@ -5,6 +5,7 @@ export interface Settings {
     advancedMode: boolean
     interruptDevice: boolean
     forceSerialPolyfill: boolean
+    virtualBadge: boolean
     expandMinifyJson: boolean
     wordWrap: boolean
     renderMarkdown: boolean
@@ -23,6 +24,7 @@ const DEFAULTS: Settings = {
     advancedMode: false,
     interruptDevice: true,
     forceSerialPolyfill: false,
+    virtualBadge: false,
     expandMinifyJson: true,
     wordWrap: false,
     renderMarkdown: true,

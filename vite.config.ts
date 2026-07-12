@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fetchVBadgeAssets } from './scripts/vite-plugin-vbadge.js'
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8')) as { version: string }
 
@@ -10,6 +11,8 @@ export default defineConfig({
     plugins: [
         react(),
         tailwindcss(),
+        // Vendors the MicroPythonOS web build (virtual badge) into public/vbadge/.
+        fetchVBadgeAssets(),
         VitePWA({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'favicon.svg', 'favicon-96x96.png', 'apple-touch-icon.png'],
@@ -41,6 +44,8 @@ export default defineConfig({
             workbox: {
                 cleanupOutdatedCaches: true,
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff2}'],
+                // MicroPythonOS virtual badge build is ~11MB; fetched on demand.
+                globIgnores: ['vbadge/**'],
             },
         }),
     ],

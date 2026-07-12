@@ -90,6 +90,17 @@ function handleUrlParams(): void {
         }
     }
 
+    const vm = params.get('vm')
+    if (vm !== null) {
+        void sleep(100).then(() =>
+            connectDevice('vm', {
+                confirm: () => Promise.resolve(true),
+                prompt: () => Promise.resolve(null),
+            }),
+        )
+        return
+    }
+
     if (preset) {
         setPresetUrl(preset)
         void sleep(100).then(() =>

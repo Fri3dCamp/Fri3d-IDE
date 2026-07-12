@@ -16,7 +16,9 @@
             "conn": {
                 "ws": "Connect WebREPL",
                 "ble": "Connect Bluetooth",
-                "usb": "Connect USB/Serial"
+                "usb": "Connect USB/Serial",
+                "vm": "Connect to virtual badge",
+                "vm-short": "Virtual badge"
             },
             "terminal": "Terminal",
             "display": "Display",
@@ -107,7 +109,13 @@
             "prefer-source": "Prefer installing sources (.py)",
             "theme-system": "System",
             "theme-light": "Light",
-            "theme-dark": "Dark"
+            "theme-dark": "Dark",
+            "virtual-badge": "virtual badge",
+            "vbadge-reset": "Reset virtual badge",
+            "vbadge-reset-confirm": "Erase the virtual badge storage? All files and installed apps on the virtual device will be lost.",
+            "vbadge-reset-done": "Virtual badge storage erased",
+            "vbadge-reset-failed": "Reset failed",
+            "vbadge-disconnect-first": "Disconnect the virtual badge first"
         },
         "about": {
             "cta": "If you like Fri3d-IDE, please give it a GitHub star ⭐ and spread the word on social media 📢",

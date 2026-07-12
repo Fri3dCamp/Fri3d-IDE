@@ -8,6 +8,7 @@ import {
     type Transport,
 } from '../domain/transports'
 import { serial as webSerialPolyfill } from 'web-serial-polyfill'
+import { VirtualBadgeTransport } from '../domain/virtualBadge'
 import { MpRawMode } from '../domain/rawmode'
 import { ConnectionUID } from '../domain/connection_uid'
 import { iOS, sleep, splitPath } from '../domain/utils'
@@ -160,6 +161,7 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
     let port: Transport | null = null
     if (type === 'ws') port = await prepareWsPort(ui)
     else if (type === 'ble') port = prepareBlePort()
+    else if (type === 'vm') port = new VirtualBadgeTransport()
     else port = prepareUsbPort()
     if (!port) return
 

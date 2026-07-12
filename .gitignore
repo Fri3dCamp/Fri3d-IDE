@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# MicroPythonOS virtual badge build assets (fetched by scripts/vite-plugin-vbadge.ts)
+public/vbadge/micropython.js
+public/vbadge/micropython.wasm
+public/vbadge/micropython.data
+public/vbadge/.local

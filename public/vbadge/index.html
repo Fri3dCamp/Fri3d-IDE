@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>MicroPythonOS Virtual Badge</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    canvas { image-rendering: pixelated; background: #000; outline: none;
+      touch-action: none; user-select: none; -webkit-user-select: none; }
+    #status { color: #9ad; font: 12px system-ui; min-height: 14px; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div id="status">Loading MicroPythonOS…</div>
+  <canvas id="canvas" width="320" height="240" tabindex="0"
+          oncontextmenu="event.preventDefault()"></canvas>
+  <script>
+    var canvas = document.getElementById('canvas');
+    var statusEl = document.getElementById('status');
+    console.log('[vbadge iframe] page booted');
+
+    var Module = {
+      canvas: canvas,
+      arguments: ['-X', 'heapsize=16M', '-m', 'main'],
+      print: function (t) { console.log('[vbadge stdout-print]', t); },
+      printErr: function (t) { console.error('[vbadge stderr]', t); },
+      setStatus: function (t) {
+        console.log('[vbadge status]', t);
+        statusEl.textContent = t;
+        if (t === '') statusEl.style.display = 'none';
+      },
+      // Stdio bridge for the parent frame (ViperIDE). The native _webterm
+      // module reuses this exact object: parent installs onOutput and pushes
+      // input bytes via push().
+      __webterm: {
+        inq: [],
+        onOutput: null,
+        _outbuf: [],
+        _sched: false,
+        push: function (data) {
+          if (typeof data === 'number') { this.inq.push(data & 0xff); return; }
+          for (var i = 0; i < data.length; i++) { this.inq.push(data[i] & 0xff); }
+        }
+      },
+      // Per-byte stdout hook at the Emscripten TTY layer. The MPOS web build
+      // is supposed to mirror stdout to __webterm.onOutput from C
+      // (unix_mphal.c.patch), but the deployed build lacks that hook, so all
+      // REPL traffic only reached Module.print (line-buffered, loses \x04
+      // framing). Module.stdout receives every byte written to fd1 — raw REPL
+      // control chars included — and batches them to onOutput.
+      stdout: function (code) {
+        if (code === null || code === undefined) return; // flush marker
+        var H = Module.__webterm;
+        H._outbuf.push(code & 0xff);
+        if (!H._sched) {
+          H._sched = true;
+          setTimeout(function () {
+            H._sched = false;
+            if (!H._outbuf.length) return;
+            var b = new Uint8Array(H._outbuf);
+            H._outbuf.length = 0;
+            if (typeof H.onOutput === 'function') { try { H.onOutput(b); } catch (e) {} }
+          }, 0);
+        }
+      },
+      preRun: [function () {
+        canvas.addEventListener('click', function () { canvas.focus(); });
+        // Persistent /data and /apps via IndexedDB (same as upstream shell).
+        var IDB = FS.filesystems.IDBFS;
+        try { FS.mkdir('/data'); } catch (e) {}
+        try { FS.mkdir('/apps'); } catch (e) {}
+        FS.mount(IDB, {}, '/data');
+        FS.mount(IDB, {}, '/apps');
+        addRunDependency('idbfs-load');
+        FS.syncfs(true, function (err) {
+          if (err) console.error('IDBFS initial load failed:', err);
+          removeRunDependency('idbfs-load');
+        });
+      }],
+      onRuntimeInitialized: function () {
+        console.log('[vbadge iframe] onRuntimeInitialized');
+        statusEl.textContent = '';
+        canvas.focus();
+        // Seed bundled demo apps into persistent /apps once, so the
+        // launcher's app scan finds them (marker keeps uninstalls sticky).
+        try {
+          var marker = '/apps/.seeded';
+          var seeded = false;
+          try { FS.stat(marker); seeded = true; } catch (e) {}
+          if (!seeded) {
+            var haveBundle = false;
+            try { FS.stat('/.bundled_apps'); haveBundle = true; } catch (e) {}
+            if (haveBundle) {
+              (function copyRec(src, dst) {
+                var entries = FS.readdir(src);
+                for (var i = 0; i < entries.length; i++) {
+                  var name = entries[i];
+                  if (name === '.' || name === '..') continue;
+                  var s = src + '/' + name, d = dst + '/' + name;
+                  var mode;
+                  try { mode = FS.stat(s).mode; } catch (e) { continue; }
+                  if (FS.isDir(mode)) {
+                    try { FS.mkdir(d); } catch (e) {}
+                    copyRec(s, d);
+                  } else {
+                    try { FS.writeFile(d, FS.readFile(s)); } catch (e) {}
+                  }
+                }
+              })('/.bundled_apps', '/apps');
+              try { FS.writeFile(marker, '1'); } catch (e) {}
+            }
+          }
+        } catch (e) { console.error('[vbadge iframe] seed apps failed:', e); }
+        setInterval(function () { FS.syncfs(false, function () {}); }, 4000);
+      }
+    };
+    window.Module = Module;
+  </script>
+  <script async src="micropython.js"
+          onerror="document.getElementById('status').textContent='Failed to load MicroPythonOS build'"></script>
+</body>
+</html>

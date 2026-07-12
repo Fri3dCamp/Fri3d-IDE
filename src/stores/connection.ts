@@ -10,7 +10,7 @@ export interface DeviceInfo {
     [key: string]: unknown
 }
 
-export type TransportType = 'usb' | 'ble' | 'ws'
+export type TransportType = 'usb' | 'ble' | 'ws' | 'vm'
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected'
 
 interface ConnectionStore {

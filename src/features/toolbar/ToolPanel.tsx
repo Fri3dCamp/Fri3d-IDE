@@ -1,18 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-    Bluetooth,
     CirclePlay,
     CircleStop,
     Expand,
-    Link,
     Menu,
     Save,
 } from 'lucide-react'
-import { useConnectionStore, type TransportType } from '../../stores/connection'
-import { useSettingsStore } from '../../stores/settings'
+import { useConnectionStore } from '../../stores/connection'
 import { useUiStore } from '../../stores/ui'
-import { connectDevice, runCurrentFile, saveCurrentFile } from '../../services/device.service'
+import { runCurrentFile, saveCurrentFile } from '../../services/device.service'
 import { launchApp } from '../../services/apps.service'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useAppsStore, appIdForPath } from '../../stores/apps'
@@ -61,40 +58,6 @@ function ToolbarButton({
     )
 }
 
-function ConnectButton({ type, title, children }: { type: TransportType; title: string; children: React.ReactNode }) {
-    const confirm = useConfirm()
-    const prompt = usePrompt()
-    const status = useConnectionStore((s) => s.status)
-    const transportType = useConnectionStore((s) => s.transportType)
-    const activityTick = useConnectionStore((s) => s.activityTick)
-    const [blink, setBlink] = useState(false)
-    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-    const isThis = transportType === type && status === 'connected'
-
-    // Brief colour flash on TX/RX activity.
-    useEffect(() => {
-        if (!isThis || activityTick === 0) return
-        setBlink(true)
-        if (timerRef.current) clearTimeout(timerRef.current)
-        timerRef.current = setTimeout(() => setBlink(false), 120)
-        return () => {
-            if (timerRef.current) clearTimeout(timerRef.current)
-        }
-    }, [activityTick, isThis])
-
-    return (
-        <ToolbarButton
-            title={title}
-            connected={isThis}
-            active={blink}
-            onClick={() => void connectDevice(type, { confirm, prompt })}
-        >
-            {children}
-        </ToolbarButton>
-    )
-}
-
 /** Visible while app context active: selected app in Apps tab OR active /apps/<id>/ file. */
 function LaunchAppButton() {
     const { t } = useTranslation()
@@ -130,7 +93,6 @@ export function ToolPanel() {
     const confirm = useConfirm()
     const toggleSideMenu = useUiStore((s) => s.toggleSideMenu)
     const isRunning = useUiStore((s) => s.isRunning)
-    const advancedMode = useSettingsStore((s) => s.advancedMode)
     const [fullscreenOk] = useState(() => document.fullscreenEnabled)
 
     return (
@@ -168,16 +130,6 @@ export function ToolPanel() {
             </div>
 
             <div className="flex items-center gap-2">
-                {advancedMode && (
-                    <>
-                        <ConnectButton type="ws" title={t('tool.conn.ws', 'Connect WebREPL')}>
-                            <Link size={18} aria-hidden />
-                        </ConnectButton>
-                        <ConnectButton type="ble" title={t('tool.conn.ble', 'Connect Bluetooth')}>
-                            <Bluetooth size={18} aria-hidden />
-                        </ConnectButton>
-                    </>
-                )}
                 {fullscreenOk && (
                     <ToolbarButton
                         title={t('tool.fullscreen', 'Full Screen')}
