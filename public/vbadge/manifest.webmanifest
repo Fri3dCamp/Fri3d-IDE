@@ -1,9 +1,9 @@
 {
-    "name": "Fri3d Virtual Badge",
+    "name": "Fri3d Camp 2026 Virtual Badge",
     "short_name": "Virtual Badge",
     "description": "MicroPythonOS virtual Fri3d badge emulator",
-    "start_url": "/vbadge/index.html",
-    "scope": "/vbadge/",
+    "start_url": "/Fri3d-IDE/vbadge/index.html",
+    "scope": "/Fri3d-IDE/vbadge/",
     "display": "fullscreen",
     "orientation": "landscape",
     "background_color": "#000000",
