@@ -118,7 +118,7 @@
             "vbadge-reset-done": "Virtual badge storage erased",
             "vbadge-reset-failed": "Reset failed",
             "vbadge-disconnect-first": "Disconnect the virtual badge first",
-            "virtual-badge-enable": "Enable virtual badge"
+            "vbadge-popout-default": "Open in separate window"
         },
         "about": {
             "cta": "If you like Fri3d-IDE, please give it a GitHub star ⭐ and spread the word on social media 📢",
@@ -255,7 +255,8 @@
             "err-read-board": "Error reading board info",
             "disconnect-device": "Disconnect device",
             "disconnect": "Disconnect",
-            "connect-device": "Connect device"
+            "connect-device": "Connect device",
+            "vbadge-disclaimer": "The virtual badge is a preview of what the real Fri3d badge can do. It runs the same MicroPythonOS, but not everything works the same: hardware like WiFi, sensors and sound is missing or behaves differently, and timing/performance differ from the real device."
         },
         "pkg": {
             "installing": "Installing {{pkg}}…",

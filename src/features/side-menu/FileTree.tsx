@@ -206,7 +206,6 @@ export function ConnectDeviceButton() {
     const prompt = usePrompt()
     const status = useConnectionStore((s) => s.status)
     const advancedMode = useSettingsStore((s) => s.advancedMode)
-    const virtualBadge = useSettingsStore((s) => s.virtualBadge)
     const connecting = status === 'connecting'
 
     const connect = (type: TransportType) => void connectDevice(type, { confirm, prompt })
@@ -231,6 +230,10 @@ export function ConnectDeviceButton() {
                     ? t('app.connecting', 'Connecting…')
                     : t('app.connect-device', 'Connect device')}
             </button>
+            <button type="button" disabled={connecting} onClick={() => connect('vm')} className={secondaryClass}>
+                <MonitorSmartphone size={15} aria-hidden />
+                {t('tool.conn.vm', 'Connect to virtual badge')}
+            </button>
             {advancedMode && (
                 <>
                     <button type="button" disabled={connecting} onClick={() => connect('ble')} className={secondaryClass}>
@@ -241,12 +244,6 @@ export function ConnectDeviceButton() {
                         <Link size={15} aria-hidden />
                         {t('tool.conn.ws', 'Connect WebREPL')}
                     </button>
-                    {virtualBadge && (
-                        <button type="button" disabled={connecting} onClick={() => connect('vm')} className={secondaryClass}>
-                            <MonitorSmartphone size={15} aria-hidden />
-                            {t('tool.conn.vm', 'Connect to virtual badge')}
-                        </button>
-                    )}
                 </>
             )}
         </div>

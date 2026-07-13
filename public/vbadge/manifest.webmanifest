@@ -1,0 +1,25 @@
+{
+    "name": "Fri3d Virtual Badge",
+    "short_name": "Virtual Badge",
+    "description": "MicroPythonOS virtual Fri3d badge emulator",
+    "start_url": "/vbadge/index.html",
+    "scope": "/vbadge/",
+    "display": "fullscreen",
+    "orientation": "landscape",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "icons": [
+        {
+            "src": "../web-app-manifest-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "../web-app-manifest-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

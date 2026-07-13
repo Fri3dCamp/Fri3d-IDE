@@ -58,7 +58,6 @@ export function SettingsPanel() {
     const confirm = useConfirm()
     const zoom = useSettingsStore((s) => s.zoom)
     const advancedMode = useSettingsStore((s) => s.advancedMode)
-    const virtualBadgeEnabled = useSettingsStore((s) => s.virtualBadge)
     const colorTheme = useSettingsStore((s) => s.colorTheme)
     const set = useSettingsStore((s) => s.set)
 
@@ -76,8 +75,44 @@ export function SettingsPanel() {
             <div className="title-lines text-xs">{t('settings.conn', 'connection')}</div>
             <Toggle id="interruptDevice" label={t('settings.interrupt-device', 'Interrupt device')} />
             <Toggle id="forceSerialPolyfill" label={t('settings.force-serial-poly', 'Force WebSerial polyfill')} />
+
+            <div className="title-lines text-xs">{t('settings.virtual-badge', 'virtual badge')}</div>
+            <Toggle id="vbadgePopOut" label={t('settings.vbadge-popout-default', 'Open in separate window')} />
             {advancedMode && (
-                <Toggle id="virtualBadge" label={t('settings.virtual-badge-enable', 'Enable virtual badge')} />
+                <button
+                    type="button"
+                    onClick={() =>
+                        void (async () => {
+                            if (isVirtualBadgeRunning()) {
+                                toast.error(
+                                    t('settings.vbadge-disconnect-first', 'Disconnect the virtual badge first'),
+                                )
+                                return
+                            }
+                            if (
+                                !(await confirm(
+                                    t(
+                                        'settings.vbadge-reset-confirm',
+                                        'Erase the virtual badge storage? All files and installed apps on the virtual device will be lost.',
+                                    ),
+                                ))
+                            )
+                                return
+                            try {
+                                await resetVirtualBadgeStorage()
+                                toast.success(t('settings.vbadge-reset-done', 'Virtual badge storage erased'))
+                            } catch (err) {
+                                toast.error(t('settings.vbadge-reset-failed', 'Reset failed'), {
+                                    description: String(err),
+                                })
+                            }
+                        })()
+                    }
+                    className="mt-1 flex items-center gap-2 border-2 border-black bg-transparent px-3 py-1.5 text-sm font-semibold text-fg transition-colors hover:bg-black/10 dark:hover:bg-white/10"
+                >
+                    <RotateCcw size={15} aria-hidden />
+                    {t('settings.vbadge-reset', 'Reset virtual badge')}
+                </button>
             )}
 
             <div className="title-lines text-xs">{t('settings.editor', 'editor')}</div>
@@ -118,44 +153,6 @@ export function SettingsPanel() {
                 onChange={(v) => set('colorTheme', v)}
             />
             <Toggle id="naturalSort" label={t('settings.use-natural-sort', 'Use natural sorting')} />
-
-            {advancedMode && virtualBadgeEnabled && (
-                <>
-                    <div className="title-lines text-xs">{t('settings.virtual-badge', 'virtual badge')}</div>
-                    <button
-                type="button"
-                onClick={() =>
-                    void (async () => {
-                        if (isVirtualBadgeRunning()) {
-                            toast.error(t('settings.vbadge-disconnect-first', 'Disconnect the virtual badge first'))
-                            return
-                        }
-                        if (
-                            !(await confirm(
-                                t(
-                                    'settings.vbadge-reset-confirm',
-                                    'Erase the virtual badge storage? All files and installed apps on the virtual device will be lost.',
-                                ),
-                            ))
-                        )
-                            return
-                        try {
-                            await resetVirtualBadgeStorage()
-                            toast.success(t('settings.vbadge-reset-done', 'Virtual badge storage erased'))
-                        } catch (err) {
-                            toast.error(t('settings.vbadge-reset-failed', 'Reset failed'), {
-                                description: String(err),
-                            })
-                        }
-                    })()
-                }
-                className="mt-1 flex items-center gap-2 border-2 border-black bg-transparent px-3 py-1.5 text-sm font-semibold text-fg transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-            >
-                        <RotateCcw size={15} aria-hidden />
-                        {t('settings.vbadge-reset', 'Reset virtual badge')}
-                    </button>
-                </>
-            )}
 
             <div className="title-lines text-xs">{t('settings.help', 'help')}</div>
             <button

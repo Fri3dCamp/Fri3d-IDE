@@ -10,6 +10,7 @@ import { setReportHandler } from './domain/utils'
 import { setPendingInstall, setPresetUrl, connectDevice } from './services/device.service'
 import { ConnectionUID } from './domain/connection_uid'
 import { sleep } from './domain/utils'
+import { hasOrphanBadgeWindow } from './domain/virtualBadge'
 
 async function bootstrap(): Promise<void> {
     await initI18n()
@@ -100,6 +101,16 @@ function handleUrlParams(): void {
         )
         return
     }
+
+    // Popped-out badge window survived an IDE refresh -> reconnect to it
+    // automatically (connectDevice re-attaches via BroadcastChannel).
+    void hasOrphanBadgeWindow().then((alive) => {
+        if (!alive) return
+        void connectDevice('vm', {
+            confirm: () => Promise.resolve(true),
+            prompt: () => Promise.resolve(null),
+        })
+    })
 
     if (preset) {
         setPresetUrl(preset)

@@ -8,7 +8,7 @@ import {
     type Transport,
 } from '../domain/transports'
 import { serial as webSerialPolyfill } from 'web-serial-polyfill'
-import { VirtualBadgeTransport } from '../domain/virtualBadge'
+import { VirtualBadgeTransport, hasOrphanBadgeWindow } from '../domain/virtualBadge'
 import { MpRawMode } from '../domain/rawmode'
 import { ConnectionUID } from '../domain/connection_uid'
 import { iOS, sleep, splitPath } from '../domain/utils'
@@ -149,6 +149,9 @@ function prepareUsbPort(): Transport | null {
     return new WebSerial()
 }
 
+/** localStorage flag: virtual-badge disclaimer already acknowledged. */
+const VBADGE_DISCLAIMER_KEY = 'vbadge-disclaimer-shown'
+
 export async function connectDevice(type: TransportType, ui: ConnectUi): Promise<void> {
     const conn = useConnectionStore.getState()
 
@@ -161,7 +164,26 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
     let port: Transport | null = null
     if (type === 'ws') port = await prepareWsPort(ui)
     else if (type === 'ble') port = prepareBlePort()
-    else if (type === 'vm') port = new VirtualBadgeTransport()
+    else if (type === 'vm') {
+        // One-time disclaimer: the emulator is a preview, not the real thing.
+        if (!localStorage.getItem(VBADGE_DISCLAIMER_KEY)) {
+            const ok = await ui.confirm(
+                t(
+                    'app.vbadge-disclaimer',
+                    'The virtual badge is a preview of what the real Fri3d badge can do. It runs the same MicroPythonOS, but not everything works the same: hardware like WiFi, sensors and sound is missing or behaves differently, and timing/performance differ from the real device.',
+                ),
+            )
+            if (!ok) return
+            localStorage.setItem(VBADGE_DISCLAIMER_KEY, '1')
+        }
+        // Re-attach to a badge window that survived an IDE refresh instead
+        // of booting a fresh inline VM. Otherwise honour the "open in
+        // separate window" setting.
+        port = new VirtualBadgeTransport(undefined, {
+            attach: await hasOrphanBadgeWindow(),
+            popOut: useSettingsStore.getState().vbadgePopOut,
+        })
+    }
     else port = prepareUsbPort()
     if (!port) return
 

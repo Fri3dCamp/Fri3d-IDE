@@ -4,6 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <meta name="color-scheme" content="only light">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#000000">
   <title>MicroPythonOS Virtual Badge</title>
   <style>
     /* ---- Tuning knobs ------------------------------------------------ */
@@ -25,6 +30,22 @@
     html, body { margin: 0; height: 100%; overflow: hidden;
       display: flex; align-items: flex-start; justify-content: center;
       background: transparent !important; }
+
+    /* Standalone (pop-out / PWA) mode: black backdrop, badge centered and
+       scaled to fit the viewport (mobile landscape = full-screen badge). */
+    body.popout { background: #000 !important; align-items: center; }
+    body.popout #badge { transform-origin: center center; }
+
+    /* Dock button (pop-out only): sends the badge back into the IDE. */
+    #dock-btn {
+      display: none;
+      position: fixed; top: 8px; right: 8px; z-index: 10;
+      width: 34px; height: 34px; padding: 0; line-height: 1;
+      font: bold 15px system-ui; color: #000;
+      background: #3ce8b3; border: 2px solid #000; cursor: pointer;
+      user-select: none; -webkit-user-select: none;
+    }
+    body.popout #dock-btn { display: block; }
 
     /* Badge body: fixed 119x54 mm PCB with silkscreen overlay. */
     #badge {
@@ -127,6 +148,8 @@
   </style>
 </head>
 <body>
+  <button id="dock-btn" type="button" title="Dock badge back into the IDE"
+          aria-label="Dock badge back into the IDE">⤋</button>
   <div id="badge">
     <div id="status">Loading MicroPythonOS…</div>
     <div id="joy-wrap">
@@ -347,9 +370,10 @@
     window.Module = Module;
 
     // --- Pop-out mode ----------------------------------------------------
-    // When opened as a standalone window (?popout=1&channel=NAME) the badge
-    // has no parent frame to poke Module.__webterm directly, so all stdio
-    // and status flow over a BroadcastChannel back to the IDE:
+    // When opened as a standalone window (?popout=1) the badge has no
+    // parent frame to poke Module.__webterm directly, so all stdio and
+    // status flow over a fixed-name BroadcastChannel ('fri3d-ide-vbadge',
+    // single IDE + single badge window per origin) back to the IDE:
     //   page -> IDE: {type:'hello'} on load, {type:'out', data:Uint8Array}
     //                for stdout, {type:'pong', calledRun, inqLen} replies,
     //                {type:'closed'} when the window goes away.
@@ -357,8 +381,23 @@
     //                probe, {type:'close'} to close the window.
     (function () {
       var params = new URLSearchParams(location.search);
-      if (!params.get('popout')) return;
-      var chan = new BroadcastChannel(params.get('channel') || 'fri3d-ide-vbadge');
+      var isPWA = window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+      if (!params.get('popout') && !isPWA) return;
+      document.body.classList.add('popout');
+
+      // Scale badge to fit the viewport (phone landscape = full-screen badge).
+      var badge = document.getElementById('badge');
+      function fitBadge() {
+        var s = Math.min(
+          window.innerWidth / (badge.offsetWidth + 16),
+          window.innerHeight / (badge.offsetHeight + 16));
+        badge.style.transform = 'scale(' + Math.min(s, 2) + ')';
+      }
+      fitBadge();
+      window.addEventListener('resize', fitBadge);
+      window.addEventListener('orientationchange', fitBadge);
+
+      var chan = new BroadcastChannel('fri3d-ide-vbadge');
       Module.__webterm.onOutput = function (b) {
         chan.postMessage({ type: 'out', data: b });
       };
@@ -376,6 +415,10 @@
           window.close();
         }
       };
+      document.getElementById('dock-btn').addEventListener('click', function () {
+        // Ask the IDE to dock the badge back inline; IDE replies 'close'.
+        chan.postMessage({ type: 'popin' });
+      });
       chan.postMessage({ type: 'hello' });
       window.addEventListener('pagehide', function () {
         chan.postMessage({ type: 'closed' });

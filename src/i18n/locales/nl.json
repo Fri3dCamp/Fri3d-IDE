@@ -13,7 +13,9 @@
             "conn": {
                 "ws": "Verbind WebREPL",
                 "ble": "Verbind Bluetooth",
-                "usb": "Verbind USB/Serieel"
+                "usb": "Verbind USB/Serieel",
+                "vm": "Verbind met virtuele badge",
+                "vm-short": "Virtuele badge"
             },
             "terminal": "Terminal",
             "display": "Scherm",
@@ -109,7 +111,14 @@
             "theme-light": "Licht",
             "theme-dark": "Donker",
             "help": "hulp",
-            "restart-tour": "Welkomsttour opnieuw tonen"
+            "restart-tour": "Welkomsttour opnieuw tonen",
+            "virtual-badge": "virtuele badge",
+            "vbadge-popout-default": "In apart venster openen",
+            "vbadge-reset": "Virtuele badge resetten",
+            "vbadge-reset-confirm": "De opslag van de virtuele badge wissen? Alle bestanden en geïnstalleerde apps op het virtuele apparaat gaan verloren.",
+            "vbadge-reset-done": "Opslag van virtuele badge gewist",
+            "vbadge-reset-failed": "Reset mislukt",
+            "vbadge-disconnect-first": "Verbreek eerst de verbinding met de virtuele badge"
         },
         "about": {
             "cta": "Als je Fri3d-IDE leuk vindt, geef het dan alsjeblieft een ster op GitHub ⭐ en vertel het verder op sociale media 📢",
@@ -192,7 +201,8 @@
             "disconnect-device": "Apparaat loskoppelen",
             "err-read-board": "Fout bij lezen van bordinformatie",
             "not-responding": "Apparaat reageert niet",
-            "reading-device": "Apparaat lezen…"
+            "reading-device": "Apparaat lezen…",
+            "vbadge-disclaimer": "De virtuele badge is een voorproefje van wat de echte Fri3d-badge kan. Hij draait hetzelfde MicroPythonOS, maar niet alles werkt hetzelfde: hardware zoals wifi, sensoren en geluid ontbreekt of gedraagt zich anders, en timing/prestaties verschillen van het echte apparaat."
         },
         "onboarding": {
             "step": "Stap {{current}} van {{total}}",
