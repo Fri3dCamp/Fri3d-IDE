@@ -46,6 +46,9 @@ export default defineConfig({
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff2}'],
                 // MicroPythonOS virtual badge build is ~11MB; fetched on demand.
                 globIgnores: ['vbadge/**'],
+                // Don't serve the IDE index.html for badge-window navigations:
+                // /vbadge/ is its own page (pop-out + PWA), not an SPA route.
+                navigateFallbackDenylist: [/^\/vbadge\//],
             },
         }),
     ],
