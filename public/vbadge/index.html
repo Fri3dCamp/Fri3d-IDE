@@ -345,6 +345,42 @@
       }
     };
     window.Module = Module;
+
+    // --- Pop-out mode ----------------------------------------------------
+    // When opened as a standalone window (?popout=1&channel=NAME) the badge
+    // has no parent frame to poke Module.__webterm directly, so all stdio
+    // and status flow over a BroadcastChannel back to the IDE:
+    //   page -> IDE: {type:'hello'} on load, {type:'out', data:Uint8Array}
+    //                for stdout, {type:'pong', calledRun, inqLen} replies,
+    //                {type:'closed'} when the window goes away.
+    //   IDE -> page: {type:'in', data} input bytes, {type:'ping'} boot/REPL
+    //                probe, {type:'close'} to close the window.
+    (function () {
+      var params = new URLSearchParams(location.search);
+      if (!params.get('popout')) return;
+      var chan = new BroadcastChannel(params.get('channel') || 'fri3d-ide-vbadge');
+      Module.__webterm.onOutput = function (b) {
+        chan.postMessage({ type: 'out', data: b });
+      };
+      chan.onmessage = function (ev) {
+        var m = ev.data || {};
+        if (m.type === 'in') {
+          Module.__webterm.push(m.data);
+        } else if (m.type === 'ping') {
+          chan.postMessage({
+            type: 'pong',
+            calledRun: !!Module.calledRun,
+            inqLen: Module.__webterm.inq.length,
+          });
+        } else if (m.type === 'close') {
+          window.close();
+        }
+      };
+      chan.postMessage({ type: 'hello' });
+      window.addEventListener('pagehide', function () {
+        chan.postMessage({ type: 'closed' });
+      });
+    })();
   </script>
   <script async src="micropython.js"
           onerror="document.getElementById('status').textContent='Failed to load MicroPythonOS build'"></script>

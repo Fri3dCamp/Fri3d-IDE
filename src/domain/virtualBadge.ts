@@ -35,6 +35,11 @@ interface MposWindow extends Window {
     Module?: { __webterm?: WebTermBridge; calledRun?: boolean }
 }
 
+/** sessionStorage key holding the BroadcastChannel name of a popped-out
+ *  badge window, so an IDE refresh can find and re-attach to it. Session
+ *  scope keeps it per-tab (no cross-tab hijack of someone else's badge). */
+const POPOUT_CHANNEL_KEY = 'vbadge-popout-channel'
+
 /** IDBFS mountpoints double as IndexedDB database names (Emscripten IDBFS). */
 const VBADGE_IDB_NAMES = ['/data', '/apps']
 
@@ -64,20 +69,59 @@ export async function resetVirtualBadgeStorage(): Promise<void> {
     )
 }
 
+/** Probe for a badge window left over from a previous page load (IDE was
+ *  refreshed while popped out). Returns its channel name if it answers a
+ *  ping within `timeoutMs`, else clears the stale key and returns null. */
+export async function findOrphanBadgeChannel(timeoutMs = 1500): Promise<string | null> {
+    const name = sessionStorage.getItem(POPOUT_CHANNEL_KEY)
+    if (!name) return null
+    const chan = new BroadcastChannel(name)
+    try {
+        const alive = await new Promise<boolean>((resolve) => {
+            const timer = setTimeout(() => resolve(false), timeoutMs)
+            chan.onmessage = (ev: MessageEvent) => {
+                if (ev.data?.type === 'pong') {
+                    clearTimeout(timer)
+                    resolve(true)
+                }
+            }
+            chan.postMessage({ type: 'ping' })
+        })
+        if (!alive) {
+            sessionStorage.removeItem(POPOUT_CHANNEL_KEY)
+            return null
+        }
+        return name
+    } finally {
+        chan.close()
+    }
+}
+
 export class VirtualBadgeTransport extends Transport {
     declare pageUrl: string
     declare container: HTMLElement | null
     declare iframe: HTMLIFrameElement | null
     declare decoder: TextDecoder
     declare lastWasCR: boolean
+    declare channel: BroadcastChannel | null
+    declare popWindow: Window | null
+    declare popPong: { calledRun: boolean; inqLen: number } | null
+    declare attachChannelName: string | null
 
-    constructor(pageUrl: string = DEFAULT_PAGE_URL) {
+    /** Pass `attachChannelName` (from findOrphanBadgeChannel) to re-attach to
+     *  an already-running popped-out badge window instead of creating the
+     *  inline iframe and booting a fresh VM. */
+    constructor(pageUrl: string = DEFAULT_PAGE_URL, attachChannelName: string | null = null) {
         super()
         this.pageUrl = pageUrl
+        this.attachChannelName = attachChannelName
         this.container = null
         this.iframe = null
         this.decoder = new TextDecoder()
         this.lastWasCR = false
+        this.channel = null
+        this.popWindow = null
+        this.popPong = null
         this.info = { url: pageUrl, virtual: true }
     }
 
@@ -89,7 +133,62 @@ export class VirtualBadgeTransport extends Transport {
         return this.badgeWindow()?.Module?.__webterm ?? null
     }
 
+    /** Bind a BroadcastChannel to this transport: routes stdout to the IDE,
+     *  tracks pong state, and treats window close as device unplug. */
+    private openChannel(name: string): BroadcastChannel {
+        const chan = new BroadcastChannel(name)
+        chan.onmessage = (ev: MessageEvent) => {
+            const m = ev.data ?? {}
+            if (m.type === 'out') {
+                const norm = this.normalizeEol(this.decoder.decode(m.data as Uint8Array, { stream: true }))
+                dbg('rx', norm)
+                this.receiveCallback(norm)
+                this.activityCallback()
+            } else if (m.type === 'pong') {
+                this.popPong = { calledRun: !!m.calledRun, inqLen: m.inqLen as number }
+            } else if (m.type === 'closed') {
+                // Badge window gone -> behave like device unplug.
+                sessionStorage.removeItem(POPOUT_CHANNEL_KEY)
+                this.channel?.close()
+                this.channel = null
+                this.popWindow = null
+                this.disconnectCallback()
+            }
+        }
+        this.channel = chan
+        return chan
+    }
+
+    /** Wait until the popped-out badge VM has booted and its REPL drains
+     *  input (ping/pong flavour of the connect() probe loop). */
+    private async channelHandshake(timeoutMs: number): Promise<void> {
+        const chan = this.channel
+        if (!chan) throw new Error('No badge channel')
+        let sawOutput = false
+        const prev = chan.onmessage
+        chan.onmessage = (ev: MessageEvent) => {
+            if (ev.data?.type === 'out') sawOutput = true
+            prev?.call(chan, ev)
+        }
+        try {
+            const deadline = Date.now() + timeoutMs
+            for (;;) {
+                this.popPong = null
+                chan.postMessage({ type: 'ping' })
+                chan.postMessage({ type: 'in', data: [0x0d] })
+                await new Promise((r) => setTimeout(r, 300))
+                const pong = this.popPong as { calledRun: boolean; inqLen: number } | null
+                if (sawOutput && pong?.calledRun && pong.inqLen === 0) break
+                if (Date.now() > deadline) throw new Error('Badge window REPL did not start (timeout)')
+            }
+        } finally {
+            chan.onmessage = prev
+        }
+    }
+
     async requestAccess(): Promise<void> {
+        // Re-attach mode: badge window already exists, nothing to build.
+        if (this.attachChannelName) return
         // Floating panel hosting the badge screen. Plain DOM (outside React)
         // so the transport owns its lifecycle.
         const container = document.createElement('div')
@@ -158,6 +257,33 @@ export class VirtualBadgeTransport extends Transport {
             userSelect: 'none',
         } as Partial<CSSStyleDeclaration>)
         toggle.addEventListener('pointerdown', (e) => e.stopPropagation())
+
+        // Pop-out: reopen the badge in its own window, talking to the IDE
+        // over a BroadcastChannel (same origin). The inline iframe (and its
+        // VM) is torn down; the pop-out boots a fresh VM on shared IDBFS.
+        const popout = document.createElement('button')
+        popout.type = 'button'
+        popout.textContent = '⧉'
+        popout.title = 'Open badge in separate window'
+        popout.setAttribute('aria-label', popout.title)
+        Object.assign(popout.style, {
+            width: '22px',
+            height: '22px',
+            padding: '0',
+            lineHeight: '1',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#000',
+            background: 'var(--fri3d-yellow, #f9c74f)',
+            border: '2px solid #000',
+            cursor: 'pointer',
+            userSelect: 'none',
+        } as Partial<CSSStyleDeclaration>)
+        popout.addEventListener('pointerdown', (e) => e.stopPropagation())
+        popout.addEventListener('click', () => {
+            this.popOut().catch((err) => console.error('[vbadge] pop-out failed:', err))
+        })
+        barRow.appendChild(popout)
         let badgeHidden = false
         toggle.addEventListener('click', () => {
             badgeHidden = !badgeHidden
@@ -262,6 +388,16 @@ export class VirtualBadgeTransport extends Transport {
     }
 
     async connect(): Promise<void> {
+        // Re-attach to a surviving popped-out badge window (IDE refreshed).
+        if (this.attachChannelName) {
+            this.openChannel(this.attachChannelName)
+            // Previous session may have died mid raw-REPL: \x02 returns to
+            // the friendly REPL; stray output is drained by the handshake.
+            this.channel!.postMessage({ type: 'in', data: [0x02] })
+            await this.channelHandshake(15000)
+            sessionStorage.setItem(POPOUT_CHANNEL_KEY, this.attachChannelName)
+            return
+        }
         // Wait for the page script to create Module.__webterm (synchronous in
         // the page, so this resolves as soon as the document is parsed), then
         // attach output forwarding. Input bytes queue in `inq` until the
@@ -322,12 +458,70 @@ export class VirtualBadgeTransport extends Transport {
         await new Promise((r) => setTimeout(r, 200))
     }
 
-    private teardown(): void {
+    /** Move the badge to a standalone window; stdio flows back over a
+     *  BroadcastChannel (see pop-out block in vbadge/index.html). */
+    async popOut(): Promise<void> {
+        if (this.channel) return
+        const name = `fri3d-ide-vbadge-${Date.now()}`
+        let sawHello = false
+        const chan = this.openChannel(name)
+        const prev = chan.onmessage
+        chan.onmessage = (ev: MessageEvent) => {
+            if (ev.data?.type === 'hello') sawHello = true
+            prev?.call(chan, ev)
+        }
+
+        const badgeW = 830
+        const badgeH = 400
+        const win = window.open(
+            `${this.pageUrl}?popout=1&channel=${encodeURIComponent(name)}`,
+            'fri3d-ide-vbadge',
+            `popup=yes,width=${badgeW},height=${badgeH}`,
+        )
+        if (!win) {
+            chan.close()
+            this.channel = null
+            throw new Error('Pop-up blocked: allow pop-ups for this site')
+        }
+        this.popWindow = win
+        sessionStorage.setItem(POPOUT_CHANNEL_KEY, name)
+
+        // Kill the inline iframe first so two VMs never race on IDBFS.
+        this.teardownPanel()
+
+        // Wait for page load, wasm boot, and REPL readiness (same probe
+        // strategy as connect(), but over ping/pong messages).
+        const deadline = Date.now() + 120000
+        while (!sawHello) {
+            if (Date.now() > deadline) throw new Error('Badge window did not respond')
+            await new Promise((r) => setTimeout(r, 100))
+        }
+        chan.onmessage = prev
+        await this.channelHandshake(deadline - Date.now())
+    }
+
+    private teardownPanel(): void {
         const bridge = this.bridge()
         if (bridge) bridge.onOutput = null
         this.container?.remove()
         this.container = null
         this.iframe = null
+    }
+
+    private teardown(): void {
+        this.teardownPanel()
+        sessionStorage.removeItem(POPOUT_CHANNEL_KEY)
+        if (this.channel) {
+            this.channel.postMessage({ type: 'close' })
+            this.channel.close()
+            this.channel = null
+        }
+        try {
+            this.popWindow?.close()
+        } catch {
+            /* cross-window close can throw; window closes itself via 'close' msg */
+        }
+        this.popWindow = null
     }
 
     async disconnect(): Promise<void> {
@@ -349,9 +543,13 @@ export class VirtualBadgeTransport extends Transport {
     }
 
     async writeBytes(data: Uint8Array): Promise<void> {
+        dbg('tx', new TextDecoder().decode(data))
+        if (this.channel) {
+            this.channel.postMessage({ type: 'in', data: Array.from(data) })
+            return
+        }
         const bridge = this.bridge()
         if (!bridge) throw new Error('Virtual badge is not running')
-        dbg('tx', new TextDecoder().decode(data))
         bridge.push(data)
     }
 }
