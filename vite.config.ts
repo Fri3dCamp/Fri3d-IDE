@@ -48,7 +48,7 @@ export default defineConfig({
                 globIgnores: ['vbadge/**'],
                 // Don't serve the IDE index.html for badge-window navigations:
                 // /vbadge/ is its own page (pop-out + PWA), not an SPA route.
-                navigateFallbackDenylist: [/^\/vbadge\//],
+                navigateFallbackDenylist: [/\/vbadge(?:\/|$)/],
             },
         }),
     ],
