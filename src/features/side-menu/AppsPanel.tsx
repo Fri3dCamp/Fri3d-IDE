@@ -5,6 +5,7 @@ import {
     ArrowUp,
     ChevronRight,
     CirclePlay,
+    CloudUpload,
     Download,
     FileCode2,
     Folder,
@@ -16,6 +17,7 @@ import {
     Plus,
     RefreshCw,
     Rocket,
+    Store,
     Trash2,
     TriangleAlert,
     Upload,
@@ -33,6 +35,8 @@ import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './Drop
 import { useCreateAppDialog } from './AppBrowser'
 import { useInstallMpkDialog } from './MpkInstallerDialog'
 import { useAppEditorDialog } from './AppEditorDialog'
+import { useBadgeHubPublishDialog } from './BadgeHubPublishDialog'
+import { useBadgeHubBrowserDialog } from './BadgeHubBrowserDialog'
 import { ConnectDeviceButton } from './FileTree'
 
 const headBtn = 'p-1 opacity-70 hover:opacity-100'
@@ -95,6 +99,7 @@ function AppList() {
     const scanning = useAppsStore((s) => s.scanning)
     const createAppDialog = useCreateAppDialog()
     const installMpkDialog = useInstallMpkDialog()
+    const badgeHubBrowser = useBadgeHubBrowserDialog()
 
     return (
         <>
@@ -150,6 +155,15 @@ function AppList() {
                     >
                         <Upload size={16} aria-hidden />
                         {t('apps.install-mpk', 'Install MPK')}
+                    </button>
+                    <button
+                        type="button"
+                        className="flex w-full items-center justify-center gap-2 border-2 border-black bg-edit px-3 py-2 font-semibold text-fg shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none"
+                        aria-label={t('badgehub.browse-title', 'BadgeHub App Store')}
+                        onClick={() => void badgeHubBrowser()}
+                    >
+                        <Store size={16} aria-hidden />
+                        {t('badgehub.browse', 'Browse BadgeHub')}
                     </button>
                 </div>
             </div>
@@ -349,6 +363,7 @@ function AppDetail({ app }: { app: AppInfo }) {
     const launching = useAppsStore((s) => s.launching !== null)
     const openTabs = useEditorTabsStore((s) => s.tabs)
     const editDetails = useAppEditorDialog()
+    const publishDialog = useBadgeHubPublishDialog()
 
     const uploadInputRef = useRef<HTMLInputElement>(null)
     const [rootEntries, setRootEntries] = useState<DeviceEntry[] | null>(null)
@@ -575,6 +590,16 @@ function AppDetail({ app }: { app: AppInfo }) {
                         {app.version ? ` · ${app.version}` : ''}
                     </span>
                 </span>
+                <button
+                    type="button"
+                    disabled={deleting || launching}
+                    aria-label={t('badgehub.publish-title', 'Publish to BadgeHub')}
+                    className="group/icon relative shrink-0 p-1 opacity-80 hover:opacity-100 disabled:opacity-40"
+                    onClick={() => void publishDialog(app)}
+                >
+                    <CloudUpload size={16} aria-hidden />
+                    <span aria-hidden className={iconHintClass}>{t('badgehub.publish-title', 'Publish to BadgeHub')}</span>
+                </button>
                 <button
                     type="button"
                     disabled={deleting || launching}

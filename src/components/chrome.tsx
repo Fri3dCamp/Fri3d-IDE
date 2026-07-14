@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Loader2, Plane } from 'lucide-react'
 import { Toaster } from 'sonner'
@@ -6,19 +6,61 @@ import { useSettingsStore } from '../stores/settings'
 import { useUiStore } from '../stores/ui'
 import { useThemeIsDark } from '../services/theme'
 
-/** Sonner toaster themed to the app. */
+/** Wraps children in a manual popover so they render in the browser top layer,
+ *  above native <dialog> modals. Re-promoted (hide+show) whenever a dialog
+ *  opens, because the most recently shown top-layer element paints on top. */
+function TopLayer({ children }: { children: ReactNode }) {
+    const ref = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const el = ref.current
+        if (!el) return
+        const promote = () => {
+            try {
+                if (el.matches(':popover-open')) el.hidePopover()
+                el.showPopover()
+            } catch {
+                /* popover API unavailable -> plain fixed positioning still works */
+            }
+        }
+        promote()
+        window.addEventListener('ui:modal-opened', promote)
+        return () => {
+            window.removeEventListener('ui:modal-opened', promote)
+            try {
+                el.hidePopover()
+            } catch {
+                /* ignore */
+            }
+        }
+    }, [])
+
+    return (
+        <div
+            ref={ref}
+            popover="manual"
+            className="pointer-events-none fixed inset-0 m-0 h-full w-full max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 backdrop:bg-transparent"
+        >
+            {children}
+        </div>
+    )
+}
+
+/** Sonner toaster themed to the app, always above modals. */
 export function AppToaster() {
     const dark = useThemeIsDark()
     return (
-        <Toaster
-            position="top-right"
-            theme={dark ? 'dark' : 'light'}
-            toastOptions={{
-                classNames: {
-                    toast: 'rounded-none! border-2! border-black! shadow-brutal! bg-menu! text-fg!',
-                },
-            }}
-        />
+        <TopLayer>
+            <Toaster
+                position="top-right"
+                theme={dark ? 'dark' : 'light'}
+                toastOptions={{
+                    classNames: {
+                        toast: 'rounded-none! border-2! border-black! shadow-brutal! bg-menu! text-fg! pointer-events-auto',
+                    },
+                }}
+            />
+        </TopLayer>
     )
 }
 
@@ -27,7 +69,8 @@ export function LoaderStack() {
     const loaders = useUiStore((s) => s.loaders)
     if (!loaders.length) return null
     return (
-        <div className="pointer-events-none fixed inset-e-3 top-14 z-50 flex flex-col gap-2" aria-live="polite">
+        <TopLayer>
+            <div className="pointer-events-none fixed inset-e-3 top-14 flex flex-col gap-2" aria-live="polite">
             {loaders.map((l) => (
                 <div
                     key={l.id}
@@ -50,7 +93,8 @@ export function LoaderStack() {
                     )}
                 </div>
             ))}
-        </div>
+            </div>
+        </TopLayer>
     )
 }
 
@@ -71,10 +115,12 @@ export function OfflineBadge() {
 
     if (!offline) return null
     return (
-        <div className="fixed inset-e-3 top-3 z-50 flex items-center gap-1.5 border-2 border-black bg-icon-warning px-2 py-1 text-xs font-semibold text-black shadow-brutal">
-            <Plane size={13} aria-hidden />
-            {t('app.offline', 'Offline')}
-        </div>
+        <TopLayer>
+            <div className="fixed inset-e-3 top-3 flex items-center gap-1.5 border-2 border-black bg-icon-warning px-2 py-1 text-xs font-semibold text-black shadow-brutal">
+                <Plane size={13} aria-hidden />
+                {t('app.offline', 'Offline')}
+            </div>
+        </TopLayer>
     )
 }
 

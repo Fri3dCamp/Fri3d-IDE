@@ -6,6 +6,7 @@ import { LANGUAGES, i18next } from '../../i18n'
 import { restartOnboardingTour } from '../onboarding/GuidedTour'
 import { resetVirtualBadgeStorage, isVirtualBadgeRunning } from '../../domain/virtualBadge'
 import { useConfirm } from '../../components/dialogs'
+import { BadgeHubAccount } from './BadgeHubAccount'
 
 function Toggle({ id, label, extra }: { id: keyof Settings & string; label: string; extra?: React.ReactNode }) {
     const value = useSettingsStore((s) => s[id] as boolean)
@@ -72,8 +73,7 @@ export function SettingsPanel() {
                 label={`🔬 ${t('settings.advanced-mode', 'Advanced mode')}`}
             />
 
-            <div className="title-lines text-xs">{t('settings.conn', 'connection')}</div>
-            <Toggle id="interruptDevice" label={t('settings.interrupt-device', 'Interrupt device')} />
+            <div className="title-lines text-xs">{t('settings.conn', 'connection')}</div>            <Toggle id="interruptDevice" label={t('settings.interrupt-device', 'Interrupt device')} />
             <Toggle id="forceSerialPolyfill" label={t('settings.force-serial-poly', 'Force WebSerial polyfill')} />
 
             <div className="title-lines text-xs">{t('settings.virtual-badge', 'virtual badge')}</div>
@@ -122,6 +122,8 @@ export function SettingsPanel() {
 
             <div className="title-lines text-xs">{t('menu.package-mgr', 'package manager')}</div>
             <Toggle id="preferSource" label={t('settings.prefer-source', 'Prefer installing sources (.py)')} />
+
+            <BadgeHubAccount />
 
             <div className="title-lines text-xs">{t('settings.other', 'other')}</div>
             <Select

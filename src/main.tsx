@@ -11,11 +11,13 @@ import { setPendingInstall, setPresetUrl, connectDevice } from './services/devic
 import { ConnectionUID } from './domain/connection_uid'
 import { sleep } from './domain/utils'
 import { hasOrphanBadgeWindow } from './domain/virtualBadge'
+import { initAuth } from './services/badgehub/auth'
 
 async function bootstrap(): Promise<void> {
     await initI18n()
     initTheme()
     initPwa()
+    void initAuth()
 
     // Domain errors → toasts.
     setReportHandler((title, err) => {

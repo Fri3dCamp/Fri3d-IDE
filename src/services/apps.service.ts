@@ -310,6 +310,35 @@ async function walkAppFiles(
     return out
 }
 
+/** Read all app files from device and zip as .mpk bytes (with <fullname>/ top dir). */
+export async function buildMpkBytes(
+    app: AppInfo,
+    onProgress?: (state: { message?: string; progress?: number }) => void,
+): Promise<Uint8Array | undefined> {
+    return withRawMode(async (raw) => {
+        const files = await walkAppFiles(raw, app.path)
+        if (files.length === 0) throw new Error(t('apps.export-empty', 'App folder is empty'))
+        const totalBytes = files.reduce((acc, f) => acc + f.size, 0)
+        const tree: Record<string, Uint8Array> = {}
+        let read = 0
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i]
+            onProgress?.({
+                message: t('apps.exporting-file', 'Reading {{name}} ({{index}}/{{total}})…', {
+                    name: f.rel,
+                    index: i + 1,
+                    total: files.length,
+                }),
+                progress: totalBytes > 0 ? read / totalBytes : 0,
+            })
+            tree[`${app.fullname}/${f.rel}`] = await raw.readFile(f.path)
+            read += f.size
+        }
+        onProgress?.({ message: t('apps.exporting-zip', 'Building .mpk…'), progress: 1 })
+        return zipSync(tree)
+    })
+}
+
 /** Export app folder from device as .mpk (zip with <fullname>/ top-level dir),
  *  downloaded through the browser. */
 export async function exportMpk(app: AppInfo): Promise<boolean> {
@@ -322,28 +351,7 @@ export async function exportMpk(app: AppInfo): Promise<boolean> {
     const ok = await withLoader(
         t('apps.exporting', 'Exporting {{app}}…', { app: app.name || app.fullname }),
         async (loader) => {
-            const zipped = await withRawMode(async (raw) => {
-                const files = await walkAppFiles(raw, app.path)
-                if (files.length === 0) throw new Error(t('apps.export-empty', 'App folder is empty'))
-                const totalBytes = files.reduce((acc, f) => acc + f.size, 0)
-                const tree: Record<string, Uint8Array> = {}
-                let read = 0
-                for (let i = 0; i < files.length; i++) {
-                    const f = files[i]
-                    loader.update({
-                        message: t('apps.exporting-file', 'Reading {{name}} ({{index}}/{{total}})…', {
-                            name: f.rel,
-                            index: i + 1,
-                            total: files.length,
-                        }),
-                        progress: totalBytes > 0 ? read / totalBytes : 0,
-                    })
-                    tree[`${app.fullname}/${f.rel}`] = await raw.readFile(f.path)
-                    read += f.size
-                }
-                loader.update({ message: t('apps.exporting-zip', 'Building .mpk…'), progress: 1 })
-                return zipSync(tree)
-            })
+            const zipped = await buildMpkBytes(app, (s) => loader.update(s))
             if (!zipped) return false
 
             const blob = new Blob([zipped as BlobPart], { type: 'application/zip' })

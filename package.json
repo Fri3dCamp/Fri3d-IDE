@@ -29,6 +29,7 @@
     "fflate": "^0.8.3",
     "i18next": "^26.3.5",
     "i18next-browser-languagedetector": "^8.2.1",
+    "keycloak-js": "^26.2.4",
     "lucide-react": "^1.23.0",
     "marked": "^18.0.5",
     "peerjs": "^1.5.5",

@@ -79,6 +79,8 @@ function DialogShell({ children, wide }: { children: ReactNode; wide?: boolean }
 
     useEffect(() => {
         ref.current?.showModal()
+        // Re-promote the toaster popover above this dialog in the top layer.
+        window.dispatchEvent(new Event('ui:modal-opened'))
     }, [])
 
     return (
