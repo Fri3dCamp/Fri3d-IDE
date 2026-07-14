@@ -161,7 +161,9 @@ with open('${fn}','rb') as f:
             result += "'";
             return result;
         }
-        const dest = direct ? fn : '.viper.tmp'
+        // Temp file in the SAME directory as the target: cross-directory rename
+        // fails on some VFS implementations (e.g. wasm virtual badge, errno 75).
+        const dest = direct ? fn : `${fn}.viper.tmp`
         await this.exec(`
 try:
  import binascii
@@ -197,7 +199,18 @@ o=f.write
             await this.exec(`f.close()
 try: os.remove('${fn}')
 except: pass
-os.rename('${dest}','${fn}')
+try:
+ os.rename('${dest}','${fn}')
+except OSError:
+ s=open('${dest}','rb')
+ d=open('${fn}','wb')
+ while True:
+  b=s.read(256)
+  if not b: break
+  d.write(b)
+ s.close()
+ d.close()
+ os.remove('${dest}')
 `)
         }
     }
