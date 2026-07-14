@@ -11,6 +11,8 @@ import { setPendingInstall, setPresetUrl, connectDevice } from './services/devic
 import { ConnectionUID } from './domain/connection_uid'
 import { sleep } from './domain/utils'
 import { hasOrphanBadgeWindow } from './domain/virtualBadge'
+import { useEditorTabsStore } from './stores/editorTabs'
+import { useFileStore } from './stores/files'
 import { initAuth } from './services/badgehub/auth'
 
 async function bootstrap(): Promise<void> {
@@ -32,6 +34,19 @@ async function bootstrap(): Promise<void> {
     )
 
     handleUrlParams()
+
+    // Warn before leaving the page (close/reload/redirect) with unsaved edits.
+    window.addEventListener('beforeunload', (e) => {
+        const dirtyTabs = useEditorTabsStore
+            .getState()
+            .tabs.some((t) => t.dirty && !(t.fn === 'Untitled' && !t.content))
+        const changedFiles = useFileStore.getState().changedPaths.size > 0
+        if (dirtyTabs || changedFiles) {
+            // preventDefault() is the standard trigger; modern Chrome/Firefox/Safari
+            // all honor it (legacy returnValue assignment is deprecated).
+            e.preventDefault()
+        }
+    })
 }
 
 function initPwa(): void {
