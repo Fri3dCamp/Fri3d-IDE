@@ -621,7 +621,7 @@ export class WebRTCTransport extends Transport {
             clearTimeout(timeout)
         }
 
-        iceServers.push(...[
+        iceServers.push(
             {
                 urls: [
                     'turn:eu-0.turn.peerjs.com:3478',
@@ -634,7 +634,7 @@ export class WebRTCTransport extends Transport {
                 username: 'viper-ide',
                 credential: 'K70h5k>6ni/a',
             }
-        ]);
+        );
 
         this.peer = new Peer(this.myId, {
             secure: true,

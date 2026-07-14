@@ -17,7 +17,8 @@ const DEBUG = true
 function dbg(dir: string, s: string): void {
     if (!DEBUG) return
     // Printable dump with control chars escaped, so REPL framing is visible.
-    const vis = s.replace(/[\x00-\x1f\x7f]/g, (c) => {
+    // eslint-disable-next-line no-control-regex -- matching control chars is the point here
+    const vis = s.replace(/[\u{0}-\u{1f}\u{7f}]/gu, (c) => {
         if (c === '\r') return '\\r'
         if (c === '\n') return '\\n\n'
         return '\\x' + c.charCodeAt(0).toString(16).padStart(2, '0')
