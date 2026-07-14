@@ -91,7 +91,11 @@
             "upload-title-simple": "Bestanden uploaden",
             "uploading-many": "{{n}} bestanden uploaden…",
             "uploading-one": "{{name}} uploaden ({{index}}/{{total}})…",
-            "validating": "{{fn}} valideren…"
+            "validating": "{{fn}} valideren…",
+            "rename": "Hernoemen",
+            "rename-prompt": "Nieuwe naam voor {{name}}:",
+            "renaming": "{{name}} hernoemen…",
+            "rename-no-slash": "Naam mag geen / bevatten"
         },
         "settings": {
             "conn": "verbinding",

@@ -285,6 +285,17 @@ except OSError as e:
 `)
     }
 
+    async rename(oldPath: string, newPath: string) {
+        await this.exec(`
+try:
+ os.stat('${newPath}')
+ raise Exception('Target already exists')
+except OSError:
+ pass
+os.rename('${oldPath}','${newPath}')
+`)
+    }
+
     async getFsStats(path='/') {
         const rsp = await this.exec(`
 s = os.statvfs('${path}')

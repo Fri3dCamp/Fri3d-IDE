@@ -211,3 +211,43 @@ export async function removeItem(ui: ConnectUi, path: string, isDir: boolean): P
     useEditorTabsStore.getState().closeByPath(path, isDir)
     if (!isDir) useEditorTabsStore.getState().closeByPath(path)
 }
+
+/** Rename file or folder within its parent directory. Prompts for new name. */
+export async function renameItem(
+    ui: { prompt: (msg: string, options?: { value?: string }) => Promise<string | null> },
+    path: string,
+    isDir: boolean,
+): Promise<void> {
+    const { port } = useConnectionStore.getState()
+    if (!port) return
+
+    const oldName = path.split('/').at(-1) ?? path
+    const parent = path.slice(0, path.length - oldName.length)
+
+    const input = await ui.prompt(t('files.rename-prompt', 'New name for {{name}}:', { name: oldName }), {
+        value: oldName,
+    })
+    const newName = (input ?? '').trim().replace(/^\/+|\/+$/g, '')
+    if (!newName || newName === oldName) return
+    if (newName.includes('/')) {
+        toast.error(t('files.rename-no-slash', 'Name cannot contain /'))
+        return
+    }
+    const newPath = parent + newName
+
+    await withLoader(t('files.renaming', 'Renaming {{name}}…', { name: oldName }), () =>
+        withRawMode(async (raw) => {
+            await raw.rename(path, newPath)
+            await refreshTreeVia(raw)
+        }),
+    )
+
+    // Update open editor tabs pointing at the old path.
+    const tabs = useEditorTabsStore.getState()
+    for (const tab of tabs.tabs) {
+        if (tab.fn === path) tabs.rename(tab.id, newPath)
+        else if (isDir && tab.fn.startsWith(path + '/')) tabs.rename(tab.id, newPath + tab.fn.slice(path.length))
+    }
+    const fileStore = useFileStore.getState()
+    if (!isDir && fileStore.selectedPath === path) fileStore.select(newPath)
+}

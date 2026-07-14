@@ -28,7 +28,7 @@ import { useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { sizeFmt } from '../../domain/utils'
 import { refreshApps, launchApp, openAppFile, listDirectory, deleteApp, exportMpk } from '../../services/apps.service'
-import { createItem, removeItem } from '../../services/files.service'
+import { createItem, removeItem, renameItem } from '../../services/files.service'
 import { uploadFilesToPaths } from '../../services/device.service'
 import { useConfirm, usePrompt, useOpenDialog, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
 import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
@@ -422,6 +422,11 @@ function AppDetail({ app }: { app: AppInfo }) {
         await reload()
     }
 
+    const renameEntry = async (e: DeviceEntry) => {
+        await renameItem({ prompt }, e.path, e.isDir)
+        await reload()
+    }
+
     const uploadToSelectedFolder = async (list: FileList | null) => {
         if (!list || list.length === 0) return
         const files = Array.from(list)
@@ -499,6 +504,15 @@ function AppDetail({ app }: { app: AppInfo }) {
                             </button>
                             <button
                                 type="button"
+                                aria-label={t('files.rename', 'Rename')}
+                                className="group/icon invisible relative shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
+                                onClick={() => void renameEntry(e)}
+                            >
+                                <Pencil size={13} aria-hidden />
+                                <span aria-hidden className={iconHintClass}>{t('files.rename', 'Rename')}</span>
+                            </button>
+                            <button
+                                type="button"
                                 aria-label={t('files.remove', 'Remove')}
                                 className="group/icon invisible relative shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
                                 onClick={() => void removeEntry(e)}
@@ -550,6 +564,15 @@ function AppDetail({ app }: { app: AppInfo }) {
                     >
                         <FileCode2 size={13} className="shrink-0 opacity-70" aria-hidden />
                         <span className="truncate">{e.name}</span>
+                    </button>
+                    <button
+                        type="button"
+                        aria-label={t('files.rename', 'Rename')}
+                        className="group/icon invisible relative shrink-0 p-0.5 opacity-70 hover:opacity-100 group-hover:visible"
+                        onClick={() => void renameEntry(e)}
+                    >
+                        <Pencil size={13} aria-hidden />
+                        <span aria-hidden className={iconHintClass}>{t('files.rename', 'Rename')}</span>
                     </button>
                     <button
                         type="button"

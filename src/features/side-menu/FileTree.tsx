@@ -14,6 +14,7 @@ import {
     Link,
     Loader2,
     MonitorSmartphone,
+    Pencil,
     Plus,
     X,
 } from 'lucide-react'
@@ -21,7 +22,7 @@ import { useFileStore, isFolder, type FsNode } from '../../stores/files'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useSettingsStore } from '../../stores/settings'
 import { sizeFmt } from '../../domain/utils'
-import { openFile, createItem, removeItem, loadFolder, refreshFileTree } from '../../services/files.service'
+import { openFile, createItem, removeItem, renameItem, loadFolder, refreshFileTree } from '../../services/files.service'
 import { uploadFilesToPaths } from '../../services/device.service'
 import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
 import { connectDevice } from '../../services/device.service'
@@ -110,6 +111,15 @@ function FolderRow({ node, depth }: { node: Extract<FsNode, { content: FsNode[] 
                 </button>
                 <button
                     type="button"
+                    title={t('files.rename', 'Rename')}
+                    aria-label={t('files.rename', 'Rename')}
+                    className={actionClass}
+                    onClick={() => void renameItem({ prompt }, node.path, true)}
+                >
+                    <Pencil size={13} aria-hidden />
+                </button>
+                <button
+                    type="button"
                     title={t('files.remove', 'Remove')}
                     aria-label={t('files.remove', 'Remove')}
                     className={actionClass}
@@ -168,6 +178,15 @@ function FileRow({ node, depth }: { node: Extract<FsNode, { size: number }>; dep
                     {node.name}
                     {changed && <span aria-label={t('files.modified', 'modified')}> •</span>}
                 </span>
+            </button>
+            <button
+                type="button"
+                title={t('files.rename', 'Rename')}
+                aria-label={t('files.rename', 'Rename')}
+                className={actionClass}
+                onClick={() => void renameItem({ prompt }, node.path, false)}
+            >
+                <Pencil size={13} aria-hidden />
             </button>
             <button
                 type="button"

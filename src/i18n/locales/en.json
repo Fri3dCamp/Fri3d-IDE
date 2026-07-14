@@ -91,7 +91,11 @@
             "upload-title-simple": "Upload files",
             "upload-drop": "Drop files here or click to browse",
             "upload-targets": "Target files",
-            "upload-target-for": "Target filename for {{name}}"
+            "upload-target-for": "Target filename for {{name}}",
+            "rename": "Rename",
+            "rename-prompt": "New name for {{name}}:",
+            "renaming": "Renaming {{name}}…",
+            "rename-no-slash": "Name cannot contain /"
         },
         "settings": {
             "conn": "connection",
