@@ -43,6 +43,30 @@ export async function loadPublishDefaults(app: AppInfo): Promise<{ fields: Publi
     }
 
     const str = (v: unknown) => (typeof v === 'string' ? v : '')
+
+/** Map MPOS manifest categories (lowercase) to BadgeHub category enum. */
+const BADGEHUB_CATEGORIES = [
+    'Audio', 'Communication', 'Data', 'Development', 'Driver', 'Event-related', 'Finance',
+    'Game', 'Graphics', 'Hacking', 'Hardware', 'Interpreter', 'Knowledge', 'Network', 'SAO',
+    'Silly', 'System', 'Troll', 'Uncategorised', 'Unusable', 'Utility', 'Virus', 'Wearable',
+    'Adult', 'Default',
+]
+const MPOS_CATEGORY_MAP: Record<string, string> = {
+    development: 'Development',
+    games: 'Game',
+    game: 'Game',
+    media: 'Audio',
+    productivity: 'Utility',
+    utilities: 'Utility',
+    system: 'System',
+    other: 'Uncategorised',
+}
+function toBadgeHubCategory(raw: string): string {
+    if (!raw) return 'Uncategorised'
+    const exact = BADGEHUB_CATEGORIES.find((c) => c.toLowerCase() === raw.toLowerCase())
+    return exact ?? MPOS_CATEGORY_MAP[raw.toLowerCase()] ?? 'Uncategorised'
+}
+
     return {
         exists,
         owned,
@@ -52,7 +76,7 @@ export async function loadPublishDefaults(app: AppInfo): Promise<{ fields: Publi
             longDescription: existing?.long_description ?? str(m.long_description),
             author: existing?.author ?? str(m.publisher),
             version: str(m.version) || existing?.version || '0.1.0',
-            categories: existing?.categories ?? (str(m.category) ? [str(m.category)] : []),
+            categories: existing?.categories ?? (str(m.category) ? [toBadgeHubCategory(str(m.category))] : []),
             licenseType: existing?.license_type ?? 'MIT',
             gitUrl: existing?.git_url ?? '',
             hidden: existing?.hidden ?? false,
