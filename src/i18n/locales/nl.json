@@ -9,6 +9,7 @@
             "run": "Bestand uitvoeren",
             "save": "Bestand opslaan",
             "fullscreen": "Volledig scherm",
+            "install-app": "App installeren",
             "clear": "Wissen",
             "conn": {
                 "ws": "Verbind WebREPL",

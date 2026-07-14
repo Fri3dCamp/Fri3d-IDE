@@ -12,6 +12,7 @@
             "save-short": "Save",
             "stop": "Stop",
             "fullscreen": "Full Screen",
+            "install-app": "Install app",
             "clear": "Clear",
             "conn": {
                 "ws": "Connect WebREPL",

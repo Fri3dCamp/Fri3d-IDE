@@ -47,6 +47,18 @@
     }
     body.popout #dock-btn { display: block; }
 
+    /* Install PWA button: shown only when browser fires beforeinstallprompt. */
+    #install-btn {
+      display: none;
+      position: fixed; top: 8px; right: 50px; z-index: 10;
+      height: 34px; padding: 0 10px; line-height: 1;
+      font: bold 13px system-ui; color: #000;
+      background: #3ce8b3; border: 2px solid #000; cursor: pointer;
+      user-select: none; -webkit-user-select: none;
+    }
+    body:not(.popout) #install-btn { right: 8px; }
+    #install-btn.available { display: block; }
+
     /* Badge body: fixed 119x54 mm PCB with silkscreen overlay. */
     #badge {
       position: relative;
@@ -150,6 +162,8 @@
 <body>
   <button id="dock-btn" type="button" title="Dock badge back into the IDE"
           aria-label="Dock badge back into the IDE">⤋</button>
+  <button id="install-btn" type="button" title="Install as app"
+          aria-label="Install as app">Install app</button>
   <div id="badge">
     <div id="status">Loading MicroPythonOS…</div>
     <div id="joy-wrap">
@@ -171,6 +185,33 @@
     var canvas = document.getElementById('canvas');
     var statusEl = document.getElementById('status');
     console.log('[vbadge iframe] page booted');
+
+    // --- PWA install button ------------------------------------------------
+    // Visible only when browser fires beforeinstallprompt (i.e. installable
+    // and not already installed / running standalone).
+    (function () {
+      var installBtn = document.getElementById('install-btn');
+      var deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.classList.add('available');
+      });
+      window.addEventListener('appinstalled', function () {
+        deferredPrompt = null;
+        installBtn.classList.remove('available');
+      });
+      installBtn.addEventListener('click', function () {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function (choice) {
+          if (choice.outcome === 'accepted') {
+            deferredPrompt = null;
+            installBtn.classList.remove('available');
+          }
+        });
+      });
+    })();
 
     // --- Emulated badge peripherals (_webio bridge) ------------------------
     // Python side: staged neopixel shim calls _webio.leds_write() ->

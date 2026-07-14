@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
     Camera,
     CirclePlay,
     CircleStop,
+    Download,
     Expand,
     Menu,
     Save,
@@ -16,6 +17,40 @@ import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useAppsStore, appIdForPath } from '../../stores/apps'
 import { Rocket } from 'lucide-react'
 import { useConfirm, usePrompt } from '../../components/dialogs'
+
+interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+/** Captures `beforeinstallprompt` so the app can offer PWA installation. */
+function usePwaInstall() {
+    const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null)
+
+    useEffect(() => {
+        const onPrompt = (e: Event) => {
+            e.preventDefault()
+            setInstallEvent(e as BeforeInstallPromptEvent)
+        }
+        const onInstalled = () => setInstallEvent(null)
+        window.addEventListener('beforeinstallprompt', onPrompt)
+        window.addEventListener('appinstalled', onInstalled)
+        return () => {
+            window.removeEventListener('beforeinstallprompt', onPrompt)
+            window.removeEventListener('appinstalled', onInstalled)
+        }
+    }, [])
+
+    return {
+        canInstall: installEvent !== null,
+        install: async () => {
+            if (!installEvent) return
+            await installEvent.prompt()
+            const choice = await installEvent.userChoice
+            if (choice.outcome === 'accepted') setInstallEvent(null)
+        },
+    }
+}
 
 const isMac = navigator.platform.startsWith('Mac')
 const metaKey = isMac ? 'Cmd' : 'Ctrl'
@@ -96,6 +131,7 @@ export function ToolPanel() {
     const isRunning = useUiStore((s) => s.isRunning)
     const connected = useConnectionStore((s) => s.status === 'connected')
     const [fullscreenOk] = useState(() => document.fullscreenEnabled)
+    const { canInstall, install } = usePwaInstall()
 
     return (
         <header data-tour-id="toolbar" className="flex items-center justify-between gap-2 border-b-3 border-toolbar-border bg-toolbar px-2 py-1.5">
@@ -132,6 +168,15 @@ export function ToolPanel() {
             </div>
 
             <div className="flex items-center gap-2">
+                {canInstall && (
+                    <ToolbarButton
+                        title={t('tool.install-app', 'Install app')}
+                        label={t('tool.install-app', 'Install app')}
+                        onClick={() => void install()}
+                    >
+                        <Download size={18} aria-hidden />
+                    </ToolbarButton>
+                )}
                 {connected && (
                     <ToolbarButton
                         title={t('tool.screenshot', 'Take Screenshot')}
