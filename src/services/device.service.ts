@@ -454,6 +454,95 @@ async function execReplNoFollow(port: Transport, cmd: string): Promise<void> {
 }
 
 /* ------------------------------------------------------------------ */
+/* Screenshot                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Convert little-endian RGB565 framebuffer to a PNG blob via canvas. */
+function rgb565ToPngBlob(buf: Uint8Array, width: number, height: number): Promise<Blob> {
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')!
+    const img = ctx.createImageData(width, height)
+    for (let i = 0, p = 0; i < width * height; i++, p += 2) {
+        const v = buf[p] | (buf[p + 1] << 8)
+        img.data[i * 4] = ((v >> 11) & 0x1f) * 255 / 31
+        img.data[i * 4 + 1] = ((v >> 5) & 0x3f) * 255 / 63
+        img.data[i * 4 + 2] = (v & 0x1f) * 255 / 31
+        img.data[i * 4 + 3] = 255
+    }
+    ctx.putImageData(img, 0, 0)
+    return new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG encode failed'))), 'image/png'),
+    )
+}
+
+/** Capture the device screen over raw REPL (MicroPythonOS LVGL snapshot)
+ *  and download it as a PNG. Virtual badge takes a direct canvas grab
+ *  instead (faster, no REPL round-trip). */
+export async function takeScreenshot(): Promise<void> {
+    const { port } = useConnectionStore.getState()
+    if (!port) return
+
+    const download = (blob: Blob) => {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+        a.href = url
+        a.download = `screenshot-${ts}.png`
+        a.click()
+        URL.revokeObjectURL(url)
+    }
+
+    // Virtual badge: grab the canvas directly (popped-out badge falls
+    // through to the REPL path — no same-document canvas available).
+    if (port instanceof VirtualBadgeTransport) {
+        try {
+            const blob = await port.captureScreenPng()
+            if (blob) {
+                download(blob)
+                return
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error(t('tool.screenshot-failed', 'Screenshot failed: {{err}}', { err: String(err) }))
+            return
+        }
+    }
+
+    if (useUiStore.getState().isRunning) {
+        toast.error(t('tool.screenshot-busy', 'Stop the running program first'))
+        return
+    }
+    const W = 320
+    const H = 240
+    await withLoader(t('tool.screenshot-taking', 'Taking screenshot…'), async () => {
+        const hex = await withRawMode(async (raw) => {
+            return await raw.exec(
+                `
+import binascii
+from mpos.ui.testing import capture_screenshot, wait_for_render
+wait_for_render()
+_b = capture_screenshot(width=${W}, height=${H}, all_layers=True)
+for _i in range(0, len(_b), 256):
+    print(binascii.hexlify(_b[_i:_i+256]).decode(), end='')
+del _b
+`,
+                30000,
+            )
+        })
+        if (!hex) throw new Error('No screenshot data received')
+        const buf = new Uint8Array(hex.match(/../g)!.map((h) => parseInt(h, 16)))
+        const blob = await rgb565ToPngBlob(buf, W, H)
+        download(blob)
+    }).catch((err) => {
+        console.error(err)
+        toast.error(t('tool.screenshot-failed', 'Screenshot failed: {{err}}', { err: String(err) }))
+    })
+}
+
+
+/* ------------------------------------------------------------------ */
 /* Save                                                                */
 /* ------------------------------------------------------------------ */
 

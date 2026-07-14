@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+    Camera,
     CirclePlay,
     CircleStop,
     Expand,
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react'
 import { useConnectionStore } from '../../stores/connection'
 import { useUiStore } from '../../stores/ui'
-import { runCurrentFile, saveCurrentFile } from '../../services/device.service'
+import { runCurrentFile, saveCurrentFile, takeScreenshot } from '../../services/device.service'
 import { launchApp } from '../../services/apps.service'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useAppsStore, appIdForPath } from '../../stores/apps'
@@ -93,6 +94,7 @@ export function ToolPanel() {
     const confirm = useConfirm()
     const toggleSideMenu = useUiStore((s) => s.toggleSideMenu)
     const isRunning = useUiStore((s) => s.isRunning)
+    const connected = useConnectionStore((s) => s.status === 'connected')
     const [fullscreenOk] = useState(() => document.fullscreenEnabled)
 
     return (
@@ -130,6 +132,14 @@ export function ToolPanel() {
             </div>
 
             <div className="flex items-center gap-2">
+                {connected && (
+                    <ToolbarButton
+                        title={t('tool.screenshot', 'Take Screenshot')}
+                        onClick={() => void takeScreenshot()}
+                    >
+                        <Camera size={18} aria-hidden />
+                    </ToolbarButton>
+                )}
                 {fullscreenOk && (
                     <ToolbarButton
                         title={t('tool.fullscreen', 'Full Screen')}

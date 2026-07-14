@@ -592,4 +592,27 @@ export class VirtualBadgeTransport extends Transport {
         if (!bridge) throw new Error('Virtual badge is not running')
         bridge.push(data)
     }
+
+    /** Capture the badge screen canvas (same-origin iframe) as a PNG blob.
+     *  Taken inside the iframe's rAF so the framebuffer is fresh. Returns
+     *  null when running popped-out (no same-document canvas to grab). */
+    async captureScreenPng(): Promise<Blob | null> {
+        const win = this.iframe?.contentWindow
+        const canvas = this.iframe?.contentDocument?.getElementById(
+            'canvas',
+        ) as HTMLCanvasElement | null
+        if (!win || !canvas) return null
+        return await new Promise<Blob | null>((resolve, reject) => {
+            win.requestAnimationFrame(() => {
+                try {
+                    canvas.toBlob(
+                        (b) => (b ? resolve(b) : reject(new Error('PNG encode failed'))),
+                        'image/png',
+                    )
+                } catch (err) {
+                    reject(err)
+                }
+            })
+        })
+    }
 }
