@@ -31,12 +31,15 @@ For a real badge, connect it with a data-capable USB-C cable, choose **USB/Seria
 ## What it includes
 
 - **Create:** CodeMirror editor, multiple tabs, Python formatting and in-browser Ruff analysis.
+- **Get started:** Task-based onboarding for connecting, trying the virtual badge, building a first app, or installing from BadgeHub.
 - **Connect:** USB/Serial, Bluetooth, WebREPL/WebSocket, WebRTC relay, and a virtual Fri3d badge.
 - **Operate:** Terminal/REPL, device files, screenshots, package management, and reconnect handling.
 - **Build apps:** MicroPythonOS templates, icons, manifests, install/uninstall, and MPK import/export.
 - **Publish:** BadgeHub sign-in, compatibility metadata, draft upload, and publishing.
 - **Use anywhere:** Localization, responsive UI, installable PWA, and offline shell support.
 - **Get support:** Copy a privacy-safe diagnostics report from the About panel.
+
+Device access follows an explicit lifecycle—permission, connection, synchronization, ready, busy, recovery, and error—so write operations are only enabled when the badge is ready.
 
 ## Compatibility
 

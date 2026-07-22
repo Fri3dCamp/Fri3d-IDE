@@ -26,7 +26,7 @@ import { sizeFmt } from '../../domain/utils'
 import { refreshFileTree } from '../../services/files.service'
 import { useUploadFlow } from './UploadDialog'
 import { disconnectDevice } from '../../services/device.service'
-import { useConnectionStore } from '../../stores/connection'
+import { isConnectionActive, useConnectionStore } from '../../stores/connection'
 import { installPkg, installPkgFromUrl } from '../../services/packages.service'
 import { prettifyCurrentFile } from '../../services/format.service'
 import { useConfirm, usePrompt } from '../../components/dialogs'
@@ -136,7 +136,7 @@ function FilesPanel() {
 /** Connection status + disconnect footer, shared by Apps and Files tabs. */
 function ConnectionFooter() {
     const { t } = useTranslation()
-    const connected = useConnectionStore((s) => s.status === 'connected')
+    const connected = useConnectionStore((s) => isConnectionActive(s.status))
     const transportType = useConnectionStore((s) => s.transportType)
     const devInfo = useConnectionStore((s) => s.devInfo)
     const activityTick = useConnectionStore((s) => s.activityTick)
