@@ -1,5 +1,7 @@
 # Fri3d-IDE
 
+[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
+
 Connect a Fri3d badge, write an app, run it, and publish it from your browser.
 
 [Launch Fri3d-IDE](https://fri3dcamp.github.io/Fri3d-IDE/) · [Contribute](CONTRIBUTING.md) · [Security](SECURITY.md) · [Report a problem](https://github.com/Fri3dCamp/Fri3d-IDE/issues)
@@ -104,5 +106,3 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for architecture, project structure, test
 ## Origin
 
 Fri3d-IDE is forked from the excellent [ViperIDE](https://github.com/vshymanskyy/ViperIDE) project by [Volodymyr Shymanskyy](https://github.com/vshymanskyy).
-
-[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
