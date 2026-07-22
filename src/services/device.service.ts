@@ -156,6 +156,16 @@ function prepareUsbPort(): Transport | null {
 
 /** localStorage flag: virtual-badge disclaimer already acknowledged. */
 const VBADGE_DISCLAIMER_KEY = 'vbadge-disclaimer-shown'
+const DEVICE_PROBE_TIMEOUT = 5000
+const FAILED_CONNECTION_CLEANUP_TIMEOUT = 1500
+
+async function closeFailedConnection(port: Transport): Promise<void> {
+    port.onDisconnect(() => {})
+    await Promise.race([
+        port.disconnect().catch((error) => console.warn('Failed to close rejected connection', error)),
+        sleep(FAILED_CONNECTION_CLEANUP_TIMEOUT),
+    ])
+}
 
 export async function connectDevice(type: TransportType, ui: ConnectUi): Promise<void> {
     const conn = useConnectionStore.getState()
@@ -207,6 +217,7 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
             return true
         } catch (err) {
             toast.error(t('app.cannot-connect', 'Cannot connect'), { description: String(err) })
+            await closeFailedConnection(port)
             useConnectionStore.getState().setError(err)
             return false
         }
@@ -228,7 +239,15 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
     useConnectionStore.getState().startSynchronizing(port)
 
     if (useSettingsStore.getState().interruptDevice) {
-        await readDeviceOnConnect(port)
+        const syncError = await readDeviceOnConnect(port)
+        if (syncError) {
+            await closeFailedConnection(port)
+            useConnectionStore.getState().setError(syncError)
+            useFileStore.getState().reset()
+            useAppsStore.getState().reset()
+            useUiStore.getState().setRunning(false)
+            return
+        }
         await port.write('\x02') // print friendly REPL banner
     } else {
         toast.success(t('app.device-connected', 'Device connected'))
@@ -238,12 +257,12 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
     }
 }
 
-async function readDeviceOnConnect(port: Transport): Promise<void> {
+async function readDeviceOnConnect(port: Transport): Promise<Error | null> {
     const loader = useUiStore.getState().showLoader(t('app.reading-device', 'Reading device…'))
     useFileStore.getState().setLoading(t('files.loading', 'Loading files…'))
     let raw: MpRawMode | null = null
     try {
-        raw = await MpRawMode.begin(port)
+        raw = await MpRawMode.begin(port, false, DEVICE_PROBE_TIMEOUT)
         const devInfo = (await raw.getDeviceInfo()) as DeviceInfo
         useConnectionStore.getState().setDevInfo(devInfo)
         toast.success(t('app.device-connected', 'Device connected'), {
@@ -265,18 +284,25 @@ async function readDeviceOnConnect(port: Transport): Promise<void> {
         const flat = flatten(tree)
         const boot = flat.find((n) => n.path === '/main.py') ?? flat.find((n) => n.path === '/code.py')
         if (boot) await openFileContent(raw, boot.path)
+        return null
     } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        if (message.includes('Timeout')) {
+        const error = err instanceof Error ? err : new Error(String(err))
+        const message = error.message
+        if (message.includes('Timeout') || message.includes('not responding')) {
             toast.error(t('app.not-responding', 'Device is not responding'), {
-                description:
-                    "Ensure that:\n- You're using a recent version of MicroPython\n- The correct device is selected",
+                description: t(
+                    'app.wrong-port-hint',
+                    'The selected port did not respond as a MicroPython device. Choose another port and try again.',
+                ),
             })
         } else {
             toast.error(t('app.err-read-board', 'Error reading board info'), { description: message })
         }
+        return error
     } finally {
-        if (raw) await raw.end().catch(() => undefined)
+        if (raw) {
+            await Promise.race([raw.end().catch(() => undefined), sleep(FAILED_CONNECTION_CLEANUP_TIMEOUT)])
+        }
         loader.hide()
         useFileStore.getState().setLoading(null)
     }

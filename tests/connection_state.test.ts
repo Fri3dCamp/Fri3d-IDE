@@ -58,4 +58,20 @@ describe('connection state machine', () => {
         expect(isConnectionActive('busy')).toBe(true)
         expect(isConnectionReady('busy')).toBe(false)
     })
+
+    it('drops a failed port so the user can retry immediately', () => {
+        const port = new TestTransport()
+        useConnectionStore.getState().requestPermission('usb')
+        useConnectionStore.getState().startConnecting()
+        useConnectionStore.getState().startSynchronizing(port)
+
+        useConnectionStore.getState().setError(new Error('Wrong port'))
+
+        expect(useConnectionStore.getState()).toMatchObject({
+            status: 'error',
+            port: null,
+            devInfo: null,
+            error: 'Wrong port',
+        })
+    })
 })

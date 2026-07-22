@@ -213,6 +213,7 @@
             "err-read-board": "Fout bij lezen van bordinformatie",
             "not-responding": "Apparaat reageert niet",
             "reading-device": "Apparaat lezen…",
+            "wrong-port-hint": "De gekozen poort reageerde niet als een MicroPython-apparaat. Kies een andere poort en probeer opnieuw.",
             "vbadge-disclaimer": "De virtuele badge is een voorproefje van wat de echte Fri3d-badge kan. Hij draait hetzelfde MicroPythonOS, maar niet alles werkt hetzelfde: hardware zoals wifi, sensoren en geluid ontbreekt of gedraagt zich anders, en timing/prestaties verschillen van het echte apparaat."
         },
         "onboarding": {

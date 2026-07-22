@@ -290,6 +290,7 @@
             "cannot-connect": "Cannot connect",
             "reading-device": "Reading device…",
             "not-responding": "Device is not responding",
+            "wrong-port-hint": "The selected port did not respond as a MicroPython device. Choose another port and try again.",
             "err-read-board": "Error reading board info",
             "disconnect-device": "Disconnect device",
             "disconnect": "Disconnect",
