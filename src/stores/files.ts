@@ -31,6 +31,13 @@ interface FileStore {
     reset(): void
 }
 
+/** Immutably filter out '.' and '..' entries from nodes tree. */
+export function sanitizeNodes(nodes: FsNode[]): FsNode[] {
+    return nodes
+        .filter((n) => n.name !== '.' && n.name !== '..')
+        .map((n) => (isFolder(n) ? { ...n, content: sanitizeNodes(n.content) } : n))
+}
+
 /** Immutably replace the children of the folder at `path`; marks it loaded. */
 function replaceChildren(nodes: FsNode[], path: string, children: FsNode[]): FsNode[] {
     return nodes.map((n) => {
@@ -54,7 +61,7 @@ export const useFileStore = create<FileStore>((set, get) => ({
 
     setTree: (tree, stats) =>
         set({
-            tree,
+            tree: sanitizeNodes(tree),
             stats: stats ? { used: stats[0], size: stats[2] } : get().stats,
             loading: null,
         }),
@@ -64,7 +71,7 @@ export const useFileStore = create<FileStore>((set, get) => ({
     setFolderChildren: (path, children) => {
         const tree = get().tree
         if (!tree) return
-        set({ tree: replaceChildren(tree, path, children) })
+        set({ tree: replaceChildren(tree, path, sanitizeNodes(children)) })
     },
 
     setFolderLoading: (path, loading) => {

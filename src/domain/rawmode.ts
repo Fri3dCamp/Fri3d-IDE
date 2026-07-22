@@ -314,6 +314,7 @@ print('%s|%s|%s'%(fu,ff,fs))
         const rsp = await this.exec(`
 p='${p}'
 for n in os.listdir(p if p else '/'):
+ if n in ('.', '..'): continue
  fn=p+'/'+n
  try: s=os.stat(fn)
  except: s=(0,)*7
@@ -325,6 +326,7 @@ for n in os.listdir(p if p else '/'):
             if (line === '') continue
             const [type, fullpath, size] = line.trim().split('|')
             const name = fullpath.split('/').pop()!
+            if (name === '.' || name === '..') continue
             if (type === 'd') {
                 result.push({ name, path: fullpath, content: [], loaded: false })
             } else {
@@ -338,13 +340,14 @@ for n in os.listdir(p if p else '/'):
         const rsp = await this.exec(`
 def walk(p):
  for n in os.listdir(p if p else '/'):
+  if n in ('.', '..'): continue
   fn=p+'/'+n
   try: s=os.stat(fn)
   except: s=(0,)*7
   try:
    if s[0] & 0x4000 == 0:
     print('f|'+fn+'|'+str(s[6]))
-   elif n not in ('.','..'):
+   else:
     print('d|'+fn+'|'+str(s[6]))
     walk(fn)
   except:
@@ -364,7 +367,7 @@ walk('')
                 file = path.pop()
             }
             for (const segment of path) {
-                if (segment === '') continue
+                if (segment === '' || segment === '.' || segment === '..') continue
                 const next = current.filter(x => x.name === segment && "content" in x)
                 if (next.length) {
                     current = next[0].content
@@ -374,7 +377,7 @@ walk('')
                     prev.push({ name: segment, path: path.join('/'), content: current })
                 }
             }
-            if (type == 'f') {
+            if (type == 'f' && file && file !== '.' && file !== '..') {
                 current.push({ name: file, path: fullpath, size: parseInt(size, 10) })
             }
         }

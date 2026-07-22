@@ -209,6 +209,7 @@ export async function listDirectory(path: string): Promise<
             { name: string; path: string; size: number } | { name: string; path: string; content: unknown[] }
         >
         return rawEntries
+            .filter((e) => e.name !== '.' && e.name !== '..')
             .map((e) => ('content' in e ? { name: e.name, path: e.path, isDir: true as const } : { name: e.name, path: e.path, size: e.size, isDir: false as const }))
             .sort((a, b) => {
                 if (a.isDir !== b.isDir) return a.isDir ? -1 : 1
@@ -407,6 +408,7 @@ def _rm(p):
   return
  if st[0] & 0x4000:
   for n in os.listdir(p):
+   if n in ('.', '..'): continue
    _rm(p+'/'+n)
   try: os.rmdir(p)
   except: pass
@@ -642,6 +644,7 @@ def _rm(p):
   return
  if st[0] & 0x4000:
   for n in os.listdir(p):
+   if n in ('.', '..'): continue
    _rm(p+'/'+n)
   try: os.rmdir(p)
   except: pass
