@@ -25,6 +25,8 @@ export interface StoreApp {
     installable: boolean
     /** Installed on connected device? Filled by caller from apps store. */
     installedVersion?: string
+    /** Author ID of the project on BadgeHub. */
+    authorId: string
 }
 
 export async function fetchStoreApps(filter: { category?: string; search?: string } = {}): Promise<StoreApp[]> {
@@ -47,6 +49,7 @@ export async function fetchStoreApps(filter: { category?: string; search?: strin
             iconUrl: api.fileUrl(s.slug, 'icon-64x64.png'),
             installable: (s.badges ?? []).some((b) => MPOS_BADGES.has(b)),
             installedVersion: installed.get(s.slug),
+            authorId: s.idp_user_id,
         }))
 }
 
