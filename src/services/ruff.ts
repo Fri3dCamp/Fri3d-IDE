@@ -2,7 +2,7 @@
  * Ruff (Python linter/formatter) via WASM. Lazy singleton: the ~10 MB wasm
  * module loads on first use (first .py file opened or first Prettify).
  */
-import ruffInit, { Workspace as RuffWorkspace } from '@astral-sh/ruff-wasm-web'
+import type { Workspace as RuffWorkspace } from '@astral-sh/ruff-wasm-web'
 // Vite turns this into a hashed asset URL; wasm loads over fetch.
 import ruffWasmUrl from '@astral-sh/ruff-wasm-web/ruff_wasm_bg.wasm?url'
 
@@ -21,11 +21,12 @@ export function getRuff(): Promise<RuffWorkspace | null> {
     if (!initPromise) {
         initPromise = (async () => {
             try {
+                const { default: ruffInit, Workspace } = await import('@astral-sh/ruff-wasm-web')
                 await ruffInit({ module_or_path: ruffWasmUrl })
-                console.log('Ruff', RuffWorkspace.version())
-                const settings = RuffWorkspace.defaultSettings()
+                console.log('Ruff', Workspace.version())
+                const settings = Workspace.defaultSettings()
                 settings.set('line-length', 120)
-                workspace = new RuffWorkspace(settings)
+                workspace = new Workspace(settings)
                 return workspace
             } catch (err) {
                 console.error('Failed to init Ruff workspace:', err)

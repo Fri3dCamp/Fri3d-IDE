@@ -1,25 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import DOMPurify from 'dompurify'
-import { marked } from 'marked'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useEditorTabsStore, type EditorTab } from '../../stores/editorTabs'
 import { useFileStore } from '../../stores/files'
 import { imageMimeFor } from '../../services/files.service'
 import { CodeEditor } from './CodeEditor'
 
+const MarkdownViewer = lazy(() =>
+    import('./MarkdownViewer').then((module) => ({ default: module.MarkdownViewer })),
+)
+
 /* ------------------------------------------------------------------ */
 /* Viewers                                                             */
 /* ------------------------------------------------------------------ */
-
-function MarkdownViewer({ content }: { content: string }) {
-    const html = useMemo(() => DOMPurify.sanitize(marked.parse(content, { async: false })), [content])
-    return (
-        <div
-            className="marked-viewer h-full overflow-y-auto bg-edit px-6 py-4 [&_a]:text-fg-highlight [&_a]:underline [&_code]:bg-black/20 [&_code]:px-1 [&_h1]:font-heading [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:font-heading [&_h2]:text-xl [&_h2]:font-bold [&_h3]:font-bold [&_li]:list-disc [&_li]:ms-5 [&_p]:my-2 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:bg-black/20 [&_pre]:p-2"
-            // Sanitized above.
-            dangerouslySetInnerHTML={{ __html: html }}
-        />
-    )
-}
 
 /** Object-URL lifecycle bound to a single effect: StrictMode-safe.
  *  (useMemo + revoke-in-cleanup breaks under double-mount: the memo isn't
@@ -117,7 +108,11 @@ function Pane({ tab }: { tab: EditorTab }) {
     const text = typeof tab.content === 'string' ? tab.content : ''
 
     if (tab.kind === 'markdown' && tab.viewMode === 'view') {
-        return <MarkdownViewer content={text} />
+        return (
+            <Suspense fallback={<div className="h-full bg-edit" />}>
+                <MarkdownViewer content={text} />
+            </Suspense>
+        )
     }
     if (tab.kind === 'svg' && tab.viewMode === 'view') {
         return <SvgViewer content={text} fn={tab.fn} />

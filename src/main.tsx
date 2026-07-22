@@ -13,13 +13,11 @@ import { sleep } from './domain/utils'
 import { hasOrphanBadgeWindow } from './domain/virtualBadge'
 import { useEditorTabsStore } from './stores/editorTabs'
 import { useFileStore } from './stores/files'
-import { initAuth } from './services/badgehub/auth'
 
 async function bootstrap(): Promise<void> {
     await initI18n()
     initTheme()
     initPwa()
-    void initAuth()
 
     // Domain errors → toasts.
     setReportHandler((title, err) => {

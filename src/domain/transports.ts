@@ -568,7 +568,7 @@ export class WebSocketREPL extends Transport {
  * P2P / WebRTC
  */
 
-import { Peer } from 'peerjs'
+import type { Peer } from 'peerjs'
 
 export class WebRTCTransport extends Transport {
     declare peerId: any
@@ -589,6 +589,7 @@ export class WebRTCTransport extends Transport {
     }
 
     async requestAccess() {
+        const { Peer } = await import('peerjs')
         const iceServers: any[] = [
             {
                 urls: [
@@ -702,4 +703,3 @@ export class WebRTCTransport extends Transport {
         }
     }
 }
-

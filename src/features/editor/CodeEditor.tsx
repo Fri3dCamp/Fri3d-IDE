@@ -5,16 +5,11 @@ import { EditorState, Compartment } from '@codemirror/state'
 import type { Extension } from '@codemirror/state'
 import { indentWithTab } from '@codemirror/commands'
 import { indentUnit } from '@codemirror/language'
-import { python } from '@codemirror/lang-python'
 import { linter, lintGutter } from '@codemirror/lint'
-import { json as langJson, jsonParseLinter } from '@codemirror/lang-json'
-import { markdown as langMarkdown } from '@codemirror/lang-markdown'
-import { xml as langXml } from '@codemirror/lang-xml'
 import { monokaiInit } from '@uiw/codemirror-theme-monokai'
 import { vsCodeLight } from '@fsegurai/codemirror-theme-vscode-light'
 import { useSettingsStore } from '../../stores/settings'
 import { useThemeIsDark, useThemeStore } from '../../services/theme'
-import { ruffLinter } from './ruffLinter'
 
 const FONT = '"Hack", "Droid Sans Mono", monospace'
 
@@ -25,12 +20,27 @@ const baseTheme = EditorView.theme({
     '.cm-gutters': { backgroundColor: 'var(--raw-bg-edit)' },
 })
 
-function languageFor(fn: string): Extension[] {
+async function languageFor(fn: string): Promise<Extension[]> {
     const lower = fn.toLowerCase()
-    if (lower.endsWith('.py')) return [python(), ruffLinter(), lintGutter()]
-    if (lower.endsWith('.json') || lower.endsWith('.map')) return [langJson(), linter(jsonParseLinter()), lintGutter()]
-    if (lower.endsWith('.xml') || lower.endsWith('.svg')) return [langXml()]
-    if (lower.endsWith('.md')) return [langMarkdown()]
+    if (lower.endsWith('.py')) {
+        const [{ python }, { ruffLinter }] = await Promise.all([
+            import('@codemirror/lang-python'),
+            import('./ruffLinter'),
+        ])
+        return [python(), ruffLinter(), lintGutter()]
+    }
+    if (lower.endsWith('.json') || lower.endsWith('.map')) {
+        const { json, jsonParseLinter } = await import('@codemirror/lang-json')
+        return [json(), linter(jsonParseLinter()), lintGutter()]
+    }
+    if (lower.endsWith('.xml') || lower.endsWith('.svg')) {
+        const { xml } = await import('@codemirror/lang-xml')
+        return [xml()]
+    }
+    if (lower.endsWith('.md')) {
+        const { markdown } = await import('@codemirror/lang-markdown')
+        return [markdown()]
+    }
     return []
 }
 
@@ -74,6 +84,7 @@ export function CodeEditor({ tabId, fn, content, readOnly = false, onDocChanged,
     const viewRef = useRef<EditorView | null>(null)
     const themeCompartment = useRef(new Compartment())
     const wrapCompartment = useRef(new Compartment())
+    const languageCompartment = useRef(new Compartment())
     const dark = useThemeIsDark()
     const wordWrap = useSettingsStore((s) => s.wordWrap)
 
@@ -95,7 +106,7 @@ export function CodeEditor({ tabId, fn, content, readOnly = false, onDocChanged,
                     basicSetup,
                     baseTheme,
                     keymap.of([indentWithTab]),
-                    ...languageFor(fn),
+                    languageCompartment.current.of([]),
                     indentUnit.of('    '),
                     themeCompartment.current.of(themeFor(useThemeStore.getState().dark)),
                     wrapCompartment.current.of(
@@ -122,6 +133,21 @@ export function CodeEditor({ tabId, fn, content, readOnly = false, onDocChanged,
         // Recreate only when the file identity changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tabId, fn, readOnly])
+
+    useEffect(() => {
+        let cancelled = false
+        void languageFor(fn)
+            .then((extensions) => {
+                if (cancelled) return
+                viewRef.current?.dispatch({
+                    effects: languageCompartment.current.reconfigure(extensions),
+                })
+            })
+            .catch((error) => console.error(`Failed to load editor support for ${fn}`, error))
+        return () => {
+            cancelled = true
+        }
+    }, [fn, tabId])
 
     useEffect(() => {
         viewRef.current?.dispatch({

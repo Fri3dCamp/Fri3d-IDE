@@ -4,7 +4,7 @@ import { CloudUpload, Loader2, LogIn, UploadCloud } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AppInfo } from '../../stores/apps'
 import { useBadgeHubStore } from '../../stores/badgehub'
-import { login } from '../../services/badgehub/auth'
+import { initAuth, login } from '../../services/badgehub/auth'
 import {
     loadPublishDefaults,
     publishAppToBadgeHub,
@@ -28,6 +28,10 @@ function PublishDialog({ app, close }: { app: AppInfo; close: (r: boolean | null
     const [owned, setOwned] = useState(false)
     const [categories, setCategories] = useState<string[]>([])
     const [fields, setFields] = useState<PublishFields | null>(null)
+
+    useEffect(() => {
+        void initAuth()
+    }, [])
 
     useEffect(() => {
         if (!authenticated) {

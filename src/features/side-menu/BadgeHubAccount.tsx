@@ -1,7 +1,8 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CloudUpload, Loader2, LogIn, LogOut, User } from 'lucide-react'
 import { useBadgeHubStore } from '../../stores/badgehub'
-import { login, logout } from '../../services/badgehub/auth'
+import { initAuth, login, logout } from '../../services/badgehub/auth'
 import { useBadgeHubBrowserDialog } from './BadgeHubBrowserDialog'
 
 const btnClass =
@@ -13,6 +14,10 @@ export function BadgeHubAccount() {
     const authenticated = useBadgeHubStore((s) => s.authenticated)
     const username = useBadgeHubStore((s) => s.username)
     const badgeHubBrowser = useBadgeHubBrowserDialog()
+
+    useEffect(() => {
+        void initAuth()
+    }, [])
 
     return (
         <>

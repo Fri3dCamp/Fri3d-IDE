@@ -14,7 +14,7 @@ import { BADGEHUB_SITE } from '../../services/badgehub/config'
 import { useOpenDialog, useConfirm, DialogActions, SecondaryButton } from '../../components/dialogs'
 import { ExternalLink } from 'lucide-react'
 import { useBadgeHubStore } from '../../stores/badgehub'
-import { login } from '../../services/badgehub/auth'
+import { initAuth, login } from '../../services/badgehub/auth'
 
 const inputClass =
     'w-full border-2 border-black bg-edit px-2 py-1 text-sm text-fg outline-none focus:border-accent'
@@ -153,6 +153,10 @@ function StoreRow({
 }
 
 function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: null) => void, initialTab?: 'store' | 'my-apps' }) {
+    useEffect(() => {
+        void initAuth()
+    }, [])
+
     const { t } = useTranslation()
     const confirm = useConfirm()
     const [apps, setApps] = useState<StoreApp[] | null>(null)

@@ -9,6 +9,34 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf8')) as { version: str
 const commit = process.env.GITHUB_SHA ?? 'local'
 
 export default defineConfig({
+    build: {
+        rolldownOptions: {
+            output: {
+                codeSplitting: {
+                    groups: [
+                        {
+                            name: 'react-vendor',
+                            test: /node_modules[\\/](?:react|react-dom|scheduler|zustand|i18next|react-i18next)[\\/]/,
+                            tags: ['$initial'],
+                            includeDependenciesRecursively: false,
+                        },
+                        {
+                            name: 'editor-vendor',
+                            test: /node_modules[\\/](?:@codemirror|codemirror|@lezer|style-mod|w3c-keyname|crelt)[\\/]/,
+                            tags: ['$initial'],
+                            includeDependenciesRecursively: false,
+                        },
+                        {
+                            name: 'ui-vendor',
+                            test: /node_modules[\\/](?:lucide-react|sonner)[\\/]/,
+                            tags: ['$initial'],
+                            includeDependenciesRecursively: false,
+                        },
+                    ],
+                },
+            },
+        },
+    },
     plugins: [
         react(),
         tailwindcss(),

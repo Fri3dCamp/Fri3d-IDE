@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Expand, Monitor, Power, RotateCcw, TerminalSquare, Trash2 } from 'lucide-react'
-import { Terminal } from '@xterm/xterm'
-import { FitAddon } from '@xterm/addon-fit'
-import { WebLinksAddon } from '@xterm/addon-web-links'
+import type { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
 import { useUiStore } from '../../stores/ui'
 import { useSettingsStore } from '../../stores/settings'
 import { useConnectionStore } from '../../stores/connection'
-import { useThemeIsDark } from '../../services/theme'
+import { useThemeIsDark, useThemeStore } from '../../services/theme'
 import {
     registerTerminalSink,
     clearTerminal,
@@ -55,55 +53,71 @@ function XtermPane() {
     useEffect(() => {
         const host = hostRef.current
         if (!host) return
+        let disposed = false
+        let cleanup: (() => void) | undefined
 
-        const term = new Terminal({
-            fontFamily: '"Hack", "Droid Sans Mono", monospace',
-            fontSize: Math.round(14 * useSettingsStore.getState().zoom * 0.9),
-            theme: dark ? XTERM_DARK : XTERM_LIGHT,
-            cursorBlink: true,
-            convertEol: true,
-            allowProposedApi: true,
-        })
-        const fit = new FitAddon()
-        term.loadAddon(fit)
-        term.loadAddon(new WebLinksAddon())
-        term.open(host)
-        fit.fit()
-        termRef.current = term
+        void Promise.all([
+            import('@xterm/xterm'),
+            import('@xterm/addon-fit'),
+            import('@xterm/addon-web-links'),
+        ])
+            .then(([{ Terminal }, { FitAddon }, { WebLinksAddon }]) => {
+                if (disposed) return
 
-        // Keystrokes → device. Mutex unless a script is running (stdin injection).
-        const dataSub = term.onData(async (data) => {
-            const { port } = useConnectionStore.getState()
-            if (!port) return
-            if (useUiStore.getState().isRunning) {
-                await port.write(data)
-            } else {
-                const release = await port.mutex.acquire()
-                try {
-                    await port.write(data)
-                } finally {
-                    release()
+                const term = new Terminal({
+                    fontFamily: '"Hack", "Droid Sans Mono", monospace',
+                    fontSize: Math.round(14 * useSettingsStore.getState().zoom * 0.9),
+                    theme: useThemeStore.getState().dark ? XTERM_DARK : XTERM_LIGHT,
+                    cursorBlink: true,
+                    convertEol: true,
+                    allowProposedApi: true,
+                })
+                const fit = new FitAddon()
+                term.loadAddon(fit)
+                term.loadAddon(new WebLinksAddon())
+                term.open(host)
+                fit.fit()
+                termRef.current = term
+
+                const dataSub = term.onData(async (data) => {
+                    const { port } = useConnectionStore.getState()
+                    if (!port) return
+                    if (useUiStore.getState().isRunning) {
+                        await port.write(data)
+                    } else {
+                        const release = await port.mutex.acquire()
+                        try {
+                            await port.write(data)
+                        } finally {
+                            release()
+                        }
+                    }
+                })
+
+                registerTerminalSink(
+                    (data) => term.write(data),
+                    () => term.clear(),
+                )
+
+                const resizeObserver = new ResizeObserver(() => fit.fit())
+                resizeObserver.observe(host)
+                const onResize = () => fit.fit()
+                window.addEventListener('resize', onResize)
+
+                cleanup = () => {
+                    registerTerminalSink(null)
+                    window.removeEventListener('resize', onResize)
+                    resizeObserver.disconnect()
+                    dataSub.dispose()
+                    term.dispose()
+                    termRef.current = null
                 }
-            }
-        })
-
-        registerTerminalSink(
-            (data) => term.write(data),
-            () => term.clear(),
-        )
-
-        const ro = new ResizeObserver(() => fit.fit())
-        ro.observe(host)
-        const onResize = () => fit.fit()
-        window.addEventListener('resize', onResize)
+            })
+            .catch((error) => console.error('Failed to load terminal', error))
 
         return () => {
-            registerTerminalSink(null)
-            window.removeEventListener('resize', onResize)
-            ro.disconnect()
-            dataSub.dispose()
-            term.dispose()
-            termRef.current = null
+            disposed = true
+            cleanup?.()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
