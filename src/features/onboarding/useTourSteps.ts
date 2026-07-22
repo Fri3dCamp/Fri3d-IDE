@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { SideMenuTab } from '../../stores/ui'
-import type { OnboardingTask } from './OnboardingWelcome'
+import type { OnboardingTask } from './onboardingFlow'
 
 export interface TourStep {
     key: string
