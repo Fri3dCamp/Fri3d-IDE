@@ -54,7 +54,7 @@ function makeDefaultIcon(name = 'A', bg: IconBg = ICON_BACKGROUNDS[0]): { dataUr
 
     const glyph = initialsFor(name)
     ctx.fillStyle = '#ffffff'
-    ctx.font = `700 ${glyph.length > 1 ? 26 : 32}px Montserrat, system-ui, sans-serif`
+    ctx.font = `700 ${glyph.length > 1 ? 26 : 32}px system-ui, sans-serif`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.fillText(glyph, 32, 34)

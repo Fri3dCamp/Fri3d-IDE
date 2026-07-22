@@ -433,6 +433,10 @@ export async function runCurrentFile(): Promise<void> {
     }
 }
 
+export async function saveAndRunCurrentFile(ui: ConnectUi): Promise<void> {
+    if (await saveCurrentFile(ui)) await runCurrentFile()
+}
+
 export async function reboot(mode: 'soft' | 'hard'): Promise<void> {
     const { port } = useConnectionStore.getState()
     if (!port) return
@@ -546,21 +550,26 @@ del _b
 /* Save                                                                */
 /* ------------------------------------------------------------------ */
 
-export async function saveCurrentFile(ui: ConnectUi): Promise<void> {
+function sameBytes(left: string | Uint8Array, right: Uint8Array): boolean {
+    const expected = typeof left === 'string' ? new TextEncoder().encode(left) : left
+    return expected.length === right.length && expected.every((value, index) => value === right[index])
+}
+
+export async function saveCurrentFile(ui: ConnectUi): Promise<boolean> {
     const { port } = useConnectionStore.getState()
-    if (!port) return
+    if (!port) return false
     const tabsStore = useEditorTabsStore.getState()
     const tab = tabsStore.activeTab()
-    if (!tab || typeof tab.content !== 'string') return
+    if (!tab || typeof tab.content !== 'string') return false
     if (tab.readOnly) {
         toast.warning(t('files.read-only', 'File is read only'))
-        return
+        return false
     }
 
     let fn = tab.fn
     if (fn === 'Untitled') {
         const name = await ui.prompt(t('files.prompt-new-name', 'Please enter the file name:'))
-        if (!name) return
+        if (!name) return false
         fn = name.startsWith('/') ? name : '/' + name
         tabsStore.rename(tab.id, fn)
     }
@@ -568,13 +577,13 @@ export async function saveCurrentFile(ui: ConnectUi): Promise<void> {
     let content = tab.content
     const settings = useSettingsStore.getState()
 
-    await withLoader(t('files.saving', 'Saving {{fn}}…', { fn }), async (loader) => {
+    return await withLoader(t('files.saving', 'Saving {{fn}}…', { fn }), async (loader) => {
         if (fn.endsWith('.json') && settings.expandMinifyJson) {
             try {
                 content = JSON.stringify(JSON.parse(content))
             } catch {
                 toast.error(t('files.json-malformed', 'JSON is malformed'))
-                return
+                return false
             }
         } else if (fn.endsWith('.py')) {
             loader.update(t('files.validating', 'Validating {{fn}}…', { fn }))
@@ -583,17 +592,40 @@ export async function saveCurrentFile(ui: ConnectUi): Promise<void> {
         }
 
         loader.update({ message: t('files.saving', 'Saving {{fn}}…', { fn }), progress: 0 })
-        await withRawMode(async (raw) => {
+        const saved = await withRawMode(async (raw) => {
+            let remote: Uint8Array | null = null
+            try {
+                remote = await raw.readFile(fn)
+            } catch {
+                // A new path has no remote content to compare.
+            }
+            const changedRemotely = remote !== null &&
+                (tab.savedContent === null || !sameBytes(tab.savedContent, remote))
+            if (changedRemotely) {
+                const overwrite = await ui.confirm(
+                    t(
+                        'files.confirm-remote-overwrite',
+                        '{{fn}} changed on the device after it was opened. Overwrite those changes?',
+                        { fn },
+                    ),
+                )
+                if (!overwrite) return false
+            }
             await raw.writeFile(fn, content, 128, false, (sent, total) => {
                 loader.update({ progress: total > 0 ? sent / total : 1 })
             })
             loader.update({ progress: 1 })
             await refreshTreeVia(raw)
+            return true
         })
+
+        if (!saved) return false
 
         toast.success(t('files.saved', 'File Saved'))
         tabsStore.markDirty(tab.id, false)
+        tabsStore.setSavedContent(tab.id, content)
         useFileStore.getState().clearChanged(fn)
+        return true
     })
 }
 

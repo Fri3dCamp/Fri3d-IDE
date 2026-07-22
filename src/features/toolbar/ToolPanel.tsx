@@ -11,7 +11,12 @@ import {
 } from 'lucide-react'
 import { useConnectionStore } from '../../stores/connection'
 import { useUiStore } from '../../stores/ui'
-import { runCurrentFile, saveCurrentFile, takeScreenshot } from '../../services/device.service'
+import {
+    runCurrentFile,
+    saveAndRunCurrentFile,
+    saveCurrentFile,
+    takeScreenshot,
+} from '../../services/device.service'
 import { launchApp } from '../../services/apps.service'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useAppsStore, appIdForPath } from '../../stores/apps'
@@ -144,8 +149,14 @@ export function ToolPanel() {
                 </span>
                 <span data-tour-id="tour-save-run" className="flex items-center gap-2">
                     <ToolbarButton
+                        title={t('tool.save-run', 'Save & Run')}
+                        label={t('tool.save-run', 'Save & Run')}
+                        onClick={() => void saveAndRunCurrentFile({ confirm, prompt })}
+                    >
+                        <CirclePlay size={18} aria-hidden className="text-icon-success" />
+                    </ToolbarButton>
+                    <ToolbarButton
                         title={`${t('tool.save', 'Save File')} [${metaKey}+S]`}
-                        label={t('tool.save-short', 'Save')}
                         onClick={() => void saveCurrentFile({ confirm, prompt })}
                     >
                         <Save size={18} aria-hidden />
@@ -153,7 +164,6 @@ export function ToolPanel() {
                     <span data-tour-id="tour-run" className="inline-flex">
                         <ToolbarButton
                             title={`${t('tool.run', 'Run File')} [F5]`}
-                            label={isRunning ? t('tool.stop', 'Stop') : t('tool.run-short', 'Run')}
                             onClick={() => void runCurrentFile()}
                         >
                             {isRunning ? (

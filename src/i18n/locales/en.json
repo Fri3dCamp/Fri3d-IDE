@@ -10,6 +10,7 @@
             "run-short": "Run",
             "save": "Save File",
             "save-short": "Save",
+            "save-run": "Save & Run",
             "stop": "Stop",
             "fullscreen": "Full Screen",
             "install-app": "Install app",
@@ -95,7 +96,8 @@
             "rename": "Rename",
             "rename-prompt": "New name for {{name}}:",
             "renaming": "Renaming {{name}}…",
-            "rename-no-slash": "Name cannot contain /"
+            "rename-no-slash": "Name cannot contain /",
+            "confirm-remote-overwrite": "{{fn}} changed on the device after it was opened. Overwrite those changes?"
         },
         "settings": {
             "conn": "connection",
@@ -130,7 +132,10 @@
             "report-bug": "You can also report a bug 🐞",
             "by": "by",
             "cta-pre": "If you like Fri3d-IDE, please",
-            "cta-star": "give it a GitHub star"
+            "cta-star": "give it a GitHub star",
+            "copy-diagnostics": "Copy diagnostics",
+            "diagnostics-copied": "Diagnostics copied",
+            "diagnostics-failed": "Could not copy diagnostics"
         },
         "onboarding": {
             "step": "Step {{current}} of {{total}}",
@@ -176,8 +181,8 @@
                     "text": "Prefer working without the app structure? The File Manager shows every file on the badge. Open any .py file and run it directly — regular MicroPython, no packaging needed."
                 },
                 "save-run": {
-                    "title": "Save vs Run",
-                    "text": "Whether you edit an app or a plain .py file: Save (Ctrl/Cmd+S) writes it to badge storage so it survives a reboot, and Run (F5) executes the open file immediately. Run does not save automatically — save first to keep your changes!"
+                    "title": "Save & Run safely",
+                    "text": "Use Save & Run to write your changes to badge storage and execute them. The separate Save (Ctrl/Cmd+S) and Run (F5) commands remain available; Run alone does not save changes."
                 },
                 "done": {
                     "title": "You're all set! 🚀",
@@ -190,6 +195,7 @@
             "md-edit": "Edit raw",
             "md-preview": "Preview",
             "close": "Close",
+            "confirm-close-dirty": "Close {{fn}} and discard unsaved changes?",
             "new-file": "New file"
         },
         "app": {
