@@ -1,14 +1,27 @@
 import { useTranslation } from 'react-i18next'
 import { Eye, Pencil, Plus, X } from 'lucide-react'
 import { useEditorTabsStore, createUntitledTab } from '../../stores/editorTabs'
+import { useConfirm } from '../../components/dialogs'
 
 export function EditorTabsBar() {
     const { t } = useTranslation()
+    const confirm = useConfirm()
     const tabs = useEditorTabsStore((s) => s.tabs)
     const activeId = useEditorTabsStore((s) => s.activeId)
     const activate = useEditorTabsStore((s) => s.activate)
     const closeTab = useEditorTabsStore((s) => s.closeTab)
     const setViewMode = useEditorTabsStore((s) => s.setViewMode)
+    const requestClose = async (id: string) => {
+        const tab = useEditorTabsStore.getState().tabs.find((item) => item.id === id)
+        if (!tab) return
+        if (
+            tab.dirty &&
+            !(await confirm(t('editor.confirm-close-dirty', 'Close {{fn}} and discard unsaved changes?', { fn: tab.fn })))
+        ) {
+            return
+        }
+        closeTab(id)
+    }
 
     return (
         <div className="flex items-center overflow-x-auto border-b-2 border-black bg-menu max-md:hidden" role="tablist">
@@ -25,7 +38,7 @@ export function EditorTabsBar() {
                         }`}
                         onClick={() => activate(tab.id)}
                         onAuxClick={(e) => {
-                            if (e.button === 1) closeTab(tab.id)
+                            if (e.button === 1) void requestClose(tab.id)
                         }}
                     >
                         <span className="max-w-40 truncate">
@@ -61,7 +74,7 @@ export function EditorTabsBar() {
                             className="opacity-50 hover:opacity-100"
                             onClick={(e) => {
                                 e.stopPropagation()
-                                closeTab(tab.id)
+                                void requestClose(tab.id)
                             }}
                         >
                             <X size={13} aria-hidden />

@@ -52,6 +52,7 @@ export async function openFileContent(raw: MpRawMode, fn: string): Promise<void>
         }
     }
 
+    const savedContent = content
     if (typeof content === 'string' && fn.endsWith('.json') && useSettingsStore.getState().expandMinifyJson) {
         try {
             content = JSON.stringify(JSON.parse(content), null, 2)
@@ -61,7 +62,14 @@ export async function openFileContent(raw: MpRawMode, fn: string): Promise<void>
     }
 
     const { kind, viewMode } = decideKind(fn, content)
-    useEditorTabsStore.getState().openTab({ fn, kind, viewMode, readOnly: false, content })
+    useEditorTabsStore.getState().openTab({
+        fn,
+        kind,
+        viewMode,
+        readOnly: false,
+        content,
+        savedContent,
+    })
     useFileStore.getState().select(fn)
     useUiStore.getState().autoHideDrawer()
 }

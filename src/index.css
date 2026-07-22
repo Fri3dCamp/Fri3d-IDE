@@ -86,8 +86,8 @@
     --color-hex-hex: var(--raw-hex-hex);
     --color-hex-ascii: var(--raw-hex-ascii);
 
-    --font-heading: "Montserrat", system-ui, sans-serif;
-    --font-sans: "Open Sans", system-ui, sans-serif;
+    --font-heading: ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+    --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-mono: "Hack", "Droid Sans Mono", monospace;
 
     --shadow-brutal: 4px 4px 0 #000000;

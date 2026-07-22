@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
-
-declare const VIPER_IDE_VERSION: string
-declare const VIPER_IDE_BUILD: string
+import { ClipboardCopy } from 'lucide-react'
+import { toast } from 'sonner'
+import { createDiagnosticsReport } from '../../services/diagnostics'
 
 function buildDate(): string {
     try {
@@ -13,11 +13,29 @@ function buildDate(): string {
 
 export function AboutPanel() {
     const { t } = useTranslation()
+    const copyDiagnostics = async () => {
+        try {
+            await navigator.clipboard.writeText(createDiagnosticsReport())
+            toast.success(t('about.diagnostics-copied', 'Diagnostics copied'))
+        } catch (error) {
+            toast.error(t('about.diagnostics-failed', 'Could not copy diagnostics'), {
+                description: String(error),
+            })
+        }
+    }
     return (
         <div className="min-h-0 flex-1 overflow-y-auto px-3 py-6 text-center">
             <div className="mt-2 font-heading text-xl font-black">Fri3d-IDE</div>
             <div className="text-sm opacity-80">{VIPER_IDE_VERSION}</div>
             <div className="text-xs opacity-60">build {buildDate()}</div>
+            <button
+                type="button"
+                className="mx-auto mt-3 flex items-center gap-2 border-2 border-black bg-cta px-3 py-1.5 text-sm font-semibold text-cta-fg shadow-brutal"
+                onClick={() => void copyDiagnostics()}
+            >
+                <ClipboardCopy size={15} aria-hidden />
+                {t('about.copy-diagnostics', 'Copy diagnostics')}
+            </button>
             <p className="mt-4 text-sm">
                 Original <a className="text-fg-highlight underline" href="https://github.com/vshymanskyy/ViperIDE" target="_blank" rel="noreferrer">ViperIDE project</a> made by
                 <br />
@@ -34,7 +52,7 @@ export function AboutPanel() {
                 {t('about.cta-pre', 'If you like Fri3d-IDE, please')}{' '}
                 <a
                     className="text-fg-highlight underline"
-                    href="https://github.com/DrSkunk/Fri3d-IDE"
+                    href="https://github.com/Fri3dCamp/Fri3d-IDE"
                     target="_blank"
                     rel="noreferrer"
                 >
@@ -45,7 +63,7 @@ export function AboutPanel() {
             <p className="mt-2 text-sm">
                 <a
                     className="text-fg-highlight underline"
-                    href="https://github.com/DrSkunk/Fri3d-IDE/issues"
+                    href="https://github.com/Fri3dCamp/Fri3d-IDE/issues"
                     target="_blank"
                     rel="noreferrer"
                 >
