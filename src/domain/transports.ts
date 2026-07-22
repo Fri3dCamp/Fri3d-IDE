@@ -214,9 +214,12 @@ export class WebSerial extends Transport {
         this.port = await this.serial.requestPort()
         try {
             const pi = this.port.getInfo()
-            this.info = {
-                vid: pi.usbVendorId.toString(16).padStart(4, '0'),
-                pid: pi.usbProductId.toString(16).padStart(4, '0'),
+            this.info = {}
+            if (typeof pi.usbVendorId === 'number') {
+                this.info.vid = pi.usbVendorId.toString(16).padStart(4, '0')
+            }
+            if (typeof pi.usbProductId === 'number') {
+                this.info.pid = pi.usbProductId.toString(16).padStart(4, '0')
             }
         } catch (err: any) {
             report("Error", err)
@@ -253,8 +256,14 @@ export class WebSerial extends Transport {
         if (this.reader) {
             await this.reader.cancel()
             await this.readableStreamClosed.catch(() => {})
+            this.reader = null
         }
-        await this.port.forget()
+        if (this.writer) {
+            this.writer.releaseLock()
+            this.writer = null
+        }
+        if (this.port?.close) await this.port.close()
+        if (this.port?.forget) await this.port.forget()
     }
 
     async writeBytes(data: Uint8Array) {

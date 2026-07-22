@@ -17,9 +17,9 @@ export class MpRawMode {
         this.port = port
     }
 
-    static async begin(port: Transport, soft_reboot=false) {
+    static async begin(port: Transport, soft_reboot=false, interruptTimeout=20000) {
         const res = new MpRawMode(port)
-        await res.enterRawRepl(soft_reboot)
+        await res.enterRawRepl(soft_reboot, interruptTimeout)
         try {
             await res.exec(`import sys,os`)
         } catch (err) {
@@ -47,10 +47,10 @@ export class MpRawMode {
         throw new Error('Board is not responding')
     }
 
-    async enterRawRepl(soft_reboot=false) {
+    async enterRawRepl(soft_reboot=false, interruptTimeout=20000) {
         const release = await this.port.startTransaction()
         try {
-            await this.interruptProgram()
+            await this.interruptProgram(interruptTimeout)
 
             for (let attempt = 0; attempt < 3; attempt++) {
                 await this.port.flushInput()

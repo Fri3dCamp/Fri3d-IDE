@@ -97,7 +97,12 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => {
         setReady: () => transition('ready', { error: null }),
         setBusy: () => transition('busy'),
         setRecovering: () => transition('recovering'),
-        setError: (error) => transition('error', { error: errorMessage(error) }),
+        setError: (error) =>
+            transition('error', {
+                port: null,
+                devInfo: null,
+                error: errorMessage(error),
+            }),
         setDevInfo: (devInfo) => set({ devInfo }),
         setDisconnected: () =>
             transition('disconnected', {
