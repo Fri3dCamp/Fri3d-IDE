@@ -198,7 +198,7 @@ export function GuidedTour() {
                         >
                             {last
                                 ? t('onboarding.get-started', 'Continue to IDE')
-                                : t('onboarding.next', 'Next →')}
+                                : t('onboarding.next', 'Next')}
                         </button>
                     </div>
                 </div>

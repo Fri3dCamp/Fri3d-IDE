@@ -49,7 +49,7 @@ export function OnboardingWelcome({
                     {t('onboarding.task-welcome-title', 'What do you want to do?')}
                 </div>
                 <p className="mt-2 text-center text-sm leading-relaxed">
-                    {t('onboarding.task-welcome-text', 'Choose a task and Fri3d-IDE will guide you to a working result.')}
+                    {t('onboarding.task-welcome-text', 'Choose what you want to do.')}
                 </p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     {options.map(({ task, icon: Icon, title, description }, index) => (

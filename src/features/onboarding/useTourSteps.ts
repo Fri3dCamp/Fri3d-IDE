@@ -28,7 +28,7 @@ export function createTourSteps(task: OnboardingTask | null, t: Translate): Tour
             title: t('onboarding.steps.save-run.title', 'Save & Run'),
             text: t(
                 'onboarding.steps.save-run.text',
-                'Change the open Python file, then use Save & Run to store and execute it safely.',
+                'Change the open Python file, then use Save & Run to store and execute it.',
             ),
             selectors: ['[data-tour-id="tour-save-run"]'],
         }

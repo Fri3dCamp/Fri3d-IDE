@@ -1,16 +1,14 @@
 # Fri3d-IDE
 
-**Connect a Fri3d badge, create a MicroPythonOS app, run it, and publish it—all from one webpage.**
+Connect a Fri3d badge, write an app, run it, and publish it from your browser.
 
 [Launch Fri3d-IDE](https://fri3dcamp.github.io/Fri3d-IDE/) · [Contribute](CONTRIBUTING.md) · [Security](SECURITY.md) · [Report a problem](https://github.com/Fri3dCamp/Fri3d-IDE/issues)
 
-![Fri3d Camp badge](public/Badge_Front.png)
+![Fri3d Camp badge](public/ide.png)
 
 Fri3d-IDE is the browser development environment for Fri3d Camp badges. It combines a Python editor, terminal, device file browser, package manager, USB/Serial and Bluetooth connections, a virtual badge, MicroPythonOS app packaging, and BadgeHub publishing.
 
-The primary journey is:
-
-> Open the IDE → use a real or virtual badge → create an app → safely save and run it → package or publish it.
+You can use a physical badge or the built-in virtual badge. Projects can be saved, run, packaged, and published without installing a desktop IDE.
 
 Support for other MicroPython devices is welcome, but the Fri3d badge experience is the product priority.
 
@@ -39,7 +37,7 @@ For a real badge, connect it with a data-capable USB-C cable, choose **USB/Seria
 - **Use anywhere:** Localization, responsive UI, installable PWA, and offline shell support.
 - **Get support:** Copy a privacy-safe diagnostics report from the About panel.
 
-Device access follows an explicit lifecycle—permission, connection, synchronization, ready, busy, recovery, and error—so write operations are only enabled when the badge is ready.
+Device access has explicit states for permission, connection, synchronization, ready, busy, recovery, and errors. Write operations are enabled only when the badge is ready.
 
 ## Compatibility
 
@@ -69,7 +67,7 @@ The virtual badge runs MicroPythonOS in the browser and is useful for onboarding
 
 ## PWA and offline use
 
-Fri3d-IDE can be installed from a supported browser. The application shell works offline after one successful load. The virtual badge is intentionally cached on first use because its WebAssembly assets are large; open it once while online before relying on it offline.
+Fri3d-IDE can be installed from a supported browser. The application shell works offline after one successful load. The virtual badge is cached when you first open it because its WebAssembly assets are large. Open it once while online before using it offline.
 
 Network-dependent features remain unavailable offline, including BadgeHub, remote package downloads, authentication, and WebREPL endpoints. USB/Serial availability depends on the browser and operating system, not on internet access.
 
