@@ -26,7 +26,13 @@ import { openFile, createItem, removeItem, renameItem, loadFolder, refreshFileTr
 import { uploadFilesToPaths } from '../../services/device.service'
 import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
 import { connectDevice } from '../../services/device.service'
-import { useConnectionStore, type TransportType } from '../../stores/connection'
+import {
+    isConnectionActive,
+    isConnectionPending,
+    isConnectionReady,
+    useConnectionStore,
+    type TransportType,
+} from '../../stores/connection'
 import { useConfirm, usePrompt, useCreateItemDialog } from '../../components/dialogs'
 
 const CERT_EXT = ['.CRT', '.PEM', '.DER', '.CER', '.PFX', '.P12']
@@ -59,6 +65,7 @@ const actionClass =
 
 /** Upload dropped files into `dir` on the device, then refresh that folder. */
 async function uploadDroppedFiles(files: File[], dir: string): Promise<void> {
+    if (!isConnectionReady(useConnectionStore.getState().status)) return
     await uploadFilesToPaths(files, dropTargetPaths(files, dir))
     if (dir === '/') await refreshFileTree()
     else await loadFolder(dir)
@@ -225,7 +232,7 @@ export function ConnectDeviceButton() {
     const prompt = usePrompt()
     const status = useConnectionStore((s) => s.status)
     const advancedMode = useSettingsStore((s) => s.advancedMode)
-    const connecting = status === 'connecting'
+    const connecting = isConnectionPending(status)
 
     const connect = (type: TransportType) => void connectDevice(type, { confirm, prompt })
 
@@ -274,7 +281,8 @@ export function FileTree() {
     const createDialog = useCreateItemDialog()
     const tree = useFileStore((s) => s.tree)
     const loading = useFileStore((s) => s.loading)
-    const connected = useConnectionStore((s) => s.status === 'connected')
+    const connected = useConnectionStore((s) => isConnectionActive(s.status))
+    const ready = useConnectionStore((s) => isConnectionReady(s.status))
     const [rootDropOver, rootDropProps] = useFolderDropTarget('/', uploadDroppedFiles)
 
     if (!connected) {
@@ -292,32 +300,34 @@ export function FileTree() {
             aria-label={t('menu.file-mgr', 'File Manager')}
             {...rootDropProps}
         >
-            {loading && (
-                <div className="flex items-center gap-2 px-2 py-1 text-sm opacity-80">
-                    <Loader2 size={14} className="animate-spin" aria-hidden />
-                    {loading}
+            <fieldset disabled={!ready} className="contents">
+                {loading && (
+                    <div className="flex items-center gap-2 px-2 py-1 text-sm opacity-80">
+                        <Loader2 size={14} className="animate-spin" aria-hidden />
+                        {loading}
+                    </div>
+                )}
+                <div className={`${rowClass} ${rootDropOver ? dropHighlightClass : ''}`}>
+                    <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                        <FolderClosed size={14} className="shrink-0 opacity-80" aria-hidden />
+                        <span>/</span>
+                    </span>
+                    <button
+                        type="button"
+                        title={t('files.create', 'Create')}
+                        aria-label={t('files.create', 'Create')}
+                        className={actionClass}
+                        onClick={() =>
+                            void createDialog('/').then((r) => {
+                                if (r) void createItem('/', r.name, r.isFolder)
+                            })
+                        }
+                    >
+                        <Plus size={13} aria-hidden />
+                    </button>
                 </div>
-            )}
-            <div className={`${rowClass} ${rootDropOver ? dropHighlightClass : ''}`}>
-                <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                    <FolderClosed size={14} className="shrink-0 opacity-80" aria-hidden />
-                    <span>/</span>
-                </span>
-                <button
-                    type="button"
-                    title={t('files.create', 'Create')}
-                    aria-label={t('files.create', 'Create')}
-                    className={actionClass}
-                    onClick={() =>
-                        void createDialog('/').then((r) => {
-                            if (r) void createItem('/', r.name, r.isFolder)
-                        })
-                    }
-                >
-                    <Plus size={13} aria-hidden />
-                </button>
-            </div>
-            {tree ? <TreeLevel nodes={tree} depth={1} /> : null}
+                {tree ? <TreeLevel nodes={tree} depth={1} /> : null}
+            </fieldset>
         </div>
     )
 }

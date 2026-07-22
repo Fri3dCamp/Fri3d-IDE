@@ -9,7 +9,7 @@ import {
     Menu,
     Save,
 } from 'lucide-react'
-import { useConnectionStore } from '../../stores/connection'
+import { isConnectionReady, useConnectionStore } from '../../stores/connection'
 import { useUiStore } from '../../stores/ui'
 import {
     runCurrentFile,
@@ -66,6 +66,7 @@ function ToolbarButton({
     onClick,
     connected,
     active,
+    disabled,
     children,
 }: {
     title: string
@@ -73,6 +74,7 @@ function ToolbarButton({
     onClick: () => void
     connected?: boolean
     active?: boolean
+    disabled?: boolean
     children: React.ReactNode
 }) {
     return (
@@ -81,6 +83,7 @@ function ToolbarButton({
             title={title}
             aria-label={title}
             onClick={onClick}
+            disabled={disabled}
             className={`${
                 label
                     ? 'flex h-9 items-center gap-1.5 px-2.5'
@@ -91,7 +94,7 @@ function ToolbarButton({
                         ? 'border-connected-active text-connected-active'
                         : 'border-connected text-connected'
                     : ''
-            }`}
+            } disabled:cursor-not-allowed disabled:opacity-50`}
         >
             {children}
             {label && <span className="hidden text-sm font-semibold sm:inline">{label}</span>}
@@ -108,7 +111,7 @@ function LaunchAppButton() {
     })
     const selectedAppId = useAppsStore((s) => s.selected)
     const launching = useAppsStore((s) => s.launching !== null)
-    const connected = useConnectionStore((s) => s.status === 'connected')
+    const connected = useConnectionStore((s) => isConnectionReady(s.status))
 
     const targetAppId = selectedAppId ?? activeAppId
     if (!targetAppId || !connected) return null
@@ -134,7 +137,7 @@ export function ToolPanel() {
     const confirm = useConfirm()
     const toggleSideMenu = useUiStore((s) => s.toggleSideMenu)
     const isRunning = useUiStore((s) => s.isRunning)
-    const connected = useConnectionStore((s) => s.status === 'connected')
+    const connected = useConnectionStore((s) => isConnectionReady(s.status))
     const [fullscreenOk] = useState(() => document.fullscreenEnabled)
     const { canInstall, install } = usePwaInstall()
 
@@ -151,12 +154,14 @@ export function ToolPanel() {
                     <ToolbarButton
                         title={t('tool.save-run', 'Save & Run')}
                         label={t('tool.save-run', 'Save & Run')}
+                        disabled={!connected}
                         onClick={() => void saveAndRunCurrentFile({ confirm, prompt })}
                     >
                         <CirclePlay size={18} aria-hidden className="text-icon-success" />
                     </ToolbarButton>
                     <ToolbarButton
                         title={`${t('tool.save', 'Save File')} [${metaKey}+S]`}
+                        disabled={!connected}
                         onClick={() => void saveCurrentFile({ confirm, prompt })}
                     >
                         <Save size={18} aria-hidden />
@@ -164,6 +169,7 @@ export function ToolPanel() {
                     <span data-tour-id="tour-run" className="inline-flex">
                         <ToolbarButton
                             title={`${t('tool.run', 'Run File')} [F5]`}
+                            disabled={!connected && !isRunning}
                             onClick={() => void runCurrentFile()}
                         >
                             {isRunning ? (

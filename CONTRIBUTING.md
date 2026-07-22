@@ -161,7 +161,6 @@ src/
 │
 ├── services/
 │   ├── apps.service.ts
-│   ├── demoDevice.ts
 │   ├── device.service.ts
 │   ├── files.service.ts
 │   ├── format.service.ts

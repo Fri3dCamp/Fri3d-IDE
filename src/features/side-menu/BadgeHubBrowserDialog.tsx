@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Download, Loader2, RefreshCw, Search, Store, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppsStore } from '../../stores/apps'
-import { useConnectionStore } from '../../stores/connection'
+import { isConnectionReady, useConnectionStore } from '../../stores/connection'
 import {
     fetchStoreApps,
     installFromBadgeHub,
@@ -87,7 +87,7 @@ function StoreRow({
     onInstall: (app: StoreApp) => void
 }) {
     const { t } = useTranslation()
-    const connected = useConnectionStore((s) => s.status === 'connected')
+    const connected = useConnectionStore((s) => isConnectionReady(s.status))
     const installed = useAppsStore((s) => s.apps?.find((a) => a.fullname === app.slug))
     const isUpdate = installed && app.version && installed.version !== app.version
     const isSame = installed && (!app.version || installed.version === app.version)

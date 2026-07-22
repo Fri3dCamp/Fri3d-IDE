@@ -14,7 +14,12 @@ import { ConnectionUID } from '../domain/connection_uid'
 import { iOS, sleep, splitPath } from '../domain/utils'
 import { rawInstallPkg } from '../domain/package_mgr'
 import { parseStackTrace, validatePython } from '../domain/python_utils'
-import { useConnectionStore, type DeviceInfo, type TransportType } from '../stores/connection'
+import {
+    isConnectionReady,
+    useConnectionStore,
+    type DeviceInfo,
+    type TransportType,
+} from '../stores/connection'
 import { useFileStore, type FsNode } from '../stores/files'
 import { useAppsStore } from '../stores/apps'
 import { useEditorTabsStore } from '../stores/editorTabs'
@@ -187,24 +192,26 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
     else port = prepareUsbPort()
     if (!port) return
 
+    conn.requestPermission(type)
     try {
         await port.requestAccess()
     } catch {
+        useConnectionStore.getState().setDisconnected()
         return // user cancelled the picker
     }
 
-    conn.setConnecting(type)
+    useConnectionStore.getState().startConnecting()
     const ok = await withLoader(t('app.connecting', 'Connecting…'), async () => {
         try {
             await port.connect()
             return true
         } catch (err) {
             toast.error(t('app.cannot-connect', 'Cannot connect'), { description: String(err) })
+            useConnectionStore.getState().setError(err)
             return false
         }
     })
     if (!ok) {
-        useConnectionStore.getState().setDisconnected()
         return
     }
 
@@ -218,13 +225,16 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
         useUiStore.getState().setRunning(false)
     })
 
-    useConnectionStore.getState().setConnected(port, type)
+    useConnectionStore.getState().startSynchronizing(port)
 
     if (useSettingsStore.getState().interruptDevice) {
         await readDeviceOnConnect(port)
         await port.write('\x02') // print friendly REPL banner
     } else {
         toast.success(t('app.device-connected', 'Device connected'))
+    }
+    if (useConnectionStore.getState().status === 'synchronizing') {
+        useConnectionStore.getState().setReady()
     }
 }
 
@@ -321,13 +331,27 @@ export async function refreshTreeVia(raw: MpRawMode): Promise<void> {
 
 /** Run a task inside a raw-REPL session on the current port. */
 export async function withRawMode<T>(task: (raw: MpRawMode) => Promise<T>): Promise<T | undefined> {
-    const { port } = useConnectionStore.getState()
-    if (!port) return undefined
-    const raw = await MpRawMode.begin(port)
+    const connection = useConnectionStore.getState()
+    const { port } = connection
+    if (!port || !isConnectionReady(connection.status)) return undefined
+    connection.setBusy()
+    let raw: MpRawMode | null = null
     try {
+        raw = await MpRawMode.begin(port)
         return await task(raw)
+    } catch (error) {
+        if (useConnectionStore.getState().status === 'busy') {
+            useConnectionStore.getState().setRecovering()
+        }
+        throw error
     } finally {
-        await raw.end().catch(() => undefined)
+        if (raw) await raw.end().catch(() => undefined)
+        if (
+            useConnectionStore.getState().status === 'busy' ||
+            useConnectionStore.getState().status === 'recovering'
+        ) {
+            useConnectionStore.getState().setReady()
+        }
     }
 }
 
@@ -392,14 +416,16 @@ export function subscribeTerminalLog(listener: TerminalLogListener): () => void 
 /* ------------------------------------------------------------------ */
 
 export async function runCurrentFile(): Promise<void> {
-    const { port } = useConnectionStore.getState()
-    if (!port) return
+    const connection = useConnectionStore.getState()
+    const { port } = connection
     const ui = useUiStore.getState()
+    if (!port) return
 
     if (ui.isRunning) {
         await port.write('\r\x03\x03') // double Ctrl-C: interrupt
         return
     }
+    if (!isConnectionReady(connection.status)) return
 
     const tab = useEditorTabsStore.getState().activeTab()
     if (!tab) return
@@ -410,8 +436,10 @@ export async function runCurrentFile(): Promise<void> {
     const code = typeof tab.content === 'string' ? tab.content : ''
 
     terminalWrite('\r\n')
-    const raw = await MpRawMode.begin(port)
+    connection.setBusy()
+    let raw: MpRawMode | null = null
     try {
+        raw = await MpRawMode.begin(port)
         ui.setRunning(true)
         await sleep(10)
         await raw.exec(code, -1 as unknown as number, true)
@@ -427,7 +455,8 @@ export async function runCurrentFile(): Promise<void> {
         }
     } finally {
         ;(port as Transport & { emit?: boolean }).emit = false
-        await raw.end().catch(() => undefined)
+        if (raw) await raw.end().catch(() => undefined)
+        if (useConnectionStore.getState().status === 'busy') useConnectionStore.getState().setReady()
         useUiStore.getState().setRunning(false)
         terminalWrite('\r\n>>> ')
     }
@@ -636,8 +665,9 @@ export async function saveCurrentFile(ui: ConnectUi): Promise<boolean> {
 /** Upload files to their full target `paths` (parallel arrays).
  *  Called by the interactive upload dialog (UploadDialog.tsx). */
 export async function uploadFilesToPaths(files: File[], paths: string[]): Promise<void> {
-    const { port } = useConnectionStore.getState()
-    if (!port || !files.length) return
+    const connection = useConnectionStore.getState()
+    const { port } = connection
+    if (!port || !files.length || !isConnectionReady(connection.status)) return
 
     const totalBytes = files.reduce((acc, f) => acc + f.size, 0)
     let uploadedBytes = 0
