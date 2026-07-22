@@ -23,6 +23,7 @@
             "hard-reset": "Harde reset",
             "run-short": "Uitvoeren",
             "save-short": "Opslaan",
+            "save-run": "Opslaan & uitvoeren",
             "soft-reset": "Zachte reset",
             "stop": "Stoppen"
         },
@@ -95,7 +96,8 @@
             "rename": "Hernoemen",
             "rename-prompt": "Nieuwe naam voor {{name}}:",
             "renaming": "{{name}} hernoemen…",
-            "rename-no-slash": "Naam mag geen / bevatten"
+            "rename-no-slash": "Naam mag geen / bevatten",
+            "confirm-remote-overwrite": "{{fn}} is op het apparaat gewijzigd nadat het werd geopend. Deze wijzigingen overschrijven?"
         },
         "settings": {
             "conn": "verbinding",
@@ -130,12 +132,16 @@
             "report-bug": "Je kunt ook een fout melden 🐞",
             "by": "door",
             "cta-pre": "Als je Fri3d-IDE leuk vindt,",
-            "cta-star": "geef het dan een GitHub-ster"
+            "cta-star": "geef het dan een GitHub-ster",
+            "copy-diagnostics": "Diagnostiek kopiëren",
+            "diagnostics-copied": "Diagnostiek gekopieerd",
+            "diagnostics-failed": "Kon diagnostiek niet kopiëren"
         },
         "editor": {
             "md-edit": "Broncode bewerken",
             "md-preview": "Voorbeeld",
             "close": "Sluiten",
+            "confirm-close-dirty": "{{fn}} sluiten en niet-opgeslagen wijzigingen verwijderen?",
             "new-file": "Nieuw bestand"
         },
         "app": {
@@ -211,12 +217,38 @@
         },
         "onboarding": {
             "step": "Stap {{current}} van {{total}}",
-            "skip": "Tour overslaan",
+            "skip": "Gids overslaan",
+            "skip-to-editor": "Naar editor",
             "back": "Terug",
-            "next": "Volgende →",
-            "get-started": "Aan de slag! 🚀",
-            "welcome-title": "Welkom bij Fri3d-IDE! 👋",
-            "welcome-text": "Laat me je rondleiden! Je kunt de tour volgen met je echte Fri3d-badge, of eerst veilig verkennen met een demo-apparaat.",
+            "next": "Volgende",
+            "get-started": "Doorgaan naar IDE",
+            "welcome-title": "Wat wil je doen?",
+            "welcome-text": "Kies wat je wilt doen.",
+            "task-welcome-title": "Wat wil je doen?",
+            "task-welcome-text": "Kies wat je wilt doen.",
+            "task-connect": "Mijn badge verbinden",
+            "task-connect-detail": "Verbind een fysieke Fri3d-badge via USB.",
+            "task-virtual": "De virtuele badge proberen",
+            "task-virtual-detail": "Verken MicroPythonOS zonder hardware.",
+            "task-build": "Mijn eerste app bouwen",
+            "task-build-detail": "Maak, bewerk, bewaar en start een eenvoudige app.",
+            "task-badgehub": "Een app van BadgeHub installeren",
+            "task-badgehub-detail": "Zoek en installeer een geschikte badge-app.",
+            "connecting-real": "Je badge verbinden…",
+            "connecting-virtual": "De virtuele badge starten…",
+            "connecting-wait": "Voltooi de toestemmingsvraag van de browser om door te gaan.",
+            "create-first-title": "Maak je eerste app",
+            "create-first-text": "Kies Nieuwe app maken, behoud het Hello World-sjabloon, geef de app een ID en maak hem aan.",
+            "badgehub-title": "Kies een app",
+            "badgehub-text": "Open BadgeHub, kies een geschikte app en installeer hem op de badge.",
+            "success-connect-title": "Badge verbonden!",
+            "success-connect": "Je fysieke badge is klaar voor bestanden, apps en de terminal.",
+            "success-virtual-title": "Virtuele badge gestart!",
+            "success-virtual": "Je kunt nu experimenteren zonder een fysieke badge te wijzigen.",
+            "success-build-title": "Je eerste app is klaar!",
+            "success-build": "Je hebt een app gemaakt en de code geopend. Experimenteer verder en start hem daarna vanuit Apps.",
+            "success-badgehub-title": "BadgeHub is klaar!",
+            "success-badgehub": "Geïnstalleerde apps verschijnen in de Apps-lijst en kunnen daar worden gestart.",
             "choose-real": "Verbind mijn badge (USB)",
             "choose-demo": "Probeer met een demo-apparaat",
             "fallback-demo": "Gebruik toch een demo-apparaat",
@@ -229,8 +261,8 @@
                     "text": "Hier zie je je verbindingsstatus: de naam van de badge en een knipperende activiteitsindicator. Verbreek hier de verbinding; opnieuw verbinden kan altijd met de Verbind-knop die op dezelfde plek verschijnt."
                 },
                 "apps": {
-                    "title": "Jouw apps",
-                    "text": "Het tabblad Apps toont alle apps die op de badge zijn geïnstalleerd. Klik op een app om de details te openen — en met “Nieuwe app maken” zet je in één klik een nieuwe app op vanuit een sjabloon."
+                    "title": "Verken de virtuele badge",
+                    "text": "Open een geïnstalleerde app of gebruik de terminal en bestandsbeheerder om rond te kijken."
                 },
                 "open-app": {
                     "title": "Binnen in een app",
@@ -253,8 +285,8 @@
                     "text": "Werk je liever zonder de app-structuur? Bestandsbeheer toont elk bestand op de badge. Open een willekeurig .py-bestand en voer het direct uit — gewone MicroPython, zonder verpakking."
                 },
                 "save-run": {
-                    "title": "Opslaan vs. Uitvoeren",
-                    "text": "Of je nu een app of een los .py-bestand bewerkt: Opslaan (Ctrl/Cmd+S) schrijft het naar de badge-opslag zodat het een herstart overleeft, en Uitvoeren (F5) voert het geopende bestand direct uit. Uitvoeren slaat niet automatisch op — sla eerst op om je wijzigingen te bewaren!"
+                    "title": "Veilig opslaan & uitvoeren",
+                    "text": "Gebruik Opslaan & uitvoeren om je wijzigingen naar de badge-opslag te schrijven en ze uit te voeren. De aparte opdrachten Opslaan (Ctrl/Cmd+S) en Uitvoeren (F5) blijven beschikbaar. Alleen Uitvoeren bewaart je wijzigingen niet."
                 },
                 "done": {
                     "title": "Je bent er klaar voor! 🚀",
