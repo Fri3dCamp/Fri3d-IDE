@@ -80,7 +80,7 @@ function toBadgeHubCategory(raw: string): string {
             categories: existing?.categories ?? (str(m.category) ? [toBadgeHubCategory(str(m.category))] : []),
             licenseType: existing?.license_type ?? 'MIT',
             gitUrl: existing?.git_url ?? '',
-            hidden: existing?.hidden ?? false,
+            hidden: existing?.hidden ?? true,
             developmentStatus: existing?.development_status ?? 'work_in_progress',
         },
     }
