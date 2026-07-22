@@ -1,6 +1,9 @@
 # Fri3d-IDE
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
+[![CI](https://github.com/Fri3dCamp/Fri3d-IDE/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Fri3dCamp/Fri3d-IDE/actions/workflows/ci.yml)
+[![Deploy](https://github.com/Fri3dCamp/Fri3d-IDE/actions/workflows/deploy-pages.yml/badge.svg?branch=main)](https://github.com/Fri3dCamp/Fri3d-IDE/actions/workflows/deploy-pages.yml)
+[![License](https://img.shields.io/github/license/Fri3dCamp/Fri3d-IDE)](LICENSE)
 
 Connect a Fri3d badge, write an app, run it, and publish it from your browser.
 
