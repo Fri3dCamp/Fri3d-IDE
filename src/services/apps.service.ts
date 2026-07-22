@@ -1,5 +1,4 @@
 import { toast } from 'sonner'
-import { unzipSync, zipSync } from 'fflate'
 import { i18next } from '../i18n'
 import { useConnectionStore } from '../stores/connection'
 import { useAppsStore, type AppInfo } from '../stores/apps'
@@ -333,6 +332,7 @@ export async function buildMpkBytes(
             read += f.size
         }
         onProgress?.({ message: t('apps.exporting-zip', 'Building .mpk…'), progress: 1 })
+        const { zipSync } = await import('fflate')
         return zipSync(tree)
     })
 }
@@ -518,6 +518,7 @@ function isIgnorableZipEntry(path: string): boolean {
 /** Parse .mpk (zip) and build install preview/plan. */
 export async function parseMpk(file: File): Promise<MpkInstallPreview> {
     const buf = new Uint8Array(await file.arrayBuffer())
+    const { unzipSync } = await import('fflate')
     const unzipped = unzipSync(buf)
     const entries = Object.entries(unzipped)
         .map(([archivePath, bytes]) => ({ archivePath: normalizeZipPath(archivePath), bytes }))

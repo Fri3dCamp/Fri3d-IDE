@@ -1,4 +1,4 @@
-import Keycloak from 'keycloak-js'
+import type Keycloak from 'keycloak-js'
 import { useBadgeHubStore } from '../../stores/badgehub'
 import { KEYCLOAK_BASE_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID } from './config'
 
@@ -16,32 +16,34 @@ function syncStore(kc: Keycloak): void {
 /** Lazy keycloak init with silent SSO check (no redirect unless login() called). */
 export function initAuth(): Promise<Keycloak> {
     if (initPromise) return initPromise
-    const kc = new Keycloak({
-        url: KEYCLOAK_BASE_URL,
-        realm: KEYCLOAK_REALM,
-        clientId: KEYCLOAK_CLIENT_ID,
+    initPromise = import('keycloak-js').then(({ default: KeycloakClient }) => {
+        const kc = new KeycloakClient({
+            url: KEYCLOAK_BASE_URL,
+            realm: KEYCLOAK_REALM,
+            clientId: KEYCLOAK_CLIENT_ID,
+        })
+        keycloak = kc
+        kc.onAuthSuccess = () => syncStore(kc)
+        kc.onAuthLogout = () => syncStore(kc)
+        kc.onTokenExpired = () => {
+            void kc.updateToken(30).catch(() => syncStore(kc))
+        }
+        return kc
+            .init({
+                onLoad: 'check-sso',
+                silentCheckSsoRedirectUri: `${window.location.origin}${import.meta.env.BASE_URL}silent-check-sso.html`,
+                pkceMethod: 'S256',
+            })
+            .then(() => {
+                syncStore(kc)
+                return kc
+            })
+            .catch((err) => {
+                console.error('Keycloak init failed', err)
+                useBadgeHubStore.setState({ authenticated: false })
+                return kc
+            })
     })
-    keycloak = kc
-    kc.onAuthSuccess = () => syncStore(kc)
-    kc.onAuthLogout = () => syncStore(kc)
-    kc.onTokenExpired = () => {
-        void kc.updateToken(30).catch(() => syncStore(kc))
-    }
-    initPromise = kc
-        .init({
-            onLoad: 'check-sso',
-            silentCheckSsoRedirectUri: `${window.location.origin}${import.meta.env.BASE_URL}silent-check-sso.html`,
-            pkceMethod: 'S256',
-        })
-        .then(() => {
-            syncStore(kc)
-            return kc
-        })
-        .catch((err) => {
-            console.error('Keycloak init failed', err)
-            useBadgeHubStore.setState({ authenticated: false })
-            return kc
-        })
     return initPromise
 }
 
