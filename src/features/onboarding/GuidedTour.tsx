@@ -6,7 +6,13 @@ import { connectDevice } from '../../services/device.service'
 import { useAppsStore } from '../../stores/apps'
 import { isConnectionReady, useConnectionStore } from '../../stores/connection'
 import { useUiStore } from '../../stores/ui'
-import { OnboardingWelcome, type OnboardingTask } from './OnboardingWelcome'
+import { OnboardingWelcome } from './OnboardingWelcome'
+import { OnboardingTargetChoice } from './OnboardingTargetChoice'
+import {
+    directTargetForTask,
+    type OnboardingTarget,
+    type OnboardingTask,
+} from './onboardingFlow'
 import { firstVisibleRect, tourCardPosition } from './tourLayout'
 import { useTourSteps } from './useTourSteps'
 
@@ -18,7 +24,7 @@ export function restartOnboardingTour() {
     window.dispatchEvent(new Event(TOUR_RESTART_EVENT))
 }
 
-type TourMode = null | 'choose' | 'connecting' | 'touring'
+type TourMode = null | 'choose' | 'target' | 'connecting' | 'touring'
 
 export function GuidedTour() {
     const { t } = useTranslation()
@@ -26,6 +32,7 @@ export function GuidedTour() {
     const prompt = usePrompt()
     const [mode, setMode] = useState<TourMode>(null)
     const [task, setTask] = useState<OnboardingTask | null>(null)
+    const [target, setTarget] = useState<OnboardingTarget | null>(null)
     const [step, setStep] = useState(0)
     const [rect, setRect] = useState<DOMRect | null>(null)
     const [cardHeight, setCardHeight] = useState(220)
@@ -40,6 +47,7 @@ export function GuidedTour() {
         if (localStorage.getItem(TOUR_STORAGE_KEY) !== 'done') setMode('choose')
         const restart = () => {
             setTask(null)
+            setTarget(null)
             setStep(0)
             setMode('choose')
         }
@@ -98,18 +106,45 @@ export function GuidedTour() {
         setMode(null)
     }
 
-    const chooseTask = (selectedTask: OnboardingTask) => {
+    const connectForTask = (selectedTask: OnboardingTask, selectedTarget: OnboardingTarget) => {
         setTask(selectedTask)
+        setTarget(selectedTarget)
         setMode('connecting')
-        const transport = selectedTask === 'connect' ? 'usb' : 'vm'
+        const transport = selectedTarget === 'real' ? 'usb' : 'vm'
         void connectDevice(transport, { confirm, prompt }).then(() => {
             const currentStatus = useConnectionStore.getState().status
-            if (currentStatus === 'disconnected') setMode('choose')
+            if (currentStatus === 'disconnected') {
+                setMode(selectedTask === 'build' || selectedTask === 'badgehub' ? 'target' : 'choose')
+            }
         })
+    }
+
+    const chooseTask = (selectedTask: OnboardingTask) => {
+        const directTarget = directTargetForTask(selectedTask)
+        if (directTarget) {
+            connectForTask(selectedTask, directTarget)
+            return
+        }
+        setTask(selectedTask)
+        setTarget(null)
+        setMode('target')
     }
 
     if (mode === null) return null
     if (mode === 'choose') return <OnboardingWelcome onChoose={chooseTask} onSkip={finish} />
+    if (mode === 'target' && (task === 'build' || task === 'badgehub')) {
+        return (
+            <OnboardingTargetChoice
+                task={task}
+                onChoose={(selectedTarget) => connectForTask(task, selectedTarget)}
+                onBack={() => {
+                    setTask(null)
+                    setTarget(null)
+                    setMode('choose')
+                }}
+            />
+        )
+    }
 
     if (mode === 'connecting') {
         return (
@@ -117,7 +152,7 @@ export function GuidedTour() {
                 <div className="w-[min(94vw,420px)] border-3 border-black bg-menu p-5 text-center text-fg shadow-brutal-lg">
                     <Loader2 size={28} className="mx-auto animate-spin" aria-hidden />
                     <div className="mt-3 font-heading text-lg font-black">
-                        {task === 'connect'
+                        {target === 'real'
                             ? t('onboarding.connecting-real', 'Connecting your badge…')
                             : t('onboarding.connecting-virtual', 'Starting the virtual badge…')}
                     </div>
@@ -128,7 +163,9 @@ export function GuidedTour() {
                         <button
                             type="button"
                             className="mt-4 border-2 border-black px-3 py-1.5 text-sm font-semibold"
-                            onClick={() => setMode('choose')}
+                            onClick={() =>
+                                setMode(task === 'build' || task === 'badgehub' ? 'target' : 'choose')
+                            }
                         >
                             {t('onboarding.back', 'Back')}
                         </button>

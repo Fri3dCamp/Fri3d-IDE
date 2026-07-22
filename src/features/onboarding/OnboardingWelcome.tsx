@@ -1,8 +1,7 @@
 import { Cable, MonitorSmartphone, PackagePlus, Store } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Fri3dLogo } from './Fri3dLogo'
-
-export type OnboardingTask = 'connect' | 'virtual' | 'build' | 'badgehub'
+import type { OnboardingTask } from './onboardingFlow'
 
 export function OnboardingWelcome({
     onChoose,
