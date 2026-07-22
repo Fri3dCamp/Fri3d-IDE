@@ -52,7 +52,7 @@ export function AppToaster() {
     return (
         <TopLayer>
             <Toaster
-                position="top-right"
+                position="bottom-right"
                 theme={dark ? 'dark' : 'light'}
                 toastOptions={{
                     classNames: {
@@ -71,28 +71,28 @@ export function LoaderStack() {
     return (
         <TopLayer>
             <div className="pointer-events-none fixed inset-e-3 top-14 flex flex-col gap-2" aria-live="polite">
-            {loaders.map((l) => (
-                <div
-                    key={l.id}
-                    className="min-w-64 border-2 border-black bg-menu px-3 py-2 text-sm shadow-brutal"
-                >
-                    <div className="flex items-center gap-2">
-                        <Loader2 size={14} className="animate-spin" aria-hidden />
-                        <span className="min-w-0 flex-1 truncate">{l.message}</span>
+                {loaders.map((l) => (
+                    <div
+                        key={l.id}
+                        className="min-w-64 border-2 border-black bg-menu px-3 py-2 text-sm shadow-brutal"
+                    >
+                        <div className="flex items-center gap-2">
+                            <Loader2 size={14} className="animate-spin" aria-hidden />
+                            <span className="min-w-0 flex-1 truncate">{l.message}</span>
+                            {l.progress !== undefined && (
+                                <span className="shrink-0 text-xs opacity-70">{Math.round(l.progress * 100)}%</span>
+                            )}
+                        </div>
                         {l.progress !== undefined && (
-                            <span className="shrink-0 text-xs opacity-70">{Math.round(l.progress * 100)}%</span>
+                            <div className="mt-1 h-1.5 border border-black/30 bg-black/10">
+                                <div
+                                    className="h-full bg-accent transition-[width] duration-150"
+                                    style={{ width: `${Math.max(0, Math.min(100, l.progress * 100))}%` }}
+                                />
+                            </div>
                         )}
                     </div>
-                    {l.progress !== undefined && (
-                        <div className="mt-1 h-1.5 border border-black/30 bg-black/10">
-                            <div
-                                className="h-full bg-accent transition-[width] duration-150"
-                                style={{ width: `${Math.max(0, Math.min(100, l.progress * 100))}%` }}
-                            />
-                        </div>
-                    )}
-                </div>
-            ))}
+                ))}
             </div>
         </TopLayer>
     )
