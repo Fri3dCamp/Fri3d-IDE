@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
     ArrowLeft,
@@ -17,6 +17,7 @@ import {
     Plus,
     RefreshCw,
     Rocket,
+    Search,
     Store,
     Trash2,
     TriangleAlert,
@@ -46,6 +47,41 @@ const iconHintClass =
 type DeviceEntry =
     | { name: string; path: string; size: number; isDir: false }
     | { name: string; path: string; isDir: true }
+
+function fuzzyScore(text: string, query: string): number | null {
+    const t = text.toLowerCase()
+    const q = query.toLowerCase()
+    if (!q) return 0
+    if (!t) return null
+
+    const sub = t.indexOf(q)
+    if (sub >= 0) return 100 - Math.min(sub, 40) + (q.length / t.length) * 20
+
+    let ti = 0
+    let score = 0
+    let streak = 0
+    for (const ch of q) {
+        const found = t.indexOf(ch, ti)
+        if (found < 0) return null
+        streak = found === ti ? streak + 1 : 1
+        score += streak * 2 + (found === 0 || /[\s._\-/]/.test(t[found - 1]) ? 6 : 0)
+        ti = found + 1
+    }
+    return score
+}
+
+function appFuzzyScore(app: AppInfo, query: string): number | null {
+    const scores = [
+        fuzzyScore(app.name, query),
+        fuzzyScore(app.fullname, query),
+        (() => {
+            const s = fuzzyScore(app.short_description ?? '', query)
+            return s === null ? null : s * 0.5
+        })(),
+    ].filter((score): score is number => score !== null)
+
+    return scores.length ? Math.max(...scores) : null
+}
 
 /* ------------------------------------------------------------------ */
 /* App list                                                            */
@@ -97,9 +133,27 @@ function AppList() {
     const { t } = useTranslation()
     const apps = useAppsStore((s) => s.apps)
     const scanning = useAppsStore((s) => s.scanning)
+    const [search, setSearch] = useState('')
     const createAppDialog = useCreateAppDialog()
     const installMpkDialog = useInstallMpkDialog()
     const badgeHubBrowser = useBadgeHubBrowserDialog()
+
+    const filteredApps = useMemo(() => {
+        if (!apps) return []
+        const q = search.trim()
+        if (!q) return apps
+
+        return apps
+            .map((app, index) => ({ app, index, score: appFuzzyScore(app, q) }))
+            .filter((item): item is { app: AppInfo; index: number; score: number } => item.score !== null)
+            .sort((left, right) =>
+                right.score - left.score ||
+                left.app.name.localeCompare(right.app.name) ||
+                left.index - right.index)
+            .map((item) => item.app)
+    }, [apps, search])
+
+    const hasSearch = search.trim().length > 0
 
     return (
         <>
@@ -122,11 +176,26 @@ function AppList() {
                         <span aria-hidden className={iconHintClass}>{t('apps.refresh-list', 'Refresh app list')}</span>
                     </button>
                 </div>
+                <div className="relative">
+                    <Search size={14} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 opacity-60" aria-hidden />
+                    <input
+                        type="text"
+                        className="w-full border-2 border-black bg-edit py-1 pl-7 pr-2 text-sm outline-none focus:border-accent"
+                        placeholder={t('apps.search', 'Search apps…')}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        autoComplete="off"
+                        spellCheck={false}
+                    />
+                </div>
             </div>
             <div data-tour-id="tour-app-list" className="min-h-0 flex-1 overflow-y-auto pb-1">
-                {apps?.map((app) => <AppRow key={app.fullname} app={app} />)}
+                {filteredApps.map((app) => <AppRow key={app.fullname} app={app} />)}
                 {apps !== null && apps.length === 0 && !scanning && (
                     <div className="px-3 pb-1 text-sm opacity-60">{t('apps.none', 'No apps installed')}</div>
+                )}
+                {apps !== null && apps.length > 0 && filteredApps.length === 0 && hasSearch && !scanning && (
+                    <div className="px-3 pb-1 text-sm opacity-60">{t('apps.no-match', 'No apps match your search')}</div>
                 )}
                 {apps === null && scanning && (
                     <div className="flex items-center gap-2 px-3 py-1 text-sm opacity-70">

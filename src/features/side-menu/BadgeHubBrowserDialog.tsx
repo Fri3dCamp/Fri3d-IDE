@@ -12,7 +12,7 @@ import {
 import { getCategories, getUserDrafts, type ProjectSummary, fileUrl } from '../../services/badgehub/api'
 import { BADGEHUB_SITE } from '../../services/badgehub/config'
 import { useOpenDialog, useConfirm, DialogActions, SecondaryButton } from '../../components/dialogs'
-import { CloudUpload, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useBadgeHubStore } from '../../stores/badgehub'
 import { login } from '../../services/badgehub/auth'
 

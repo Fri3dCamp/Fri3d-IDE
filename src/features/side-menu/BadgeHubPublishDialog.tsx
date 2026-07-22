@@ -200,6 +200,21 @@ function PublishDialog({ app, close }: { app: AppInfo; close: (r: boolean | null
                                 {t('badgehub.hidden-hint', 'Hide from BadgeHub discovery')}
                             </span>
                         </label>
+
+                        <label htmlFor="bh-dev-status" className="text-sm">
+                            {t('badgehub.field-development-status', 'Development status')}
+                        </label>
+                        <select
+                            id="bh-dev-status"
+                            className={inputClass}
+                            value={fields.developmentStatus}
+                            onChange={(e) => set('developmentStatus', e.target.value as PublishFields['developmentStatus'])}
+                        >
+                            <option value="work_in_progress">
+                                {t('badgehub.status-wip', 'Work in progress')}
+                            </option>
+                            <option value="stable">{t('badgehub.status-stable', 'Stable')}</option>
+                        </select>
                     </div>
                     {publishing && stepMsg && (
                         <div className="mb-2 flex items-center gap-2 text-xs opacity-70">

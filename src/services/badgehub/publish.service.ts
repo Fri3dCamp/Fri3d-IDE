@@ -19,6 +19,7 @@ export interface PublishFields {
     licenseType: string
     gitUrl: string
     hidden: boolean
+    developmentStatus: 'stable' | 'work_in_progress'
 }
 
 /** Prefill publish form from device manifest (+ existing BadgeHub draft when present). */
@@ -80,6 +81,7 @@ function toBadgeHubCategory(raw: string): string {
             licenseType: existing?.license_type ?? 'MIT',
             gitUrl: existing?.git_url ?? '',
             hidden: existing?.hidden ?? false,
+            developmentStatus: existing?.development_status ?? 'work_in_progress',
         },
     }
 }
@@ -136,6 +138,7 @@ export async function publishAppToBadgeHub(
                 license_type: fields.licenseType || undefined,
                 git_url: fields.gitUrl || undefined,
                 hidden: fields.hidden,
+                development_status: fields.developmentStatus,
                 badges: ['mpos_api_0'],
                 application: [{ executable: mpkName }],
             }

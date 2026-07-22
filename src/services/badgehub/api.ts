@@ -37,6 +37,7 @@ export interface AppMetadata {
     project_type?: 'app' | 'library' | 'firmware' | 'other'
     git_url?: string
     hidden?: boolean
+    development_status?: 'stable' | 'work_in_progress'
     name?: string
     description?: string
     long_description?: string
