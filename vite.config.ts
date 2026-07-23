@@ -16,7 +16,10 @@ export default defineConfig({
                     groups: [
                         {
                             name: 'react-vendor',
-                            test: /node_modules[\\/](?:react|react-dom|scheduler|zustand|i18next|react-i18next)[\\/]/,
+                            // Keep this chunk limited to React's self-contained runtime.
+                            // Grouping react-i18next with application-owned i18n setup
+                            // creates a circular index <-> vendor import in production.
+                            test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
                             tags: ['$initial'],
                             includeDependenciesRecursively: false,
                         },
