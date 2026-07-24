@@ -66,6 +66,24 @@ test('production bundle boots without runtime or asset errors', async ({ page })
     expectNoBrowserProblems(problems)
 })
 
+test('production metadata supports rich social previews', async ({ page }) => {
+    await page.goto('./')
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+        'href',
+        'https://fri3dcamp.github.io/Fri3d-IDE/',
+    )
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+        'content',
+        'Fri3d IDE — MicroPython in your browser',
+    )
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+        'content',
+        'https://fri3dcamp.github.io/Fri3d-IDE/social-preview.png',
+    )
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image')
+})
+
 test('first-run onboarding reaches the IDE shell', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
     await page.goto('./')
