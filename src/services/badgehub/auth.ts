@@ -4,12 +4,36 @@ import { KEYCLOAK_BASE_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT_ID } from './config'
 
 let keycloak: Keycloak | null = null
 let initPromise: Promise<Keycloak> | null = null
+const AUTH_INIT_TIMEOUT = 5_000
 
 function syncStore(kc: Keycloak): void {
     useBadgeHubStore.setState({
         authenticated: kc.authenticated === true,
         userId: kc.tokenParsed?.sub ?? null,
         username: (kc.tokenParsed?.preferred_username as string | undefined) ?? null,
+    })
+}
+
+function initWithTimeout(kc: Keycloak): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        const timeout = window.setTimeout(
+            () => reject(new Error('BadgeHub sign-in check timed out')),
+            AUTH_INIT_TIMEOUT,
+        )
+        kc.init({
+            onLoad: 'check-sso',
+            silentCheckSsoRedirectUri: `${window.location.origin}${import.meta.env.BASE_URL}silent-check-sso.html`,
+            pkceMethod: 'S256',
+        }).then(
+            (authenticated) => {
+                window.clearTimeout(timeout)
+                resolve(authenticated)
+            },
+            (error: unknown) => {
+                window.clearTimeout(timeout)
+                reject(error)
+            },
+        )
     })
 }
 
@@ -28,12 +52,7 @@ export function initAuth(): Promise<Keycloak> {
         kc.onTokenExpired = () => {
             void kc.updateToken(30).catch(() => syncStore(kc))
         }
-        return kc
-            .init({
-                onLoad: 'check-sso',
-                silentCheckSsoRedirectUri: `${window.location.origin}${import.meta.env.BASE_URL}silent-check-sso.html`,
-                pkceMethod: 'S256',
-            })
+        return initWithTimeout(kc)
             .then(() => {
                 syncStore(kc)
                 return kc

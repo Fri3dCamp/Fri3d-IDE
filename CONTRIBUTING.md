@@ -122,6 +122,17 @@ npm run test:watch
 
 Runs Vitest in watch mode.
 
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Builds the application with the GitHub Pages base path, serves that production
+bundle, and runs the Playwright browser suite. The suite fails on uncaught page
+errors, console errors, broken JavaScript or stylesheet requests, and core UI
+regressions. Use `npm run test:e2e:ui` for Playwright's interactive runner, or
+`npm run test:all` to run both Vitest and Playwright.
+
 ### Preview
 
 ```bash

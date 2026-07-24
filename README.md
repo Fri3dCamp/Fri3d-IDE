@@ -90,6 +90,8 @@ npm run dev        # local development server
 npm run typecheck  # TypeScript checks
 npm run lint       # Oxlint
 npm test           # Vitest suite
+npm run test:e2e   # Playwright against the production build
+npm run test:all   # Unit and production-browser suites
 npm run build      # production build in dist/
 npm run preview    # preview the production build
 ```
