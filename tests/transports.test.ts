@@ -22,4 +22,23 @@ describe('WebSerial port metadata', () => {
 
         await expect(transport.getInfo()).resolves.toEqual({ vid: '1a2b', pid: '00c3' })
     })
+
+    it('releases local stream handles when an unplugged port rejects cleanup', async () => {
+        const reader = {
+            cancel: async () => { throw new Error('device disconnected') },
+            releaseLock: () => {},
+        }
+        const writer = { releaseLock: () => {} }
+        const transport = new WebSerial({})
+        Object.assign(transport, {
+            port: { close: async () => { throw new Error('device disconnected') } },
+            reader,
+            writer,
+            readableStreamClosed: Promise.reject(new Error('device disconnected')),
+        })
+
+        await expect(transport.disconnect()).resolves.toBeUndefined()
+        expect(transport.reader).toBeNull()
+        expect(transport.writer).toBeNull()
+    })
 })

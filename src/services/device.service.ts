@@ -167,6 +167,25 @@ async function closeFailedConnection(port: Transport): Promise<void> {
     ])
 }
 
+function resetDeviceState(): void {
+    useConnectionStore.getState().setDisconnected()
+    useFileStore.getState().reset()
+    useAppsStore.getState().reset()
+    useUiStore.getState().setRunning(false)
+}
+
+function handleUnexpectedDisconnect(port: Transport): void {
+    // A stale reader from an unplugged device must not reset a newer
+    // connection. Clean it up either way, but only update the UI when this
+    // is still the active port.
+    port.onDisconnect(() => {})
+    void closeFailedConnection(port)
+
+    if (useConnectionStore.getState().port !== port) return
+    toast.warning(t('app.device-disconnected', 'Device disconnected'))
+    resetDeviceState()
+}
+
 export async function connectDevice(type: TransportType, ui: ConnectUi): Promise<void> {
     const conn = useConnectionStore.getState()
 
@@ -228,13 +247,7 @@ export async function connectDevice(type: TransportType, ui: ConnectUi): Promise
 
     port.onActivity(() => useConnectionStore.getState().bumpActivity())
     port.onReceive((data: string) => terminalWrite(data))
-    port.onDisconnect(() => {
-        toast.warning(t('app.device-disconnected', 'Device disconnected'))
-        useConnectionStore.getState().setDisconnected()
-        useFileStore.getState().reset()
-        useAppsStore.getState().reset()
-        useUiStore.getState().setRunning(false)
-    })
+    port.onDisconnect(() => handleUnexpectedDisconnect(port))
 
     useConnectionStore.getState().startSynchronizing(port)
 
@@ -319,16 +332,17 @@ function flatten(nodes: FsNode[], out: Array<{ path: string }> = []): Array<{ pa
 export async function disconnectDevice(): Promise<void> {
     const { port } = useConnectionStore.getState()
     if (port) {
+        // A deliberate disconnect can also close the underlying stream.
+        // Suppress its asynchronous disconnect notification so it cannot
+        // race with a later reconnect.
+        port.onDisconnect(() => {})
         try {
             await port.disconnect()
         } catch (err) {
             console.warn(err)
         }
     }
-    useConnectionStore.getState().setDisconnected()
-    useFileStore.getState().reset()
-    useAppsStore.getState().reset()
-    useUiStore.getState().setRunning(false)
+    resetDeviceState()
 }
 
 /** Refresh top level of the file tree inside an existing raw-mode session.

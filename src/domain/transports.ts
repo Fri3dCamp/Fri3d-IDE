@@ -253,17 +253,32 @@ export class WebSerial extends Transport {
     }
 
     async disconnect() {
-        if (this.reader) {
-            await this.reader.cancel()
-            await this.readableStreamClosed.catch(() => {})
-            this.reader = null
+        // A physical unplug can make any of these operations fail. Still
+        // release every local handle so a newly plugged-in port can be used
+        // without reloading the page.
+        const reader = this.reader
+        this.reader = null
+        if (reader) {
+            await reader.cancel().catch(() => {})
+            await this.readableStreamClosed?.catch(() => {})
+            try {
+                reader.releaseLock()
+            } catch {
+                /* the stream may already have released it */
+            }
         }
-        if (this.writer) {
-            this.writer.releaseLock()
-            this.writer = null
+
+        const writer = this.writer
+        this.writer = null
+        if (writer) {
+            try {
+                writer.releaseLock()
+            } catch {
+                /* the stream may already have released it */
+            }
         }
-        if (this.port?.close) await this.port.close()
-        if (this.port?.forget) await this.port.forget()
+
+        if (this.port?.close) await this.port.close().catch(() => {})
     }
 
     async writeBytes(data: Uint8Array) {
