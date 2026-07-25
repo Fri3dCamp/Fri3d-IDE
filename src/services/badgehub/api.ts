@@ -20,6 +20,13 @@ export interface ProjectSummary {
     version?: string
     revision?: number
     git_url?: string
+    ratings?: ProjectRatings
+    development_status?: 'stable' | 'work_in_progress'
+}
+
+export interface ProjectRatings {
+    average: number
+    count: number
 }
 
 export interface ProjectFile {

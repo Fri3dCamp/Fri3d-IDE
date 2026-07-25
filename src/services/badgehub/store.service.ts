@@ -2,7 +2,7 @@ import { i18next } from '../../i18n'
 import { useAppsStore } from '../../stores/apps'
 import { parseMpk, installMpk } from '../apps.service'
 import * as api from './api'
-import type { ProjectSummary } from './api'
+import type { ProjectRatings, ProjectSummary } from './api'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
     i18next.t(key, fallback, opts) as string
@@ -19,6 +19,10 @@ export interface StoreApp {
     categories: string[]
     badges: string[]
     installs: number
+    /** Average rating and number of ratings on BadgeHub, if any. */
+    ratings?: ProjectRatings
+    publishedAt: string | null
+    developmentStatus: 'stable' | 'work_in_progress'
     gitUrl?: string
     iconUrl: string
     /** Compatible with MicroPythonOS mpk install flow. */
@@ -45,6 +49,9 @@ export async function fetchStoreApps(filter: { category?: string; search?: strin
             categories: s.categories ?? [],
             badges: s.badges ?? [],
             installs: s.installs ?? 0,
+            ratings: s.ratings,
+            publishedAt: s.published_at ?? null,
+            developmentStatus: s.development_status ?? 'stable',
             gitUrl: s.git_url,
             iconUrl: api.fileUrl(s.slug, 'icon-64x64.png'),
             installable: (s.badges ?? []).some((b) => MPOS_BADGES.has(b)),

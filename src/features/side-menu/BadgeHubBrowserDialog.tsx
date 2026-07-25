@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Loader2, RefreshCw, Search, Store, LogIn } from 'lucide-react'
+import { Download, Loader2, RefreshCw, Search, Star, Store, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppsStore } from '../../stores/apps'
 import { isConnectionReady, useConnectionStore } from '../../stores/connection'
@@ -18,6 +18,48 @@ import { initAuth, login } from '../../services/badgehub/auth'
 
 const inputClass =
     'w-full border-2 border-black bg-edit px-2 py-1 text-sm text-fg outline-none focus:border-accent'
+
+type SortKey = 'installs' | 'rating' | 'ratings-count' | 'updated' | 'name'
+type StatusFilter = 'all' | 'stable' | 'work_in_progress'
+
+const SORT_KEYS: SortKey[] = ['installs', 'rating', 'ratings-count', 'updated', 'name']
+
+const SORT_LABELS: Record<SortKey, string> = {
+    'installs': 'Most installed',
+    'rating': 'Highest rating',
+    'ratings-count': 'Most ratings',
+    'updated': 'Last updated',
+    'name': 'App name',
+}
+
+/** Compare two apps for the given sort key. Installable apps always rank first. */
+function compareApps(a: StoreApp, b: StoreApp, sort: SortKey): number {
+    const installable = Number(b.installable) - Number(a.installable)
+    if (installable) return installable
+    switch (sort) {
+        case 'rating':
+            return (
+                (b.ratings?.average ?? -1) - (a.ratings?.average ?? -1) ||
+                (b.ratings?.count ?? 0) - (a.ratings?.count ?? 0) ||
+                b.installs - a.installs
+            )
+        case 'ratings-count':
+            return (
+                (b.ratings?.count ?? 0) - (a.ratings?.count ?? 0) ||
+                (b.ratings?.average ?? 0) - (a.ratings?.average ?? 0) ||
+                b.installs - a.installs
+            )
+        case 'updated': {
+            const ta = a.publishedAt ? Date.parse(a.publishedAt) || 0 : 0
+            const tb = b.publishedAt ? Date.parse(b.publishedAt) || 0 : 0
+            return tb - ta || b.installs - a.installs
+        }
+        case 'name':
+            return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+        case 'installs':
+            return b.installs - a.installs
+    }
+}
 
 /* ------------------------------------------------------------------ */
 /* Fuzzy search                                                        */
@@ -115,7 +157,19 @@ function StoreRow({
                     {app.categories.slice(0, 2).map((c) => (
                         <span key={c}>{c}</span>
                     ))}
+                    {app.ratings && app.ratings.count > 0 && (
+                        <span
+                            className="flex items-center gap-0.5"
+                            title={t('badgehub.ratings', '{{n}} ratings', { n: app.ratings.count })}
+                        >
+                            <Star size={11} className="fill-current" aria-hidden />
+                            {app.ratings.average.toFixed(1)} ({app.ratings.count})
+                        </span>
+                    )}
                     {app.installs > 0 && <span>· {t('badgehub.installs', '{{n}} installs', { n: app.installs })}</span>}
+                    {app.developmentStatus === 'work_in_progress' && (
+                        <span className="italic">· {t('badgehub.status-wip', 'Work in progress')}</span>
+                    )}
                 </div>
             </div>
             {app.installable ? (
@@ -163,6 +217,8 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
     const [categories, setCategories] = useState<string[]>([])
     const [category, setCategory] = useState('')
     const [search, setSearch] = useState('')
+    const [sort, setSort] = useState<SortKey>('installs')
+    const [status, setStatus] = useState<StatusFilter>('all')
     const [loading, setLoading] = useState(false)
     const [installingSlug, setInstallingSlug] = useState<string | null>(null)
     const userId = useBadgeHubStore((s) => s.userId)
@@ -209,25 +265,16 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
     const filtered = useMemo(() => {
         if (!apps) return null
         let storeApps = apps
-        if (userId) storeApps = apps.filter(a => a.authorId !== userId)
+        if (status !== 'all') storeApps = storeApps.filter(a => a.developmentStatus === status)
         const q = search.trim()
-        if (!q) {
-            // Installable first, then by installs desc.
-            return [...storeApps].sort(
-                (a, b) => Number(b.installable) - Number(a.installable) || b.installs - a.installs,
-            )
-        }
+        if (!q) return [...storeApps].sort((a, b) => compareApps(a, b, sort))
+        // Searching: best fuzzy match first, chosen sort as tiebreak.
         return storeApps
             .map((a) => ({ a, score: appFuzzyScore(a, q) }))
             .filter((x): x is { a: StoreApp; score: number } => x.score !== null)
-            .sort(
-                (x, y) =>
-                    y.score - x.score ||
-                    Number(y.a.installable) - Number(x.a.installable) ||
-                    y.a.installs - x.a.installs,
-            )
+            .sort((x, y) => y.score - x.score || compareApps(x.a, y.a, sort))
             .map((x) => x.a)
-    }, [apps, search])
+    }, [apps, search, sort, status])
 
     const install = async (app: StoreApp) => {
         setInstallingSlug(app.slug)
@@ -305,6 +352,29 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
                 </select>
             </div>
 
+            <div className="mb-2 flex gap-2">
+                <select
+                    className="flex-1 border-2 border-black bg-edit px-2 py-1 text-sm text-fg"
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortKey)}
+                    aria-label={t('badgehub.sort-by', 'Sort by')}
+                >
+                    {SORT_KEYS.map((k) => (
+                        <option key={k} value={k}>{t(`badgehub.sort-${k}`, SORT_LABELS[k])}</option>
+                    ))}
+                </select>
+                <select
+                    className="flex-1 border-2 border-black bg-edit px-2 py-1 text-sm text-fg"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as StatusFilter)}
+                    aria-label={t('badgehub.status', 'Status')}
+                >
+                    <option value="all">{t('badgehub.status-all', 'All statuses')}</option>
+                    <option value="stable">{t('badgehub.status-stable', 'Stable')}</option>
+                    <option value="work_in_progress">{t('badgehub.status-wip', 'Work in progress')}</option>
+                </select>
+            </div>
+
             <div className="max-h-[50vh] min-h-40 overflow-y-auto border-2 border-black/20">
                 {loading || filtered === null ? (
                     <div className="flex items-center gap-2 px-3 py-6 text-sm opacity-70">
@@ -364,6 +434,20 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
                                     {p.published_at
                                         ? ''
                                         : ` · ${t('badgehub.unpublished', 'unpublished draft')}`}
+                                </div>
+                                <div className="mt-0.5 flex items-center gap-2 text-[11px] opacity-50">
+                                    {p.ratings && p.ratings.count > 0 && (
+                                        <span
+                                            className="flex items-center gap-0.5"
+                                            title={t('badgehub.ratings', '{{n}} ratings', { n: p.ratings.count })}
+                                        >
+                                            <Star size={11} className="fill-current" aria-hidden />
+                                            {p.ratings.average.toFixed(1)} ({p.ratings.count})
+                                        </span>
+                                    )}
+                                    {(p.installs ?? 0) > 0 && (
+                                        <span>{t('badgehub.installs', '{{n}} installs', { n: p.installs })}</span>
+                                    )}
                                 </div>
                             </div>
                             <a
