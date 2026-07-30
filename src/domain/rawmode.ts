@@ -275,13 +275,16 @@ except OSError as e:
 
     async removeDir(path: string) {
         await this.exec(`
-try:
- os.rmdir('${path}')
-except OSError as e:
- if e.args[0] == 39:
-  raise Exception('Directory not empty')
- else:
-  raise
+def remove_tree(p):
+ for n in os.listdir(p):
+  if n in ('.', '..'): continue
+  child=p.rstrip('/')+'/'+n
+  if os.stat(child)[0] & 0x4000:
+   remove_tree(child)
+  else:
+   os.remove(child)
+ os.rmdir(p)
+remove_tree('${path}')
 `)
     }
 

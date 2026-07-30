@@ -48,7 +48,18 @@ export function setPresetUrl(url: string): void {
 
 export interface ConnectUi {
     confirm(message: string): Promise<boolean>
-    prompt(message: string, options?: { value?: string; placeholder?: string; password?: boolean }): Promise<string | null>
+    prompt(
+        message: string,
+        options?: {
+            value?: string
+            placeholder?: string
+            password?: boolean
+            expected?: string
+            destructive?: boolean
+            title?: string
+            confirmLabel?: string
+        },
+    ): Promise<string | null>
 }
 
 async function prepareWsPort(ui: ConnectUi): Promise<Transport | null> {

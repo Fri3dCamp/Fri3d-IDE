@@ -201,23 +201,41 @@ export async function removeItem(ui: ConnectUi, path: string, isDir: boolean): P
     if (isDir && /^\/apps\/[^/]+$/.test(path)) {
         const appId = path.split('/').at(-1) ?? path
         const typed = await ui.prompt(
-            t('files.confirm-remove-app-root', 'Type {{id}} to delete app folder {{path}}', { id: appId, path }),
-            { value: '' },
+            t(
+                'files.confirm-remove-app-root',
+                'You are deleting app folder **{{path}}** and everything inside it.',
+                { path },
+            ),
+            {
+                value: '',
+                placeholder: appId,
+                expected: appId,
+                destructive: true,
+                title: t('files.delete-app-folder-title', 'Delete app folder?'),
+                confirmLabel: t('files.delete-folder', 'Delete folder'),
+            },
         )
         if ((typed ?? '').trim() !== appId) return
     } else if (!(await ui.confirm(t('files.confirm-remove', 'Remove {{path}}?', { path })))) {
         return
     }
 
-    await withLoader(t('files.removing', 'Removing {{path}}…', { path }), () =>
-        withRawMode(async (raw) => {
-            if (isDir) await raw.removeDir(path)
-            else await raw.removeFile(path)
-            await refreshTreeVia(raw)
-        }),
-    )
-    useEditorTabsStore.getState().closeByPath(path, isDir)
-    if (!isDir) useEditorTabsStore.getState().closeByPath(path)
+    try {
+        await withLoader(t('files.removing', 'Removing {{path}}…', { path }), () =>
+            withRawMode(async (raw) => {
+                if (isDir) await raw.removeDir(path)
+                else await raw.removeFile(path)
+                await refreshTreeVia(raw)
+            }),
+        )
+        useEditorTabsStore.getState().closeByPath(path, isDir)
+        if (!isDir) useEditorTabsStore.getState().closeByPath(path)
+        toast.success(t('files.removed', 'Removed {{path}}', { path }))
+    } catch (err) {
+        toast.error(t('files.remove-failed', 'Could not remove {{path}}', { path }), {
+            description: err instanceof Error ? err.message : String(err),
+        })
+    }
 }
 
 /** Rename file or folder within its parent directory. Prompts for new name. */

@@ -369,7 +369,18 @@ export async function exportMpk(app: AppInfo): Promise<boolean> {
 
 /** Delete whole app folder recursively, then refresh app registry + file tree. */export async function deleteApp(
     app: AppInfo,
-    prompt: (msg: string, options?: { value?: string; placeholder?: string; password?: boolean }) => Promise<string | null>,
+    prompt: (
+        msg: string,
+        options?: {
+            value?: string
+            placeholder?: string
+            password?: boolean
+            expected?: string
+            destructive?: boolean
+            title?: string
+            confirmLabel?: string
+        },
+    ) => Promise<string | null>,
 ): Promise<boolean> {
     const { port } = useConnectionStore.getState()
     if (!port) return false
@@ -377,10 +388,17 @@ export async function exportMpk(app: AppInfo): Promise<boolean> {
     const typed = await prompt(
         t(
             'apps.delete-confirm-type',
-            'Delete app "{{name}}" ({{id}}).\n\nType **{{id}}** to confirm.',
-            { name: app.name || app.fullname, id: app.fullname },
+            'You are deleting **{{name}}** and all files in **{{path}}**.',
+            { name: app.name || app.fullname, path: app.path },
         ),
-        { value: '', placeholder: app.fullname },
+        {
+            value: '',
+            placeholder: app.fullname,
+            expected: app.fullname,
+            destructive: true,
+            title: t('apps.delete-app', 'Delete app?'),
+            confirmLabel: t('apps.delete-app', 'Delete app'),
+        },
     )
     if ((typed ?? '').trim() !== app.fullname) return false
 
