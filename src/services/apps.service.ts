@@ -329,7 +329,7 @@ export async function buildMpkBytes(
                 }),
                 progress: totalBytes > 0 ? read / totalBytes : 0,
             })
-            tree[`${app.fullname}/${f.rel}`] = await raw.readFile(f.path)
+            tree[f.rel] = await raw.readFile(f.path)
             read += f.size
         }
         onProgress?.({ message: t('apps.exporting-zip', 'Building .mpk…'), progress: 1 })
