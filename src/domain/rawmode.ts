@@ -164,6 +164,8 @@ with open('${fn}','rb') as f:
         // Temp file in the SAME directory as the target: cross-directory rename
         // fails on some VFS implementations (e.g. wasm virtual badge, errno 75).
         const dest = direct ? fn : `${fn}.viper.tmp`
+        const fnLiteral = JSON.stringify(fn)
+        const destLiteral = JSON.stringify(dest)
         await this.exec(`
 try:
  import binascii
@@ -171,7 +173,7 @@ try:
  h('')
 except:
  h=lambda s: bytes(int(s[i:i+2], 16) for i in range(0, len(s), 2))
-f=open('${dest}','wb')
+f=open(${destLiteral},'wb')
 w=lambda d: f.write(h(d))
 o=f.write
 `)
@@ -197,20 +199,20 @@ o=f.write
             await this.exec(`f.close()`)
         } else {
             await this.exec(`f.close()
-try: os.remove('${fn}')
+try: os.remove(${fnLiteral})
 except: pass
 try:
- os.rename('${dest}','${fn}')
+ os.rename(${destLiteral},${fnLiteral})
 except OSError:
- s=open('${dest}','rb')
- d=open('${fn}','wb')
+ s=open(${destLiteral},'rb')
+ d=open(${fnLiteral},'wb')
  while True:
   b=s.read(256)
   if not b: break
   d.write(b)
  s.close()
  d.close()
- os.remove('${dest}')
+ os.remove(${destLiteral})
 `)
         }
     }
@@ -250,9 +252,10 @@ f.close()
 
     async makePath(path: string) {
         // TODO: remove error code 20 once it is fixed in wasm port
+        const pathLiteral = JSON.stringify(path)
         await this.exec(`
 p=''
-for d in '${path}'.split('/'):
+for d in ${pathLiteral}.split('/'):
  if not d: continue
  p += '/'+d
  try: os.mkdir(p)

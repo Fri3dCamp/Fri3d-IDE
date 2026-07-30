@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
     ArrowLeft,
@@ -21,11 +21,13 @@ import { useAppsStore, type AppInfo } from '../../stores/apps'
 import { isConnectionActive, isConnectionReady, useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { sizeFmt } from '../../domain/utils'
+import type { LocalUploadEntry } from '../../domain/upload'
 import { refreshApps, launchApp, openAppFile, listDirectory, deleteApp, exportMpk } from '../../services/apps.service'
 import { createItem, removeItem, renameItem } from '../../services/files.service'
-import { uploadFilesToPaths } from '../../services/device.service'
+import { uploadEntriesToDirectory } from '../../services/device.service'
 import { useConfirm, usePrompt } from '../../components/dialogs'
-import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
+import { useFolderDropTarget, dropHighlightClass } from './DropUpload'
+import { useUploadFlow } from './UploadDialog'
 import { useAppEditorDialog } from './AppEditorDialog'
 import { useBadgeHubPublishDialog } from './BadgeHubPublishDialog'
 import { ConnectDeviceButton } from './FileTree'
@@ -51,7 +53,7 @@ function AppDropRow({
     children,
 }: {
     dir: string
-    onUpload: (files: File[], dir: string) => Promise<void>
+    onUpload: (entries: LocalUploadEntry[], dir: string) => Promise<void>
     className: string
     style?: React.CSSProperties
     children: React.ReactNode
@@ -78,8 +80,8 @@ function AppDetail({ app }: { app: AppInfo }) {
     const openTabs = useEditorTabsStore((s) => s.tabs)
     const editDetails = useAppEditorDialog()
     const publishDialog = useBadgeHubPublishDialog()
+    const uploadFlow = useUploadFlow()
 
-    const uploadInputRef = useRef<HTMLInputElement>(null)
     const [rootEntries, setRootEntries] = useState<DeviceEntry[] | null>(null)
     const [loading, setLoading] = useState(false)
     const [deleting, setDeleting] = useState(false)
@@ -141,20 +143,17 @@ function AppDetail({ app }: { app: AppInfo }) {
         await reload()
     }
 
-    const uploadToSelectedFolder = async (list: FileList | null) => {
-        if (!list || list.length === 0) return
-        const files = Array.from(list)
-        await uploadFilesToPaths(files, dropTargetPaths(files, selectedFolderPath))
+    const refreshAfterUpload = useCallback(async () => {
+        await refreshApps()
         await reload()
-    }
+    }, [reload])
 
     const uploadDropped = useCallback(
-        async (files: File[], dir: string) => {
+        async (entries: LocalUploadEntry[], dir: string) => {
             if (!isConnectionReady(useConnectionStore.getState().status)) return
-            await uploadFilesToPaths(files, dropTargetPaths(files, dir))
-            await reload()
+            if (await uploadEntriesToDirectory(entries, dir)) await refreshAfterUpload()
         },
-        [reload],
+        [refreshAfterUpload],
     )
 
     const removeApp = async () => {
@@ -409,7 +408,11 @@ function AppDetail({ app }: { app: AppInfo }) {
                         type="button"
                         className={`${headBtn} group/icon relative`}
                         aria-label={t('files.upload', 'Upload')}
-                        onClick={() => uploadInputRef.current?.click()}
+                        onClick={() => {
+                            void uploadFlow(selectedFolderPath).then((uploaded) => {
+                                if (uploaded) return refreshAfterUpload()
+                            })
+                        }}
                     >
                         <Upload size={14} aria-hidden />
                         <span aria-hidden className={iconHintClass}>{t('files.upload', 'Upload')}</span>
@@ -427,16 +430,6 @@ function AppDetail({ app }: { app: AppInfo }) {
                         )}
                         <span aria-hidden className={iconHintClass}>{t('files.refresh', 'Refresh')}</span>
                     </button>
-                    <input
-                        ref={uploadInputRef}
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                            void uploadToSelectedFolder(e.currentTarget.files)
-                            e.currentTarget.value = ''
-                        }}
-                    />
                 </span>
             </div>
 
