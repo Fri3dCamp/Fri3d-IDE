@@ -7,6 +7,7 @@ import { withLoader } from '../stores/ui'
 import { withRawMode, refreshTreeVia } from './device.service'
 import { openFileContent } from './files.service'
 import type { MpRawMode } from '../domain/rawmode'
+import { buildMpkArchive } from '../domain/mpk'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
     i18next.t(key, fallback, opts) as string
@@ -332,8 +333,7 @@ export async function buildMpkBytes(
             read += f.size
         }
         onProgress?.({ message: t('apps.exporting-zip', 'Building .mpk…'), progress: 1 })
-        const { zipSync } = await import('fflate')
-        return zipSync(tree)
+        return buildMpkArchive(app.fullname, tree)
     })
 }
 
