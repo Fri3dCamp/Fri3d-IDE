@@ -22,9 +22,10 @@ import { useFileStore, isFolder, type FsNode } from '../../stores/files'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useSettingsStore } from '../../stores/settings'
 import { sizeFmt } from '../../domain/utils'
-import { openFile, createItem, removeItem, renameItem, loadFolder, refreshFileTree } from '../../services/files.service'
-import { uploadFilesToPaths } from '../../services/device.service'
-import { useFolderDropTarget, dropTargetPaths, dropHighlightClass } from './DropUpload'
+import { openFile, createItem, removeItem, renameItem, loadFolder } from '../../services/files.service'
+import { uploadEntriesToDirectory } from '../../services/device.service'
+import type { LocalUploadEntry } from '../../domain/upload'
+import { useFolderDropTarget, dropHighlightClass } from './DropUpload'
 import { connectDevice } from '../../services/device.service'
 import {
     isConnectionActive,
@@ -63,12 +64,10 @@ const rowClass =
 const actionClass =
     'invisible shrink-0 rounded-none p-0.5 opacity-70 hover:opacity-100 group-hover:visible'
 
-/** Upload dropped files into `dir` on the device, then refresh that folder. */
-async function uploadDroppedFiles(files: File[], dir: string): Promise<void> {
+/** Recursively merge dropped files and folders into `dir`. */
+async function uploadDroppedFiles(entries: LocalUploadEntry[], dir: string): Promise<void> {
     if (!isConnectionReady(useConnectionStore.getState().status)) return
-    await uploadFilesToPaths(files, dropTargetPaths(files, dir))
-    if (dir === '/') await refreshFileTree()
-    else await loadFolder(dir)
+    await uploadEntriesToDirectory(entries, dir)
 }
 
 function FolderRow({ node, depth }: { node: Extract<FsNode, { content: FsNode[] }>; depth: number }) {

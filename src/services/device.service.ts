@@ -15,6 +15,12 @@ import { iOS, sleep, splitPath } from '../domain/utils'
 import { rawInstallPkg } from '../domain/package_mgr'
 import { parseStackTrace, validatePython } from '../domain/python_utils'
 import {
+    canonicalizeUploadEntries,
+    joinDeviceUploadPath,
+    uploadEntrySummary,
+    type LocalUploadEntry,
+} from '../domain/upload'
+import {
     isConnectionReady,
     useConnectionStore,
     type DeviceInfo,
@@ -713,51 +719,110 @@ export async function saveCurrentFile(ui: ConnectUi): Promise<boolean> {
 /* Upload                                                              */
 /* ------------------------------------------------------------------ */
 
-/** Upload files to their full target `paths` (parallel arrays).
- *  Called by the interactive upload dialog (UploadDialog.tsx). */
-export async function uploadFilesToPaths(files: File[], paths: string[]): Promise<void> {
+/** Recursively merge local upload entries into a device directory. */
+export async function uploadEntriesToDirectory(
+    rawEntries: LocalUploadEntry[],
+    destination: string,
+): Promise<boolean> {
     const connection = useConnectionStore.getState()
     const { port } = connection
-    if (!port || !files.length || !isConnectionReady(connection.status)) return
+    if (!port || !rawEntries.length || !isConnectionReady(connection.status)) return false
 
-    const totalBytes = files.reduce((acc, f) => acc + f.size, 0)
-    let uploadedBytes = 0
+    let entries: LocalUploadEntry[]
+    try {
+        entries = canonicalizeUploadEntries(rawEntries)
+    } catch (err) {
+        toast.error(t('files.upload-invalid', 'Cannot upload this selection'), {
+            description: err instanceof Error ? err.message : String(err),
+        })
+        return false
+    }
 
-    await withLoader(
-        t('files.uploading-many', 'Uploading {{n}} files…', { n: files.length }),
-        async (loader) => {
-            await withRawMode(async (raw) => {
-                for (let i = 0; i < files.length; i++) {
-                    const target = paths[i]
-                    const [dirname] = splitPath(target)
-                    if (dirname && dirname !== '/') await raw.makePath(dirname)
+    const directories = entries.filter((entry) => entry.kind === 'directory')
+    const files = entries.filter((entry): entry is Extract<LocalUploadEntry, { kind: 'file' }> => entry.kind === 'file')
+    const summary = uploadEntrySummary(entries)
+    const totalWork = directories.length + files.reduce((sum, entry) => sum + Math.max(entry.file.size, 1), 0)
+    let completedWork = 0
+    let activePath = destination
 
-                    const fileBytes = new Uint8Array(await files[i].arrayBuffer())
-                    const baseUploaded = uploadedBytes
-
-                    loader.update({
-                        message: t('files.uploading-one', 'Uploading {{name}} ({{index}}/{{total}})…', {
-                            name: target,
-                            index: i + 1,
-                            total: files.length,
-                        }),
-                        progress: totalBytes > 0 ? baseUploaded / totalBytes : 0,
-                    })
-
-                    await raw.writeFile(target, fileBytes, 128, false, (sent, total) => {
-                        const current = baseUploaded + (total > 0 ? sent : fileBytes.length)
+    try {
+        const uploaded = await withLoader(
+            t('files.uploading-items', 'Uploading {{files}} files and {{folders}} folders…', {
+                files: summary.files,
+                folders: summary.directories,
+            }),
+            async (loader) =>
+                withRawMode(async (raw) => {
+                    for (const entry of directories) {
+                        activePath = joinDeviceUploadPath(destination, entry.relativePath)
                         loader.update({
-                            progress: totalBytes > 0 ? current / totalBytes : 0,
+                            message: t('files.uploading-folder', 'Creating {{name}}…', { name: activePath }),
+                            progress: totalWork > 0 ? completedWork / totalWork : 0,
                         })
-                    })
+                        await raw.makePath(activePath)
+                        completedWork++
+                    }
 
-                    uploadedBytes += fileBytes.length
-                }
+                    for (let i = 0; i < files.length; i++) {
+                        const entry = files[i]
+                        activePath = joinDeviceUploadPath(destination, entry.relativePath)
+                        const [dirname] = splitPath(activePath)
+                        if (dirname && dirname !== '/') await raw.makePath(dirname)
 
-                loader.update({ progress: 1 })
-                await refreshTreeVia(raw)
-            })
-        },
-    )
-    toast.success(t('files.upload-done', 'Uploaded {{n}} file(s)', { n: files.length }))
+                        const fileBytes = new Uint8Array(await entry.file.arrayBuffer())
+                        const fileWork = Math.max(fileBytes.length, 1)
+                        const baseWork = completedWork
+                        loader.update({
+                            message: t('files.uploading-one', 'Uploading {{name}} ({{index}}/{{total}})…', {
+                                name: activePath,
+                                index: i + 1,
+                                total: files.length,
+                            }),
+                            progress: totalWork > 0 ? baseWork / totalWork : 0,
+                        })
+
+                        await raw.writeFile(activePath, fileBytes, 128, false, (sent, total) => {
+                            const fraction = total > 0 ? sent / total : 1
+                            loader.update({
+                                progress: totalWork > 0 ? (baseWork + fileWork * fraction) / totalWork : 0,
+                            })
+                        })
+                        completedWork += fileWork
+                    }
+
+                    loader.update({ progress: 1 })
+                    await refreshTreeVia(raw)
+                    return true
+                }),
+        )
+        if (uploaded !== true) return false
+
+        toast.success(
+            t('files.upload-done-recursive', 'Uploaded {{files}} files and {{folders}} folders', {
+                files: summary.files,
+                folders: summary.directories,
+            }),
+        )
+        return true
+    } catch (err) {
+        toast.error(t('files.upload-failed', 'Upload failed at {{path}}', { path: activePath }), {
+            description: t(
+                'files.upload-partial',
+                'Some items may already have been uploaded. {{error}}',
+                { error: err instanceof Error ? err.message : String(err) },
+            ),
+        })
+        return false
+    }
+}
+
+/** Compatibility wrapper for callers that already have full target paths. */
+export async function uploadFilesToPaths(files: File[], paths: string[]): Promise<void> {
+    if (files.length !== paths.length) throw new Error('Upload files and paths must have equal lengths')
+    const entries: LocalUploadEntry[] = files.map((file, index) => ({
+        kind: 'file',
+        file,
+        relativePath: paths[index].replace(/^\/+/, ''),
+    }))
+    await uploadEntriesToDirectory(entries, '/')
 }
