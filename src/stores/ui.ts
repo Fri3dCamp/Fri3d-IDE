@@ -66,7 +66,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
     setDisplayTabVisible: (visible) => set({ displayTabVisible: visible }),
     setTerminalHeight: (px) => set({ terminalHeight: Math.max(50, px) }),
     setRunning: (running) => set({ isRunning: running }),
-    setOffline: (offline) => set({ offline }),
+    setOffline: (offline) => set((state) => (state.offline === offline ? state : { offline })),
 
     showLoader: (message) => {
         const id = ++loaderSeq

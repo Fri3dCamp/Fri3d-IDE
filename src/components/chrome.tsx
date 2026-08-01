@@ -104,12 +104,29 @@ export function OfflineBadge() {
     const setOffline = useUiStore((s) => s.setOffline)
 
     useEffect(() => {
-        const sync = () => setOffline(!navigator.onLine)
-        window.addEventListener('online', sync)
-        window.addEventListener('offline', sync)
+        let offlineTimer: ReturnType<typeof window.setTimeout> | undefined
+
+        const handleOffline = () => {
+            window.clearTimeout(offlineTimer)
+            offlineTimer = window.setTimeout(() => {
+                if (!navigator.onLine) {
+                    setOffline(true)
+                }
+            }, 2_000)
+        }
+
+        const handleOnline = () => {
+            window.clearTimeout(offlineTimer)
+            offlineTimer = undefined
+            setOffline(false)
+        }
+
+        window.addEventListener('online', handleOnline)
+        window.addEventListener('offline', handleOffline)
         return () => {
-            window.removeEventListener('online', sync)
-            window.removeEventListener('offline', sync)
+            window.clearTimeout(offlineTimer)
+            window.removeEventListener('online', handleOnline)
+            window.removeEventListener('offline', handleOffline)
         }
     }, [setOffline])
 
