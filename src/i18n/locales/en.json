@@ -170,6 +170,7 @@
             "skip-to-editor": "Skip to editor",
             "back": "Back",
             "next": "Next",
+            "continue-on-action": "Complete the highlighted action to continue",
             "get-started": "Continue to IDE",
             "welcome-title": "What do you want to do?",
             "welcome-text": "Choose what you want to do.",
@@ -180,7 +181,7 @@
             "task-virtual": "Try the virtual badge",
             "task-virtual-detail": "Explore MicroPythonOS without hardware.",
             "task-build": "Build my first app",
-            "task-build-detail": "Create, edit, save, and run a starter app.",
+            "task-build-detail": "Create an app with a step-by-step coding guide beside the editor.",
             "task-badgehub": "Install an app from BadgeHub",
             "task-badgehub-detail": "Browse and install a compatible badge app.",
             "target-build-title": "Where should the app run?",
@@ -194,9 +195,13 @@
             "connecting-virtual": "Starting the virtual badge…",
             "connecting-wait": "Complete any browser permission prompt to continue.",
             "create-first-title": "Create your starter app",
-            "create-first-text": "Select Create New App, keep the Hello World template, give it an ID, and create it.",
-            "badgehub-title": "Choose an app",
-            "badgehub-text": "Open BadgeHub, choose a compatible app, and install it on the badge.",
+            "create-first-text": "Click Create New App. The guide continues as soon as the dialog opens.",
+            "configure-app-title": "Set up your starter app",
+            "configure-app-text": "Keep Hello World selected, enter an App ID and display name, then click Create. The coding guide opens automatically.",
+            "badgehub-title": "Open BadgeHub",
+            "badgehub-text": "Click Browse BadgeHub. The guide continues as soon as the store opens.",
+            "browse-badgehub-title": "Choose and install an app",
+            "browse-badgehub-text": "Search or browse for an app, then click Install. The tour continues after installation.",
             "success-connect-title": "Badge connected!",
             "success-connect": "Your physical badge is ready for files, apps, and the terminal.",
             "success-virtual-title": "Virtual badge running!",
@@ -251,6 +256,75 @@
             "close": "Close",
             "confirm-close-dirty": "Close {{fn}} and discard unsaved changes?",
             "new-file": "New file"
+        },
+        "first-app-guide": {
+            "title": "Build your first app",
+            "open": "Open first app guide",
+            "guide": "Guide",
+            "close": "Close guide",
+            "progress": "Guide progress",
+            "step": "Step {{current}} of {{total}}",
+            "goal": "Goal:",
+            "docs-title": "Learn more",
+            "docs": {
+                "creating-apps": "Creating MicroPythonOS apps",
+                "app-lifecycle": "MicroPythonOS app lifecycle",
+                "labels": "LVGL labels",
+                "buttons": "LVGL buttons",
+                "events": "LVGL events",
+                "bars": "LVGL bars"
+            },
+            "virtual-controls": {
+                "title": "Keep the virtual badge out of your way",
+                "move": "Move it by dragging the purple handle.",
+                "popout": "Click ⧉ to open it in a separate window.",
+                "minimize": "Click ▾ to minimize it to the handle. Running a checkpoint restores it automatically."
+            },
+            "code-to-add": "Code to add",
+            "copy": "Copy",
+            "copied": "Copied",
+            "checking": "Checking and launching…",
+            "check-launch": "Check, save & launch",
+            "check-success": "Code looks good. App was saved and launched—check it on your badge.",
+            "back": "Previous",
+            "next": "Next feature",
+            "finish": "Finish",
+            "steps": {
+                "start": {
+                    "title": "Run the starter app",
+                    "instruction": "Your new main.py is open in the editor on the right. Start by checking the untouched app and seeing it run.",
+                    "goal": "A centered Hello World message appears on the badge."
+                },
+                "greeting": {
+                    "title": "Make the greeting yours",
+                    "instruction": "Change the text inside label.set_text. Replace label.center() with the alignment line below so there is room for more controls.",
+                    "goal": "Your own message appears near the top of the screen."
+                },
+                "button": {
+                    "title": "Add a button",
+                    "instruction": "Add this code below the label code and above self.setContentView(screen). Indentation must match the other lines in onCreate.",
+                    "goal": "A Tap me button appears below your greeting."
+                },
+                "counter": {
+                    "title": "Make the button work",
+                    "instruction": "Add state and a click handler below the button code. Each tap will update the greeting label.",
+                    "goal": "Tapping the button increases the number on screen."
+                },
+                "progress": {
+                    "title": "Add one more widget",
+                    "instruction": "Add a progress bar below the counter code. This introduces another LVGL widget and its value API.",
+                    "goal": "Your app shows a button, tap counter, and 70% progress bar."
+                }
+            },
+            "errors": {
+                "wrong-file": "Open main.py from the app you created before checking this step.",
+                "starter-missing": "Starter label is missing. Restore the Hello World template code first.",
+                "greeting-unchanged": "Change the greeting and move the label upward with label.align(...).",
+                "button-missing": "No complete button found yet. Add both lv.button and its label.",
+                "counter-missing": "Connect the button click to a counter using add_event_cb.",
+                "progress-missing": "Add an lv.bar progress widget and set its value.",
+                "save-failed": "Code passed the check, but saving failed. Check the connection and try again."
+            }
         },
         "app": {
             "scaffold-btn": "Create new app scaffold",

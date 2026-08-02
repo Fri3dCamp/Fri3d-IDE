@@ -6,6 +6,7 @@ describe('app templates', () => {
         expect(APP_TEMPLATES).toHaveLength(9)
         for (const template of APP_TEMPLATES) {
             expect(template.source).toContain('class Main(Activity):')
+            expect(template.source).not.toContain('lv.ANIM')
             expect(template.source).toContain('self.setContentView(screen)')
         }
     })

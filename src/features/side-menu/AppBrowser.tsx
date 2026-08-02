@@ -4,6 +4,7 @@ import { ImagePlus, PackagePlus, RotateCcw } from 'lucide-react'
 import { createApp, validateAppFullname } from '../../services/apps.service'
 import { APP_TEMPLATES, type AppTemplate } from '../../app-templates'
 import { useOpenDialog, useConfirm, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
+import { cancelGuidedCreateApp, useOnboardingStore } from '../../stores/onboarding'
 
 /* ------------------------------------------------------------------ */
 /* Create-app dialog                                                   */
@@ -118,6 +119,7 @@ const inputClass =
 function CreateAppDialog({ close }: { close: (created: boolean | null) => void }) {
     const { t } = useTranslation()
     const confirm = useConfirm()
+    const guidedCreateApp = useOnboardingStore((state) => state.guidedCreateApp)
 
     const [fullname, setFullname] = useState('')
     const [name, setName] = useState('My App')
@@ -133,12 +135,18 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
 
     const [error, setError] = useState('')
     const iconInputRef = useRef<HTMLInputElement>(null)
+    const submittedRef = useRef(false)
 
     useEffect(() => {
         const bg = ICON_BACKGROUNDS.find((x) => x.id === iconBgId) ?? ICON_BACKGROUNDS[0]
         const icon = makeDefaultIcon(name, bg)
         setIconDataUrl(icon.dataUrl)
         setIconPng(icon.bytes)
+        return () => {
+            if (!submittedRef.current && useOnboardingStore.getState().guidedCreateApp) {
+                cancelGuidedCreateApp()
+            }
+        }
     }, [])
 
     useEffect(() => {
@@ -174,6 +182,8 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
         }
 
         setError('')
+        const wasGuided = guidedCreateApp
+        submittedRef.current = true
         close(true)
         void createApp(
             {
@@ -186,17 +196,36 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
                 iconPng,
             },
             confirm,
-        )
+        ).then((created) => {
+            if (wasGuided && !created) cancelGuidedCreateApp()
+        })
     }
 
     return (
         <form
+            data-tour-id="tour-create-app-dialog"
             method="dialog"
             onSubmit={(e) => {
                 e.preventDefault()
                 void submit()
             }}
         >
+            {guidedCreateApp ? (
+                <div className="mb-4 border-2 border-black bg-accent p-3 text-sm shadow-brutal">
+                    <div className="text-xs font-bold uppercase opacity-70">
+                        {t('onboarding.step', 'Step {{current}} of {{total}}', { current: 3, total: 3 })}
+                    </div>
+                    <div className="font-heading text-lg font-black">
+                        {t('onboarding.configure-app-title', 'Set up your starter app')}
+                    </div>
+                    <p className="mt-1 leading-relaxed">
+                        {t(
+                            'onboarding.configure-app-text',
+                            'Keep Hello World selected, enter an App ID and display name, then click Create. The coding guide opens automatically.',
+                        )}
+                    </p>
+                </div>
+            ) : null}
             <div className="mb-3 flex items-center gap-2 font-heading text-lg font-bold">
                 <PackagePlus size={18} aria-hidden />
                 {t('apps.create-title', 'Create New App')}
@@ -331,7 +360,13 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
             {error && <div className="mt-2 text-sm text-icon-error" role="alert">{error}</div>}
 
             <DialogActions>
-                <SecondaryButton type="button" onClick={() => close(null)}>
+                <SecondaryButton
+                    type="button"
+                    onClick={() => {
+                        if (guidedCreateApp) cancelGuidedCreateApp()
+                        close(null)
+                    }}
+                >
                     {t('app.dialog.btn-cancel', 'Cancel')}
                 </SecondaryButton>
                 <CtaButton type="submit">{t('apps.create', 'Create')}</CtaButton>

@@ -41,6 +41,7 @@ interface MposWindow extends Window {
  *  well-known name is enough — an IDE refresh just reopens the same channel
  *  and pings it to find a surviving badge window. */
 const POPOUT_CHANNEL = 'fri3d-ide-vbadge'
+const SHOW_BADGE_EVENT = 'fri3d:vbadge:show'
 
 /** IDBFS mountpoints double as IndexedDB database names (Emscripten IDBFS). */
 const VBADGE_IDB_NAMES = ['/data', '/apps']
@@ -297,8 +298,8 @@ export class VirtualBadgeTransport extends Transport {
         })
         barRow.appendChild(popout)
         let badgeHidden = false
-        toggle.addEventListener('click', () => {
-            badgeHidden = !badgeHidden
+        const setBadgeHidden = (hidden: boolean) => {
+            badgeHidden = hidden
             // Animate collapse/expand: iframe keeps rendering (VM stays
             // alive), wrapper height+opacity transition does the motion.
             iframeWrap.style.maxHeight = badgeHidden ? '0px' : `${iframe.offsetHeight}px`
@@ -306,7 +307,9 @@ export class VirtualBadgeTransport extends Transport {
             toggle.textContent = badgeHidden ? '▴' : '▾'
             toggle.title = badgeHidden ? 'Show badge' : 'Hide badge'
             toggle.setAttribute('aria-label', toggle.title)
-        })
+        }
+        toggle.addEventListener('click', () => setBadgeHidden(!badgeHidden))
+        container.addEventListener(SHOW_BADGE_EVENT, () => setBadgeHidden(false))
         barRow.appendChild(toggle)
         container.appendChild(barRow)
 
@@ -348,6 +351,7 @@ export class VirtualBadgeTransport extends Transport {
         const iframeWrap = document.createElement('div')
         Object.assign(iframeWrap.style, {
             overflow: 'hidden',
+            background: '#141418',
             maxHeight: '2000px',
             opacity: '1',
             transition: 'max-height .25s ease, opacity .2s ease',
@@ -364,8 +368,9 @@ export class VirtualBadgeTransport extends Transport {
             height: '369px',
             border: 'none',
             display: 'block',
-            background: 'transparent',
-            colorScheme: 'normal',
+            // Paint iframe itself before its document loads; avoids white flash.
+            background: '#141418',
+            colorScheme: 'dark',
         } as Partial<CSSStyleDeclaration>)
         iframeWrap.appendChild(iframe)
         container.appendChild(iframeWrap)
@@ -397,6 +402,19 @@ export class VirtualBadgeTransport extends Transport {
                 once: true,
             })
         })
+    }
+
+    /** Expand inline badge when minimized, or focus its pop-out window. */
+    showBadge(): void {
+        if (this.container) {
+            this.container.dispatchEvent(new Event(SHOW_BADGE_EVENT))
+            return
+        }
+        try {
+            this.popWindow?.focus()
+        } catch {
+            /* Browser can refuse focus without a user gesture. */
+        }
     }
 
     async connect(): Promise<void> {

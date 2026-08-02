@@ -11,6 +11,6 @@ class Main(Activity):
 
         progress = lv.bar(screen)
         progress.set_width(220)
-        progress.set_value(70, lv.ANIM.OFF)
+        progress.set_value(70, False)
         progress.align(lv.ALIGN.CENTER, 0, 15)
         self.setContentView(screen)

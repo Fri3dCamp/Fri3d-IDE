@@ -20,6 +20,6 @@ class Main(Activity):
         brightness.align(lv.ALIGN.TOP_LEFT, 35, 145)
         slider = lv.slider(screen)
         slider.set_width(140)
-        slider.set_value(60, lv.ANIM.OFF)
+        slider.set_value(60, False)
         slider.align(lv.ALIGN.TOP_RIGHT, -35, 140)
         self.setContentView(screen)

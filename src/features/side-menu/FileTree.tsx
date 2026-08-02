@@ -14,6 +14,7 @@ import {
     Link,
     Loader2,
     MonitorSmartphone,
+    PackagePlus,
     Pencil,
     Plus,
     X,
@@ -35,6 +36,7 @@ import {
     type TransportType,
 } from '../../stores/connection'
 import { useConfirm, usePrompt, useCreateItemDialog } from '../../components/dialogs'
+import { startFirstAppOnboarding } from '../onboarding/GuidedTour'
 
 const CERT_EXT = ['.CRT', '.PEM', '.DER', '.CER', '.PFX', '.P12']
 
@@ -258,6 +260,15 @@ export function ConnectDeviceButton() {
             <button type="button" disabled={connecting} onClick={() => connect('vm')} className={secondaryClass}>
                 <MonitorSmartphone size={15} aria-hidden />
                 {t('tool.conn.vm', 'Connect to virtual badge')}
+            </button>
+            <button
+                type="button"
+                disabled={connecting}
+                onClick={startFirstAppOnboarding}
+                className="flex w-full items-center justify-center gap-2 border-2 border-black bg-tab-active px-3 py-2 text-sm font-semibold text-tab-active-fg shadow-brutal transition-transform hover:brightness-110 active:translate-x-1 active:translate-y-1 active:shadow-none disabled:opacity-60"
+            >
+                <PackagePlus size={16} aria-hidden />
+                {t('onboarding.task-build', 'Build my first app')}
             </button>
             {advancedMode && (
                 <>

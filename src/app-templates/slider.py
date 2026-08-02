@@ -11,7 +11,7 @@ class Main(Activity):
 
         slider = lv.slider(screen)
         slider.set_width(200)
-        slider.set_value(50, lv.ANIM.OFF)
+        slider.set_value(50, False)
         slider.align(lv.ALIGN.CENTER, 0, 15)
 
         def value_changed(event):

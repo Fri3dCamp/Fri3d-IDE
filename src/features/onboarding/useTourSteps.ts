@@ -8,6 +8,10 @@ export interface TourStep {
     text: string
     selectors?: string[]
     menuTab?: SideMenuTab
+    /** Advance only after user clicks highlighted control. */
+    advanceOnClick?: boolean
+    /** Hide generic Next button while UI action completes this step. */
+    waitForAction?: boolean
 }
 
 type Translate = (key: string, fallback: string) => string
@@ -23,16 +27,6 @@ export function createTourSteps(task: OnboardingTask | null, t: Translate): Tour
             selectors: ['[data-tour-id="tour-connection"]'],
             menuTab: 'apps',
         }
-        const saveRun: TourStep = {
-            key: 'save-run',
-            title: t('onboarding.steps.save-run.title', 'Save & Run'),
-            text: t(
-                'onboarding.steps.save-run.text',
-                'Change the open Python file, then use Save & Run to store and execute it.',
-            ),
-            selectors: ['[data-tour-id="tour-save-run"]'],
-        }
-
         if (task === 'connect') {
             return [
                 connection,
@@ -51,16 +45,22 @@ export function createTourSteps(task: OnboardingTask | null, t: Translate): Tour
                     title: t('onboarding.create-first-title', 'Create your starter app'),
                     text: t(
                         'onboarding.create-first-text',
-                        'Select Create New App, keep the Hello World template, give it an ID, and create it.',
+                        'Click Create New App. The guide continues as soon as the dialog opens.',
                     ),
                     selectors: ['[data-tour-id="tour-create-app"]'],
                     menuTab: 'apps',
+                    advanceOnClick: true,
+                    waitForAction: true,
                 },
-                saveRun,
                 {
-                    key: 'done',
-                    title: t('onboarding.success-build-title', 'Your first app is ready!'),
-                    text: t('onboarding.success-build', 'You created an app and opened its code. Keep experimenting, then launch it from Apps.'),
+                    key: 'configure-app',
+                    title: t('onboarding.configure-app-title', 'Set up your starter app'),
+                    text: t(
+                        'onboarding.configure-app-text',
+                        'Keep Hello World selected, enter an App ID and display name, then click Create. The coding guide opens automatically.',
+                    ),
+                    selectors: ['[data-tour-id="tour-create-app-dialog"]'],
+                    waitForAction: true,
                 },
             ]
         }
@@ -69,13 +69,25 @@ export function createTourSteps(task: OnboardingTask | null, t: Translate): Tour
                 connection,
                 {
                     key: 'badgehub',
-                    title: t('onboarding.badgehub-title', 'Choose an app'),
+                    title: t('onboarding.badgehub-title', 'Open BadgeHub'),
                     text: t(
                         'onboarding.badgehub-text',
-                        'Open BadgeHub, choose a compatible app, and install it on the badge.',
+                        'Click Browse BadgeHub. The guide continues as soon as the store opens.',
                     ),
                     selectors: ['[data-tour-id="tour-badgehub"]'],
                     menuTab: 'apps',
+                    advanceOnClick: true,
+                    waitForAction: true,
+                },
+                {
+                    key: 'browse-badgehub',
+                    title: t('onboarding.browse-badgehub-title', 'Choose and install an app'),
+                    text: t(
+                        'onboarding.browse-badgehub-text',
+                        'Search or browse for an app, then click Install. The tour continues after installation.',
+                    ),
+                    selectors: ['[data-tour-id="tour-badgehub-dialog"]'],
+                    waitForAction: true,
                 },
                 {
                     key: 'done',

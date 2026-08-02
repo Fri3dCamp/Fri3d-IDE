@@ -9,6 +9,7 @@ import { openFileContent } from './files.service'
 import type { MpRawMode } from '../domain/rawmode'
 import { renderAppTemplate, type AppTemplate } from '../app-templates'
 import { buildMpkArchive } from '../domain/mpk'
+import { VirtualBadgeTransport } from '../domain/virtualBadge'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
     i18next.t(key, fallback, opts) as string
@@ -116,6 +117,7 @@ export async function launchApp(fullname: string): Promise<void> {
     if (!port) return
     const store = useAppsStore.getState()
     if (store.launching) return
+    if (port instanceof VirtualBadgeTransport) port.showBadge()
     store.setLaunching(fullname)
     try {
         await withRawMode(async (raw) => {

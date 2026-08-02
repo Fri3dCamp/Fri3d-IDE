@@ -483,6 +483,7 @@ export async function runCurrentFile(): Promise<void> {
         return
     }
     if (!isConnectionReady(connection.status)) return
+    if (port instanceof VirtualBadgeTransport) port.showBadge()
 
     const tab = useEditorTabsStore.getState().activeTab()
     if (!tab) return

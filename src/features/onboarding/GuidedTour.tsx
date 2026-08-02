@@ -5,6 +5,16 @@ import { useConfirm, usePrompt } from '../../components/dialogs'
 import { connectDevice } from '../../services/device.service'
 import { useAppsStore } from '../../stores/apps'
 import { isConnectionReady, useConnectionStore } from '../../stores/connection'
+import { startFirstAppGuide } from '../../stores/firstAppGuide'
+import {
+    BADGEHUB_GUIDE_CANCELLED_EVENT,
+    BADGEHUB_GUIDE_INSTALLED_EVENT,
+    beginGuidedBadgeHub,
+    beginGuidedCreateApp,
+    CREATE_APP_GUIDE_CANCELLED_EVENT,
+    endGuidedBadgeHub,
+    endGuidedCreateApp,
+} from '../../stores/onboarding'
 import { useUiStore } from '../../stores/ui'
 import { OnboardingWelcome } from './OnboardingWelcome'
 import { OnboardingTargetChoice } from './OnboardingTargetChoice'
@@ -22,6 +32,12 @@ const TOUR_RESTART_EVENT = 'fri3d:onboarding:restart'
 export function restartOnboardingTour() {
     localStorage.removeItem(TOUR_STORAGE_KEY)
     window.dispatchEvent(new Event(TOUR_RESTART_EVENT))
+}
+
+/** Open first-app onboarding directly at real/virtual badge choice. */
+export function startFirstAppOnboarding() {
+    localStorage.removeItem(TOUR_STORAGE_KEY)
+    window.dispatchEvent(new CustomEvent(TOUR_RESTART_EVENT, { detail: { task: 'build' } }))
 }
 
 type TourMode = null | 'choose' | 'target' | 'connecting' | 'touring'
@@ -45,15 +61,49 @@ export function GuidedTour() {
 
     useEffect(() => {
         if (localStorage.getItem(TOUR_STORAGE_KEY) !== 'done') setMode('choose')
-        const restart = () => {
-            setTask(null)
+        const restart = (event: Event) => {
+            const requestedTask =
+                event instanceof CustomEvent && event.detail?.task === 'build' ? 'build' : null
+            endGuidedCreateApp()
+            endGuidedBadgeHub()
+            setTask(requestedTask)
             setTarget(null)
             setStep(0)
-            setMode('choose')
+            setMode(requestedTask === 'build' ? 'target' : 'choose')
         }
         window.addEventListener(TOUR_RESTART_EVENT, restart)
         return () => window.removeEventListener(TOUR_RESTART_EVENT, restart)
     }, [])
+
+    useEffect(() => {
+        const cancelled = () => {
+            if (task !== 'build') return
+            const createStep = steps.findIndex((candidate) => candidate.key === 'create-app')
+            if (createStep >= 0) setStep(createStep)
+        }
+        window.addEventListener(CREATE_APP_GUIDE_CANCELLED_EVENT, cancelled)
+        return () => window.removeEventListener(CREATE_APP_GUIDE_CANCELLED_EVENT, cancelled)
+    }, [steps, task])
+
+    useEffect(() => {
+        const cancelled = () => {
+            if (task !== 'badgehub') return
+            const browseStep = steps.findIndex((candidate) => candidate.key === 'badgehub')
+            if (browseStep >= 0) setStep(browseStep)
+        }
+        window.addEventListener(BADGEHUB_GUIDE_CANCELLED_EVENT, cancelled)
+        return () => window.removeEventListener(BADGEHUB_GUIDE_CANCELLED_EVENT, cancelled)
+    }, [steps, task])
+
+    useEffect(() => {
+        const installed = () => {
+            if (task !== 'badgehub') return
+            const doneStep = steps.findIndex((candidate) => candidate.key === 'done')
+            if (doneStep >= 0) setStep(doneStep)
+        }
+        window.addEventListener(BADGEHUB_GUIDE_INSTALLED_EVENT, installed)
+        return () => window.removeEventListener(BADGEHUB_GUIDE_INSTALLED_EVENT, installed)
+    }, [steps, task])
 
     useEffect(() => {
         if (mode !== 'connecting' || !isConnectionReady(status)) return
@@ -85,8 +135,25 @@ export function GuidedTour() {
 
     useEffect(() => {
         if (mode !== 'touring') return
+        const current = steps[step]
+        if (!current?.advanceOnClick) return
+
+        const selectors = current.selectors ?? []
+        const advance = (event: MouseEvent) => {
+            const target = event.target instanceof Element ? event.target : null
+            if (!target || !selectors.some((selector) => target.closest(selector))) return
+            if (current.key === 'create-app') beginGuidedCreateApp()
+            if (current.key === 'badgehub') beginGuidedBadgeHub()
+            setStep((currentStep) => Math.min(steps.length - 1, currentStep + 1))
+        }
+        document.addEventListener('click', advance)
+        return () => document.removeEventListener('click', advance)
+    }, [mode, step, steps])
+
+    useEffect(() => {
+        if (mode !== 'touring') return
         const key = steps[step]?.key
-        if (key !== 'create-app' && key !== 'badgehub') {
+        if (key !== 'configure-app') {
             appBaselineRef.current = null
             return
         }
@@ -95,13 +162,23 @@ export function GuidedTour() {
             appBaselineRef.current = new Set(apps.map((app) => app.fullname))
             return
         }
-        if (apps.some((app) => !appBaselineRef.current?.has(app.fullname))) {
+        const createdApp = apps.find((app) => !appBaselineRef.current?.has(app.fullname))
+        if (createdApp) {
             appBaselineRef.current = null
-            setStep((current) => Math.min(steps.length - 1, current + 1))
+            if (task === 'build' && key === 'configure-app') {
+                endGuidedCreateApp()
+                localStorage.setItem(TOUR_STORAGE_KEY, 'done')
+                setMode(null)
+                startFirstAppGuide(createdApp.fullname)
+            } else {
+                setStep((current) => Math.min(steps.length - 1, current + 1))
+            }
         }
-    }, [apps, mode, step, steps])
+    }, [apps, mode, step, steps, task])
 
     const finish = () => {
+        endGuidedCreateApp()
+        endGuidedBadgeHub()
         localStorage.setItem(TOUR_STORAGE_KEY, 'done')
         setMode(null)
     }
@@ -225,18 +302,24 @@ export function GuidedTour() {
                                 {t('onboarding.back', 'Back')}
                             </button>
                         ) : null}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (last) finish()
-                                else setStep((currentStep) => Math.min(steps.length - 1, currentStep + 1))
-                            }}
-                            className="border-2 border-black bg-tab-active px-3 py-1.5 text-sm font-semibold text-tab-active-fg"
-                        >
-                            {last
-                                ? t('onboarding.get-started', 'Continue to IDE')
-                                : t('onboarding.next', 'Next')}
-                        </button>
+                        {current.waitForAction ? (
+                            <span className="max-w-44 text-right text-xs font-semibold opacity-70">
+                                {t('onboarding.continue-on-action', 'Complete the highlighted action to continue')}
+                            </span>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (last) finish()
+                                    else setStep((currentStep) => Math.min(steps.length - 1, currentStep + 1))
+                                }}
+                                className="border-2 border-black bg-tab-active px-3 py-1.5 text-sm font-semibold text-tab-active-fg"
+                            >
+                                {last
+                                    ? t('onboarding.get-started', 'Continue to IDE')
+                                    : t('onboarding.next', 'Next')}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

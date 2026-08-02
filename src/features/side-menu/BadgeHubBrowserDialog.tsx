@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Download, Loader2, RefreshCw, Search, Star, Store, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
@@ -15,6 +15,11 @@ import { useOpenDialog, useConfirm, DialogActions, SecondaryButton } from '../..
 import { ExternalLink } from 'lucide-react'
 import { useBadgeHubStore } from '../../stores/badgehub'
 import { initAuth, login } from '../../services/badgehub/auth'
+import {
+    cancelGuidedBadgeHub,
+    completeGuidedBadgeHubInstall,
+    useOnboardingStore,
+} from '../../stores/onboarding'
 
 const inputClass =
     'w-full border-2 border-black bg-edit px-2 py-1 text-sm text-fg outline-none focus:border-accent'
@@ -213,6 +218,8 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
 
     const { t } = useTranslation()
     const confirm = useConfirm()
+    const guidedBadgeHub = useOnboardingStore((state) => state.guidedBadgeHub)
+    const completedRef = useRef(false)
     const [apps, setApps] = useState<StoreApp[] | null>(null)
     const [categories, setCategories] = useState<string[]>([])
     const [category, setCategory] = useState('')
@@ -225,6 +232,12 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
     const authenticated = useBadgeHubStore((s) => s.authenticated)
     const [tab, setTab] = useState<'store' | 'my-apps'>(initialTab)
     const [myApps, setMyApps] = useState<ProjectSummary[] | null>(null)
+
+    useEffect(() => () => {
+        if (!completedRef.current && useOnboardingStore.getState().guidedBadgeHub) {
+            cancelGuidedBadgeHub()
+        }
+    }, [])
 
     useEffect(() => {
         if (tab === 'my-apps' && userId) {
@@ -279,7 +292,12 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
     const install = async (app: StoreApp) => {
         setInstallingSlug(app.slug)
         try {
-            await installFromBadgeHub(app, confirm)
+            const installed = await installFromBadgeHub(app, confirm)
+            if (installed && guidedBadgeHub) {
+                completedRef.current = true
+                completeGuidedBadgeHubInstall()
+                close(null)
+            }
         } catch (err) {
             toast.error(t('badgehub.install-failed', 'Install failed'), { description: String(err) })
         } finally {
@@ -288,7 +306,23 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
     }
 
     return (
-        <div>
+        <div data-tour-id="tour-badgehub-dialog">
+            {guidedBadgeHub ? (
+                <div className="mb-4 border-2 border-black bg-accent p-3 text-sm shadow-brutal">
+                    <div className="text-xs font-bold uppercase opacity-70">
+                        {t('onboarding.step', 'Step {{current}} of {{total}}', { current: 3, total: 4 })}
+                    </div>
+                    <div className="font-heading text-lg font-black">
+                        {t('onboarding.browse-badgehub-title', 'Choose and install an app')}
+                    </div>
+                    <p className="mt-1 leading-relaxed">
+                        {t(
+                            'onboarding.browse-badgehub-text',
+                            'Search or browse for an app, then click Install. The tour continues after installation.',
+                        )}
+                    </p>
+                </div>
+            ) : null}
             <div className="mb-3 flex items-center gap-2 font-heading text-lg font-bold">
                 <Store size={18} aria-hidden />
                 {t('badgehub.browse-title', 'BadgeHub App Store')}
@@ -467,7 +501,13 @@ function BadgeHubBrowserDialog({ close, initialTab = 'store' }: { close: (r: nul
             )}
 
             <DialogActions>
-                <SecondaryButton type="button" onClick={() => close(null)}>
+                <SecondaryButton
+                    type="button"
+                    onClick={() => {
+                        if (guidedBadgeHub) cancelGuidedBadgeHub()
+                        close(null)
+                    }}
+                >
                     {t('app.dialog.btn-close', 'Close')}
                 </SecondaryButton>
             </DialogActions>

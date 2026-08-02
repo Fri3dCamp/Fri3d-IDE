@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+    BookOpen,
     Camera,
     CirclePlay,
     CircleStop,
@@ -22,6 +23,7 @@ import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useAppsStore, appIdForPath } from '../../stores/apps'
 import { Rocket } from 'lucide-react'
 import { useConfirm, usePrompt } from '../../components/dialogs'
+import { startFirstAppGuide } from '../../stores/firstAppGuide'
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>
@@ -114,18 +116,28 @@ function LaunchAppButton() {
     const connected = useConnectionStore((s) => isConnectionReady(s.status))
 
     const targetAppId = selectedAppId ?? activeAppId
-    if (!targetAppId || !connected) return null
+    if (!targetAppId) return null
 
     return (
-        <span data-tour-id="tour-launch-toolbar" className="inline-flex">
+        <span className="inline-flex gap-2">
+            <span data-tour-id="tour-launch-toolbar" className="inline-flex">
+                <ToolbarButton
+                    title={t('apps.launch', 'Launch {{app}}', { app: targetAppId })}
+                    label={t('apps.launch-app', 'Launch app')}
+                    disabled={!connected}
+                    onClick={() => {
+                        if (!launching) void launchApp(targetAppId)
+                    }}
+                >
+                    <Rocket size={18} aria-hidden className={launching ? 'opacity-40' : 'text-icon-success'} />
+                </ToolbarButton>
+            </span>
             <ToolbarButton
-                title={t('apps.launch', 'Launch {{app}}', { app: targetAppId })}
-                label={t('apps.launch-app', 'Launch app')}
-                onClick={() => {
-                    if (!launching) void launchApp(targetAppId)
-                }}
+                title={t('first-app-guide.open', 'Open first app guide')}
+                label={t('first-app-guide.guide', 'Guide')}
+                onClick={() => startFirstAppGuide(targetAppId)}
             >
-                <Rocket size={18} aria-hidden className={launching ? 'opacity-40' : 'text-icon-success'} />
+                <BookOpen size={18} aria-hidden />
             </ToolbarButton>
         </span>
     )

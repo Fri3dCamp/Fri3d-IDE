@@ -7,6 +7,7 @@ import { EditorTabsBar } from './features/editor/EditorTabsBar'
 import { EditorPanes } from './features/editor/EditorPanes'
 import { TerminalDock } from './features/terminal/TerminalDock'
 import { GuidedTour } from './features/onboarding/GuidedTour'
+import { FirstAppGuide } from './features/first-app-guide/FirstAppGuide'
 import { useEditorTabsStore, createUntitledTab } from './stores/editorTabs'
 import { useSettingsStore } from './stores/settings'
 import { saveCurrentFile, runCurrentFile, reboot } from './services/device.service'
@@ -74,8 +75,11 @@ function Shell() {
                 <SideMenuResizer />
                 <main className="flex min-w-0 flex-1 flex-col">
                     <EditorTabsBar />
-                    <div data-tour-id="tour-editor" className="flex min-h-0 flex-1 flex-col">
-                        <EditorPanes />
+                    <div data-tour-id="tour-editor" className="flex min-h-0 flex-1 max-lg:flex-col">
+                        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                            <EditorPanes />
+                        </div>
+                        <FirstAppGuide />
                     </div>
                     <TerminalDock />
                 </main>

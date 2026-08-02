@@ -171,6 +171,75 @@
             "confirm-close-dirty": "{{fn}} sluiten en niet-opgeslagen wijzigingen verwijderen?",
             "new-file": "Nieuw bestand"
         },
+        "first-app-guide": {
+            "title": "Bouw je eerste app",
+            "open": "Open de gids voor je eerste app",
+            "guide": "Gids",
+            "close": "Gids sluiten",
+            "progress": "Voortgang van de gids",
+            "step": "Stap {{current}} van {{total}}",
+            "goal": "Doel:",
+            "docs-title": "Meer informatie",
+            "docs": {
+                "creating-apps": "MicroPythonOS-apps maken",
+                "app-lifecycle": "Levenscyclus van een MicroPythonOS-app",
+                "labels": "LVGL-labels",
+                "buttons": "LVGL-knoppen",
+                "events": "LVGL-events",
+                "bars": "LVGL-voortgangsbalken"
+            },
+            "virtual-controls": {
+                "title": "Zet de virtuele badge uit de weg",
+                "move": "Verplaats hem door de paarse handgreep te verslepen.",
+                "popout": "Klik op ⧉ om hem in een apart venster te openen.",
+                "minimize": "Klik op ▾ om hem tot de handgreep te minimaliseren. Bij het uitvoeren van een controlepunt wordt hij automatisch hersteld."
+            },
+            "code-to-add": "Code om toe te voegen",
+            "copy": "Kopiëren",
+            "copied": "Gekopieerd",
+            "checking": "Controleren en starten…",
+            "check-launch": "Controleer, bewaar en start",
+            "check-success": "De code ziet er goed uit. De app is bewaard en gestart—bekijk hem op je badge.",
+            "back": "Vorige",
+            "next": "Volgende functie",
+            "finish": "Afronden",
+            "steps": {
+                "start": {
+                    "title": "Start de basisapp",
+                    "instruction": "Je nieuwe main.py staat rechts in de editor. Controleer eerst de ongewijzigde app en bekijk hoe hij draait.",
+                    "goal": "Een gecentreerde Hello World-boodschap verschijnt op de badge."
+                },
+                "greeting": {
+                    "title": "Maak je eigen begroeting",
+                    "instruction": "Wijzig de tekst in label.set_text. Vervang label.center() door de uitlijnregel hieronder, zodat er ruimte komt voor meer bedieningselementen.",
+                    "goal": "Je eigen boodschap verschijnt bovenaan het scherm."
+                },
+                "button": {
+                    "title": "Voeg een knop toe",
+                    "instruction": "Voeg deze code onder de labelcode en boven self.setContentView(screen) toe. De inspringing moet overeenkomen met de andere regels in onCreate.",
+                    "goal": "Onder je begroeting verschijnt een knop met Tap me."
+                },
+                "counter": {
+                    "title": "Laat de knop werken",
+                    "instruction": "Voeg status en een klikfunctie toe onder de knopcode. Elke tik werkt de tekst van het label bij.",
+                    "goal": "Elke tik op de knop verhoogt het getal op het scherm."
+                },
+                "progress": {
+                    "title": "Voeg nog een widget toe",
+                    "instruction": "Voeg onder de tellercode een voortgangsbalk toe. Zo leer je nog een LVGL-widget en zijn waarde-API kennen.",
+                    "goal": "Je app toont een knop, een tikkenteller en een voortgangsbalk op 70%."
+                }
+            },
+            "errors": {
+                "wrong-file": "Open main.py van de app die je hebt gemaakt voordat je deze stap controleert.",
+                "starter-missing": "Het basislabel ontbreekt. Herstel eerst de code van het Hello World-sjabloon.",
+                "greeting-unchanged": "Wijzig de begroeting en verplaats het label omhoog met label.align(...).",
+                "button-missing": "Er is nog geen volledige knop gevonden. Voeg zowel lv.button als het bijbehorende label toe.",
+                "counter-missing": "Koppel de klik op de knop aan een teller met add_event_cb.",
+                "progress-missing": "Voeg een lv.bar-voortgangswidget toe en stel de waarde in.",
+                "save-failed": "De code is goedgekeurd, maar bewaren is mislukt. Controleer de verbinding en probeer opnieuw."
+            }
+        },
         "app": {
             "scaffold-btn": "Nieuwe app-sjabloon maken",
             "connect-first": "Verbind eerst je board",
@@ -257,6 +326,7 @@
             "skip-to-editor": "Naar editor",
             "back": "Terug",
             "next": "Volgende",
+            "continue-on-action": "Voer de gemarkeerde actie uit om verder te gaan",
             "get-started": "Doorgaan naar IDE",
             "welcome-title": "Wat wil je doen?",
             "welcome-text": "Kies wat je wilt doen.",
@@ -267,7 +337,7 @@
             "task-virtual": "De virtuele badge proberen",
             "task-virtual-detail": "Verken MicroPythonOS zonder hardware.",
             "task-build": "Mijn eerste app bouwen",
-            "task-build-detail": "Maak, bewerk, bewaar en start een eenvoudige app.",
+            "task-build-detail": "Maak een app met een stapsgewijze programmeergids naast de editor.",
             "task-badgehub": "Een app van BadgeHub installeren",
             "task-badgehub-detail": "Zoek en installeer een geschikte badge-app.",
             "target-build-title": "Waar moet de app draaien?",
@@ -281,9 +351,13 @@
             "connecting-virtual": "De virtuele badge starten…",
             "connecting-wait": "Voltooi de toestemmingsvraag van de browser om door te gaan.",
             "create-first-title": "Maak je eerste app",
-            "create-first-text": "Kies Nieuwe app maken, behoud het Hello World-sjabloon, geef de app een ID en maak hem aan.",
-            "badgehub-title": "Kies een app",
-            "badgehub-text": "Open BadgeHub, kies een geschikte app en installeer hem op de badge.",
+            "create-first-text": "Klik op Nieuwe app maken. De gids gaat verder zodra het venster opent.",
+            "configure-app-title": "Stel je basisapp in",
+            "configure-app-text": "Behoud het Hello World-sjabloon, vul een app-ID en weergavenaam in en klik op Maken. Daarna opent de programmeergids automatisch.",
+            "badgehub-title": "Open BadgeHub",
+            "badgehub-text": "Klik op BadgeHub bekijken. De gids gaat verder zodra de winkel opent.",
+            "browse-badgehub-title": "Kies en installeer een app",
+            "browse-badgehub-text": "Zoek of blader naar een app en klik daarna op Installeren. De tour gaat verder na de installatie.",
             "success-connect-title": "Badge verbonden!",
             "success-connect": "Je fysieke badge is klaar voor bestanden, apps en de terminal.",
             "success-virtual-title": "Virtuele badge gestart!",
