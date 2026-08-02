@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImagePlus, PackagePlus, RotateCcw } from 'lucide-react'
-import { createApp, validateAppFullname, type AppTemplate } from '../../services/apps.service'
+import { createApp, validateAppFullname } from '../../services/apps.service'
+import { APP_TEMPLATES, type AppTemplate } from '../../app-templates'
 import { useOpenDialog, useConfirm, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
 
 /* ------------------------------------------------------------------ */
@@ -258,15 +259,11 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
                     value={template}
                     onChange={(e) => setTemplate(e.target.value as AppTemplate)}
                 >
-                    <option value="hello">{t('apps.template-hello', 'Hello World')}</option>
-                    <option value="button">{t('apps.template-button', 'Button')}</option>
-                    <option value="counter">{t('apps.template-counter', 'Counter')}</option>
-                    <option value="slider">{t('apps.template-slider', 'Slider')}</option>
-                    <option value="switch">{t('apps.template-switch', 'Switch')}</option>
-                    <option value="text-input">{t('apps.template-text-input', 'Text input')}</option>
-                    <option value="progress">{t('apps.template-progress', 'Progress bar')}</option>
-                    <option value="settings">{t('apps.template-settings', 'Settings demo')}</option>
-                    <option value="blank">{t('apps.template-blank', 'Blank')}</option>
+                    {APP_TEMPLATES.map((definition) => (
+                        <option key={definition.id} value={definition.id}>
+                            {t(definition.labelKey, definition.defaultLabel)}
+                        </option>
+                    ))}
                 </select>
 
                 <span className="text-sm">{t('apps.field-icon', 'Icon')}</span>

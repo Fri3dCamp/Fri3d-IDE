@@ -7,6 +7,7 @@ import { withLoader } from '../stores/ui'
 import { withRawMode, refreshTreeVia } from './device.service'
 import { openFileContent } from './files.service'
 import type { MpRawMode } from '../domain/rawmode'
+import { renderAppTemplate, type AppTemplate } from '../app-templates'
 import { buildMpkArchive } from '../domain/mpk'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
@@ -734,17 +735,6 @@ AppManager.restart_launcher()
 /* Create app scaffold                                                 */
 /* ------------------------------------------------------------------ */
 
-export type AppTemplate =
-    | 'hello'
-    | 'button'
-    | 'counter'
-    | 'slider'
-    | 'switch'
-    | 'text-input'
-    | 'progress'
-    | 'settings'
-    | 'blank'
-
 export interface NewAppInput {
     fullname: string
     name: string
@@ -766,112 +756,6 @@ export function validateAppFullname(fullname: string): string {
             t('apps.validate-chars', 'App ID may only contain letters, numbers, dots, dashes and underscores'),
         )
     return value
-}
-
-function mainPyFor(appName: string, template: AppTemplate): string {
-    const examples: Record<AppTemplate, string> = {
-        hello: `        label = lv.label(screen)
-        label.set_text("Hello from ${appName}!")
-        label.center()`,
-        button: `        button = lv.button(screen)
-        button.center()
-        label = lv.label(button)
-        label.set_text("Click me")
-        label.center()
-
-        def on_click(event):
-            label.set_text("Clicked!")
-
-        button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`,
-        counter: `        self.count = 0
-        value = lv.label(screen)
-        value.set_text("Count: 0")
-        value.align(lv.ALIGN.CENTER, 0, -30)
-
-        button = lv.button(screen)
-        button.align(lv.ALIGN.CENTER, 0, 25)
-        caption = lv.label(button)
-        caption.set_text("Add one")
-
-        def increment(event):
-            self.count += 1
-            value.set_text("Count: {}".format(self.count))
-
-        button.add_event_cb(increment, lv.EVENT.CLICKED, None)`,
-        slider: `        value = lv.label(screen)
-        value.set_text("Value: 50")
-        value.align(lv.ALIGN.CENTER, 0, -35)
-
-        slider = lv.slider(screen)
-        slider.set_width(200)
-        slider.set_value(50, lv.ANIM.OFF)
-        slider.align(lv.ALIGN.CENTER, 0, 15)
-
-        def value_changed(event):
-            value.set_text("Value: {}".format(slider.get_value()))
-
-        slider.add_event_cb(value_changed, lv.EVENT.VALUE_CHANGED, None)`,
-        switch: `        title = lv.label(screen)
-        title.set_text("Feature is off")
-        title.align(lv.ALIGN.CENTER, 0, -35)
-
-        toggle = lv.switch(screen)
-        toggle.align(lv.ALIGN.CENTER, 0, 20)
-
-        def toggle_changed(event):
-            if toggle.has_state(lv.STATE.CHECKED):
-                title.set_text("Feature is on")
-            else:
-                title.set_text("Feature is off")
-
-        toggle.add_event_cb(toggle_changed, lv.EVENT.VALUE_CHANGED, None)`,
-        'text-input': `        prompt = lv.label(screen)
-        prompt.set_text("Enter your name")
-        prompt.align(lv.ALIGN.TOP_MID, 0, 45)
-
-        text = lv.textarea(screen)
-        text.set_one_line(True)
-        text.set_placeholder_text("Name")
-        text.set_width(220)
-        text.align(lv.ALIGN.TOP_MID, 0, 80)`,
-        progress: `        title = lv.label(screen)
-        title.set_text("Progress: 70%")
-        title.align(lv.ALIGN.CENTER, 0, -35)
-
-        progress = lv.bar(screen)
-        progress.set_width(220)
-        progress.set_value(70, lv.ANIM.OFF)
-        progress.align(lv.ALIGN.CENTER, 0, 15)`,
-        settings: `        title = lv.label(screen)
-        title.set_text("Settings")
-        title.align(lv.ALIGN.TOP_MID, 0, 30)
-
-        wifi_label = lv.label(screen)
-        wifi_label.set_text("Wi-Fi")
-        wifi_label.align(lv.ALIGN.TOP_LEFT, 35, 85)
-        wifi_toggle = lv.switch(screen)
-        wifi_toggle.align(lv.ALIGN.TOP_RIGHT, -35, 75)
-
-        brightness = lv.label(screen)
-        brightness.set_text("Brightness")
-        brightness.align(lv.ALIGN.TOP_LEFT, 35, 145)
-        slider = lv.slider(screen)
-        slider.set_width(140)
-        slider.set_value(60, lv.ANIM.OFF)
-        slider.align(lv.ALIGN.TOP_RIGHT, -35, 140)`,
-        blank: '',
-    }
-
-    const body = examples[template]
-    return `from mpos import Activity
-import lvgl as lv
-
-
-class Main(Activity):
-    def onCreate(self):
-        screen = lv.obj()
-${body ? `${body}\n` : ''}        self.setContentView(screen)
-`
 }
 
 export async function createApp(input: NewAppInput, confirmOverwrite: (msg: string) => Promise<boolean>): Promise<boolean> {
@@ -938,7 +822,7 @@ except:
 
                 loader.update({ message: t('apps.creating-main', 'Writing main.py…'), progress: 0.65 })
                 toast.loading(t('apps.creating-main', 'Writing main.py…'), { id: stageToastId })
-                await raw.writeFile(`${appRoot}/main.py`, mainPyFor(manifest.name, input.template))
+                await raw.writeFile(`${appRoot}/main.py`, renderAppTemplate(input.template, manifest.name))
 
                 loader.update({ message: t('apps.creating-icon', 'Writing icon…'), progress: 0.8 })
                 toast.loading(t('apps.creating-icon', 'Writing icon…'), { id: stageToastId })
