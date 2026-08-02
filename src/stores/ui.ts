@@ -22,6 +22,7 @@ interface UiStore {
     terminalTab: 'terminal' | 'display'
     displayTabVisible: boolean
     terminalHeight: number
+    terminalCollapsed: boolean
     loaders: Array<{ id: number; message: string; progress?: number }>
     isRunning: boolean
     offline: boolean
@@ -32,6 +33,8 @@ interface UiStore {
     setTerminalTab(tab: 'terminal' | 'display'): void
     setDisplayTabVisible(visible: boolean): void
     setTerminalHeight(px: number): void
+    setTerminalCollapsed(collapsed: boolean): void
+    toggleTerminalCollapsed(): void
     setRunning(running: boolean): void
     setOffline(offline: boolean): void
     showLoader(message: string): LoaderHandle
@@ -47,6 +50,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
     terminalTab: 'terminal',
     displayTabVisible: false,
     terminalHeight: 200,
+    terminalCollapsed: false,
     loaders: [],
     isRunning: false,
     offline: !navigator.onLine,
@@ -62,9 +66,11 @@ export const useUiStore = create<UiStore>((set, get) => ({
         if (isMobile()) set({ drawerOpen: false })
     },
 
-    setTerminalTab: (tab) => set({ terminalTab: tab }),
+    setTerminalTab: (tab) => set({ terminalTab: tab, terminalCollapsed: false }),
     setDisplayTabVisible: (visible) => set({ displayTabVisible: visible }),
     setTerminalHeight: (px) => set({ terminalHeight: Math.max(50, px) }),
+    setTerminalCollapsed: (terminalCollapsed) => set({ terminalCollapsed }),
+    toggleTerminalCollapsed: () => set((state) => ({ terminalCollapsed: !state.terminalCollapsed })),
     setRunning: (running) => set({ isRunning: running }),
     setOffline: (offline) => set((state) => (state.offline === offline ? state : { offline })),
 

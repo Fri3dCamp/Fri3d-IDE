@@ -516,6 +516,8 @@
         },
         "terminal": {
             "resize": "Resize terminal",
+            "collapse": "Collapse terminal",
+            "expand": "Expand terminal",
             "open-trace-line": "Open {{file}}:{{line}}"
         },
         "badgehub": {

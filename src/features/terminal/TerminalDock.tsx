@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Expand, Monitor, Power, RotateCcw, TerminalSquare, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Expand, Monitor, Power, RotateCcw, TerminalSquare, Trash2 } from 'lucide-react'
 import type { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
 import { useUiStore } from '../../stores/ui'
@@ -137,8 +137,8 @@ function useDockResize() {
     const setHeight = useUiStore((s) => s.setTerminalHeight)
 
     return (e: React.PointerEvent<HTMLDivElement>) => {
-        // Only resize when grabbing the bar itself, not its buttons.
-        if ((e.target as HTMLElement).closest('button')) return
+        // Only resize when grabbing the expanded bar itself, not its buttons.
+        if (useUiStore.getState().terminalCollapsed || (e.target as HTMLElement).closest('button')) return
         const startY = e.clientY
         const startHeight = useUiStore.getState().terminalHeight
         const el = e.currentTarget
@@ -157,6 +157,8 @@ function useDockResize() {
 export function TerminalDock() {
     const { t } = useTranslation()
     const height = useUiStore((s) => s.terminalHeight)
+    const collapsed = useUiStore((s) => s.terminalCollapsed)
+    const toggleCollapsed = useUiStore((s) => s.toggleTerminalCollapsed)
     const [traceback, setTraceback] = useState<ReturnType<typeof parseStackTrace>>()
     const activeTraceRef = useRef<HTMLButtonElement | null>(null)
     const terminalTab = useUiStore((s) => s.terminalTab)
@@ -184,10 +186,15 @@ export function TerminalDock() {
     const btnClass = 'p-1.5 opacity-70 hover:opacity-100'
 
     return (
-        <div ref={dockRef} style={{ height }} data-tour-id="tour-terminal" className="flex shrink-0 flex-col border-t-2 border-black">
+        <div
+            ref={dockRef}
+            style={{ height: collapsed ? 30 : height }}
+            data-tour-id="tour-terminal"
+            className="flex shrink-0 flex-col border-t-2 border-black"
+        >
             <div
                 onPointerDown={onPointerDown}
-                className="flex cursor-ns-resize touch-none items-center justify-between bg-menu"
+                className={`flex touch-none items-center justify-between bg-menu ${collapsed ? '' : 'cursor-ns-resize'}`}
                 role="separator"
                 aria-orientation="horizontal"
                 aria-label={t('terminal.resize', 'Resize terminal')}
@@ -256,9 +263,19 @@ export function TerminalDock() {
                     >
                         <Expand size={14} aria-hidden />
                     </button>
+                    <button
+                        type="button"
+                        className={btnClass}
+                        title={collapsed ? t('terminal.expand', 'Expand terminal') : t('terminal.collapse', 'Collapse terminal')}
+                        aria-label={collapsed ? t('terminal.expand', 'Expand terminal') : t('terminal.collapse', 'Collapse terminal')}
+                        aria-expanded={!collapsed}
+                        onClick={toggleCollapsed}
+                    >
+                        {collapsed ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
+                    </button>
                 </div>
             </div>
-            {traceback && terminalTab === 'terminal' && (
+            {!collapsed && traceback && terminalTab === 'terminal' && (
                 <div className="border-y border-black/20 bg-icon-warning/15 px-2 py-1 text-xs">
                     <div className="font-semibold">{traceback.type}: {traceback.message}</div>
                     <div className="mt-0.5 flex flex-wrap gap-1.5">
@@ -284,13 +301,13 @@ export function TerminalDock() {
                     </div>
                 </div>
             )}
-            <div className={`min-h-0 flex-1 ${terminalTab === 'terminal' ? '' : 'hidden'}`}>
+            <div className={`min-h-0 flex-1 ${!collapsed && terminalTab === 'terminal' ? '' : 'hidden'}`}>
                 <XtermPane />
             </div>
             {displayTabVisible && (
                 <div
                     id="mpos-screen"
-                    className={`min-h-0 flex-1 bg-edit ${terminalTab === 'display' ? '' : 'hidden'}`}
+                    className={`min-h-0 flex-1 bg-edit ${!collapsed && terminalTab === 'display' ? '' : 'hidden'}`}
                 />
             )}
         </div>

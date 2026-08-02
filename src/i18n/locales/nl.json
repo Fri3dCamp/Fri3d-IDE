@@ -523,7 +523,9 @@
         },
         "terminal": {
             "open-trace-line": "Open {{file}}:{{line}}",
-            "resize": "Terminal vergroten/verkleinen"
+            "resize": "Terminal vergroten/verkleinen",
+            "collapse": "Terminal inklappen",
+            "expand": "Terminal uitklappen"
         },
         "badgehub": {
             "section": "badgehub",
