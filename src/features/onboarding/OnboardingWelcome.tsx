@@ -40,11 +40,16 @@ export function OnboardingWelcome({
 
     return (
         <div className="fixed inset-0 z-[120] grid place-items-center bg-black/60 p-4">
-            <div className="w-[min(94vw,620px)] border-3 border-black bg-menu p-6 text-fg shadow-brutal-lg">
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="onboarding-welcome-title"
+                className="w-[min(94vw,620px)] border-3 border-black bg-menu p-6 text-fg shadow-brutal-lg"
+            >
                 <div className="flex justify-center">
                     <Fri3dLogo size={76} />
                 </div>
-                <div className="mt-2 text-center font-heading text-2xl font-black">
+                <div id="onboarding-welcome-title" className="mt-2 text-center font-heading text-2xl font-black">
                     {t('onboarding.task-welcome-title', 'What do you want to do?')}
                 </div>
                 <p className="mt-2 text-center text-sm leading-relaxed">

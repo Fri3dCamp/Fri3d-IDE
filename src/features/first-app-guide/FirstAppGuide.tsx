@@ -7,7 +7,9 @@ import { saveCurrentFile } from '../../services/device.service'
 import { useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useFirstAppGuideStore } from '../../stores/firstAppGuide'
+import { useUiStore } from '../../stores/ui'
 import { checkFirstAppStep, FIRST_APP_GUIDE_STEPS, type GuideCheckError } from './guideSteps'
+import { PythonSnippet } from './PythonSnippet'
 
 type CheckState = 'idle' | 'running' | 'success' | GuideCheckError | 'save-failed'
 
@@ -23,6 +25,7 @@ export function FirstAppGuide() {
     const stepIndex = useFirstAppGuideStore((state) => state.step)
     const close = useFirstAppGuideStore((state) => state.close)
     const setStep = useFirstAppGuideStore((state) => state.setStep)
+    const setTerminalTab = useUiStore((state) => state.setTerminalTab)
     const isVirtualBadge = useConnectionStore((state) => state.transportType === 'vm')
     const activeTab = useEditorTabsStore((state) => state.tabs.find((tab) => tab.id === state.activeId))
     const [checkState, setCheckState] = useState<CheckState>('idle')
@@ -34,6 +37,10 @@ export function FirstAppGuide() {
         setCheckState('idle')
         setCopied(false)
     }, [stepIndex, activeTab?.id])
+
+    useEffect(() => {
+        if (open && step?.id === 'logging') setTerminalTab('terminal')
+    }, [open, setTerminalTab, step?.id])
 
     if (!open || !appId || !step) return null
 
@@ -82,6 +89,10 @@ export function FirstAppGuide() {
                 'first-app-guide.errors.greeting-unchanged',
                 'Change the greeting and move the label upward with label.align(...).',
             ],
+            'logging-missing': [
+                'first-app-guide.errors.logging-missing',
+                'Add a print(...) call so the app writes a message to the terminal.',
+            ],
             'button-missing': [
                 'first-app-guide.errors.button-missing',
                 'No complete button found yet. Add both lv.button and its label.',
@@ -92,7 +103,7 @@ export function FirstAppGuide() {
             ],
             'progress-missing': [
                 'first-app-guide.errors.progress-missing',
-                'Add an lv.bar progress widget and set its value.',
+                'Connect the progress bar to self.count and fill it in 10 taps.',
             ],
             'save-failed': [
                 'first-app-guide.errors.save-failed',
@@ -202,7 +213,7 @@ export function FirstAppGuide() {
                                     : t('first-app-guide.copy', 'Copy')}
                             </button>
                         </div>
-                        <pre className="overflow-x-auto border-2 border-black bg-edit p-2 text-xs leading-5"><code>{step.snippet}</code></pre>
+                        <PythonSnippet code={step.snippet} />
                     </div>
                 ) : null}
 

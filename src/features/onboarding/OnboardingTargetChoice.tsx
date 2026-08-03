@@ -38,8 +38,13 @@ export function OnboardingTargetChoice({
 
     return (
         <div className="fixed inset-0 z-[120] grid place-items-center bg-black/60 p-4">
-            <div className="w-[min(94vw,520px)] border-3 border-black bg-menu p-6 text-fg shadow-brutal-lg">
-                <div className="text-center font-heading text-2xl font-black">{title}</div>
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="onboarding-target-title"
+                className="w-[min(94vw,520px)] border-3 border-black bg-menu p-6 text-fg shadow-brutal-lg"
+            >
+                <div id="onboarding-target-title" className="text-center font-heading text-2xl font-black">{title}</div>
                 <p className="mt-2 text-center text-sm leading-relaxed">
                     {t('onboarding.target-text', 'Choose a physical Fri3d badge or the virtual badge.')}
                 </p>

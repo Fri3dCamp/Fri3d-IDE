@@ -1,11 +1,11 @@
 export interface GuideDocLink {
-    key: 'creating-apps' | 'app-lifecycle' | 'labels' | 'buttons' | 'events' | 'bars'
+    key: 'creating-apps' | 'app-lifecycle' | 'labels' | 'print' | 'buttons' | 'events' | 'bars'
     url: string
     fallback: string
 }
 
 export interface FirstAppGuideStep {
-    id: 'start' | 'greeting' | 'button' | 'counter' | 'progress'
+    id: 'start' | 'greeting' | 'logging' | 'button' | 'counter' | 'progress'
     snippet?: string
     docs: GuideDocLink[]
 }
@@ -37,6 +37,17 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         ],
         snippet: `        label.set_text("Hello, badge coder!")
         label.align(lv.ALIGN.CENTER, 0, -60)`,
+    },
+    {
+        id: 'logging',
+        docs: [
+            {
+                key: 'print',
+                url: 'https://docs.micropython.org/en/latest/library/builtins.html#print',
+                fallback: 'MicroPython print()',
+            },
+        ],
+        snippet: `        print("App started")`,
     },
     {
         id: 'button',
@@ -81,8 +92,16 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         ],
         snippet: `        progress = lv.bar(screen)
         progress.set_width(180)
-        progress.set_value(70, False)
-        progress.align(lv.ALIGN.CENTER, 0, 70)`,
+        progress.set_range(0, 10)
+        progress.set_value(0, False)
+        progress.align(lv.ALIGN.CENTER, 0, 70)
+
+        def on_click(event):
+            self.count = min(self.count + 1, 10)
+            label.set_text("Taps: {}/10".format(self.count))
+            progress.set_value(self.count, False)
+
+        button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`,
     },
 ]
 
@@ -90,6 +109,7 @@ export type GuideCheckError =
     | 'wrong-file'
     | 'starter-missing'
     | 'greeting-unchanged'
+    | 'logging-missing'
     | 'button-missing'
     | 'counter-missing'
     | 'progress-missing'
@@ -101,29 +121,37 @@ export function checkFirstAppStep(
     content: string | undefined,
 ): GuideCheckError | null {
     if (filename !== `/apps/${appId}/main.py` || content === undefined) return 'wrong-file'
-    if (step === 0 && (!content.includes('class Main(Activity):') || !content.includes('lv.label(screen)'))) {
+    const stepId = FIRST_APP_GUIDE_STEPS[step]?.id
+    if (stepId === 'start' && (!content.includes('class Main(Activity):') || !content.includes('lv.label(screen)'))) {
         return 'starter-missing'
     }
     if (
-        step === 1 &&
+        stepId === 'greeting' &&
         (content.includes('Hello from ') ||
             !content.includes('label.set_text(') ||
             !content.includes('label.align(lv.ALIGN.CENTER'))
     ) {
         return 'greeting-unchanged'
     }
-    if (step === 2 && (!content.includes('lv.button(screen)') || !content.includes('lv.label(button)'))) {
+    if (stepId === 'logging' && !content.includes('print(')) return 'logging-missing'
+    if (stepId === 'button' && (!content.includes('lv.button(screen)') || !content.includes('lv.label(button)'))) {
         return 'button-missing'
     }
     if (
-        step === 3 &&
+        stepId === 'counter' &&
         (!content.includes('self.count') ||
             !content.includes('add_event_cb') ||
             !content.includes('lv.EVENT.CLICKED'))
     ) {
         return 'counter-missing'
     }
-    if (step === 4 && (!content.includes('lv.bar(screen)') || !content.includes('progress.set_value('))) {
+    if (
+        stepId === 'progress' &&
+        (!content.includes('lv.bar(screen)') ||
+            !content.includes('progress.set_range(0, 10)') ||
+            !content.includes('progress.set_value(self.count, False)') ||
+            !content.includes('min(self.count + 1, 10)'))
+    ) {
         return 'progress-missing'
     }
     return null

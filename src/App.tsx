@@ -73,15 +73,15 @@ function Shell() {
             <div className="flex min-h-0 flex-1 max-md:flex-col">
                 <SideMenu />
                 <SideMenuResizer />
-                <main className="flex min-w-0 flex-1 flex-col">
-                    <EditorTabsBar />
-                    <div data-tour-id="tour-editor" className="flex min-h-0 flex-1 max-lg:flex-col">
-                        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                <main className="flex min-h-0 min-w-0 flex-1 max-lg:flex-col">
+                    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                        <EditorTabsBar />
+                        <div data-tour-id="tour-editor" className="flex min-h-0 flex-1 flex-col">
                             <EditorPanes />
                         </div>
-                        <FirstAppGuide />
+                        <TerminalDock />
                     </div>
-                    <TerminalDock />
+                    <FirstAppGuide />
                 </main>
             </div>
             <GuidedTour />

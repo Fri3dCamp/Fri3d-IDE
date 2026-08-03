@@ -23,14 +23,21 @@ describe('first app guide checks', () => {
 
         source = source.replace('Hello from My App!', 'Hello, badge coder!') + '\nlabel.align(lv.ALIGN.CENTER, 0, -60)'
         expect(checkFirstAppStep(1, appId, filename, source)).toBeNull()
+        expect(checkFirstAppStep(2, appId, filename, source)).toBe('logging-missing')
 
-        source += '\nbutton = lv.button(screen)\nbutton_label = lv.label(button)'
+        source += '\nprint("App started")'
         expect(checkFirstAppStep(2, appId, filename, source)).toBeNull()
 
-        source += '\nself.count = 0\nbutton.add_event_cb(on_click, lv.EVENT.CLICKED, None)'
+        source += '\nbutton = lv.button(screen)\nbutton_label = lv.label(button)'
         expect(checkFirstAppStep(3, appId, filename, source)).toBeNull()
 
-        source += '\nprogress = lv.bar(screen)\nprogress.set_value(70, False)'
+        source += '\nself.count = 0\nbutton.add_event_cb(on_click, lv.EVENT.CLICKED, None)'
         expect(checkFirstAppStep(4, appId, filename, source)).toBeNull()
+
+        source += '\nprogress = lv.bar(screen)\nprogress.set_value(70, False)'
+        expect(checkFirstAppStep(5, appId, filename, source)).toBe('progress-missing')
+
+        source += '\nprogress.set_range(0, 10)\nprogress.set_value(self.count, False)\nself.count = min(self.count + 1, 10)'
+        expect(checkFirstAppStep(5, appId, filename, source)).toBeNull()
     })
 })

@@ -3,7 +3,6 @@ import { Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useConfirm, usePrompt } from '../../components/dialogs'
 import { connectDevice } from '../../services/device.service'
-import { useAppsStore } from '../../stores/apps'
 import { isConnectionReady, useConnectionStore } from '../../stores/connection'
 import { startFirstAppGuide } from '../../stores/firstAppGuide'
 import {
@@ -12,8 +11,10 @@ import {
     beginGuidedBadgeHub,
     beginGuidedCreateApp,
     CREATE_APP_GUIDE_CANCELLED_EVENT,
+    CREATE_APP_GUIDE_COMPLETED_EVENT,
     endGuidedBadgeHub,
     endGuidedCreateApp,
+    useOnboardingStore,
 } from '../../stores/onboarding'
 import { useUiStore } from '../../stores/ui'
 import { OnboardingWelcome } from './OnboardingWelcome'
@@ -53,10 +54,9 @@ export function GuidedTour() {
     const [rect, setRect] = useState<DOMRect | null>(null)
     const [cardHeight, setCardHeight] = useState(220)
     const cardRef = useRef<HTMLDivElement>(null)
-    const appBaselineRef = useRef<Set<string> | null>(null)
     const status = useConnectionStore((state) => state.status)
     const connectionError = useConnectionStore((state) => state.error)
-    const apps = useAppsStore((state) => state.apps)
+    const createAppSubmitting = useOnboardingStore((state) => state.guidedCreateAppSubmitting)
     const steps = useTourSteps(task, t)
 
     useEffect(() => {
@@ -84,6 +84,19 @@ export function GuidedTour() {
         window.addEventListener(CREATE_APP_GUIDE_CANCELLED_EVENT, cancelled)
         return () => window.removeEventListener(CREATE_APP_GUIDE_CANCELLED_EVENT, cancelled)
     }, [steps, task])
+
+    useEffect(() => {
+        const completed = (event: Event) => {
+            if (task !== 'build' || !(event instanceof CustomEvent)) return
+            const appId = typeof event.detail?.appId === 'string' ? event.detail.appId : ''
+            if (!appId) return
+            localStorage.setItem(TOUR_STORAGE_KEY, 'done')
+            setMode(null)
+            startFirstAppGuide(appId)
+        }
+        window.addEventListener(CREATE_APP_GUIDE_COMPLETED_EVENT, completed)
+        return () => window.removeEventListener(CREATE_APP_GUIDE_COMPLETED_EVENT, completed)
+    }, [task])
 
     useEffect(() => {
         const cancelled = () => {
@@ -149,32 +162,6 @@ export function GuidedTour() {
         document.addEventListener('click', advance)
         return () => document.removeEventListener('click', advance)
     }, [mode, step, steps])
-
-    useEffect(() => {
-        if (mode !== 'touring') return
-        const key = steps[step]?.key
-        if (key !== 'configure-app') {
-            appBaselineRef.current = null
-            return
-        }
-        if (!apps) return
-        if (!appBaselineRef.current) {
-            appBaselineRef.current = new Set(apps.map((app) => app.fullname))
-            return
-        }
-        const createdApp = apps.find((app) => !appBaselineRef.current?.has(app.fullname))
-        if (createdApp) {
-            appBaselineRef.current = null
-            if (task === 'build' && key === 'configure-app') {
-                endGuidedCreateApp()
-                localStorage.setItem(TOUR_STORAGE_KEY, 'done')
-                setMode(null)
-                startFirstAppGuide(createdApp.fullname)
-            } else {
-                setStep((current) => Math.min(steps.length - 1, current + 1))
-            }
-        }
-    }, [apps, mode, step, steps, task])
 
     const finish = () => {
         endGuidedCreateApp()
@@ -251,6 +238,10 @@ export function GuidedTour() {
             </div>
         )
     }
+
+    // Create service already exposes detailed loader progress. Hide stale
+    // "step 3 of 3" card while scaffold files are being written.
+    if (mode === 'touring' && task === 'build' && createAppSubmitting) return null
 
     const current = steps[step]
     const last = step === steps.length - 1

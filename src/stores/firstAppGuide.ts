@@ -15,7 +15,7 @@ export const useFirstAppGuideStore = create<FirstAppGuideStore>((set) => ({
     step: 0,
     start: (appId) => set({ open: true, appId, step: 0 }),
     close: () => set({ open: false }),
-    setStep: (step) => set({ step: Math.max(0, Math.min(4, step)) }),
+    setStep: (step) => set({ step: Math.max(0, Math.min(5, step)) }),
 }))
 
 export function startFirstAppGuide(appId: string): void {

@@ -4,7 +4,12 @@ import { ImagePlus, PackagePlus, RotateCcw } from 'lucide-react'
 import { createApp, validateAppFullname } from '../../services/apps.service'
 import { APP_TEMPLATES, type AppTemplate } from '../../app-templates'
 import { useOpenDialog, useConfirm, DialogActions, CtaButton, SecondaryButton } from '../../components/dialogs'
-import { cancelGuidedCreateApp, useOnboardingStore } from '../../stores/onboarding'
+import {
+    cancelGuidedCreateApp,
+    completeGuidedCreateApp,
+    submitGuidedCreateApp,
+    useOnboardingStore,
+} from '../../stores/onboarding'
 
 /* ------------------------------------------------------------------ */
 /* Create-app dialog                                                   */
@@ -184,6 +189,7 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
         setError('')
         const wasGuided = guidedCreateApp
         submittedRef.current = true
+        if (wasGuided) submitGuidedCreateApp()
         close(true)
         void createApp(
             {
@@ -196,9 +202,16 @@ function CreateAppDialog({ close }: { close: (created: boolean | null) => void }
                 iconPng,
             },
             confirm,
-        ).then((created) => {
-            if (wasGuided && !created) cancelGuidedCreateApp()
-        })
+        )
+            .then((created) => {
+                if (!wasGuided) return
+                if (created) completeGuidedCreateApp(fullname.trim())
+                else cancelGuidedCreateApp()
+            })
+            .catch((err) => {
+                if (wasGuided) cancelGuidedCreateApp()
+                console.error('app creation failed:', err)
+            })
     }
 
     return (

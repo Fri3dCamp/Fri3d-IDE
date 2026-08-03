@@ -270,6 +270,7 @@
                 "creating-apps": "Creating MicroPythonOS apps",
                 "app-lifecycle": "MicroPythonOS app lifecycle",
                 "labels": "LVGL labels",
+                "print": "MicroPython print()",
                 "buttons": "LVGL buttons",
                 "events": "LVGL events",
                 "bars": "LVGL bars"
@@ -300,6 +301,11 @@
                     "instruction": "Change the text inside label.set_text. Replace label.center() with the alignment line below so there is room for more controls.",
                     "goal": "Your own message appears near the top of the screen."
                 },
+                "logging": {
+                    "title": "Print a message to the terminal",
+                    "instruction": "Add print(...) inside onCreate, above self.setContentView(screen). print is the simplest way to log what your app is doing. The terminal opens below the editor so you can see the message when the app launches.",
+                    "goal": "Launching the app writes App started in the terminal."
+                },
                 "button": {
                     "title": "Add a button",
                     "instruction": "Add this code below the label code and above self.setContentView(screen). Indentation must match the other lines in onCreate.",
@@ -311,18 +317,19 @@
                     "goal": "Tapping the button increases the number on screen."
                 },
                 "progress": {
-                    "title": "Add one more widget",
-                    "instruction": "Add a progress bar below the counter code. This introduces another LVGL widget and its value API.",
-                    "goal": "Your app shows a button, tap counter, and 70% progress bar."
+                    "title": "Fill a progress bar with taps",
+                    "instruction": "Keep self.count = 0, then replace the current on_click function and button.add_event_cb line with the code below. The bar uses a 0–10 range and updates after every tap.",
+                    "goal": "Each tap fills one tenth of the bar. After 10 taps, the counter reads 10/10 and the bar is full."
                 }
             },
             "errors": {
                 "wrong-file": "Open main.py from the app you created before checking this step.",
                 "starter-missing": "Starter label is missing. Restore the Hello World template code first.",
                 "greeting-unchanged": "Change the greeting and move the label upward with label.align(...).",
+                "logging-missing": "Add a print(...) call so the app writes a message to the terminal.",
                 "button-missing": "No complete button found yet. Add both lv.button and its label.",
                 "counter-missing": "Connect the button click to a counter using add_event_cb.",
-                "progress-missing": "Add an lv.bar progress widget and set its value.",
+                "progress-missing": "Connect the progress bar to self.count, use a 0–10 range, and stop the counter at 10 taps.",
                 "save-failed": "Code passed the check, but saving failed. Check the connection and try again."
             }
         },

@@ -184,6 +184,7 @@
                 "creating-apps": "MicroPythonOS-apps maken",
                 "app-lifecycle": "Levenscyclus van een MicroPythonOS-app",
                 "labels": "LVGL-labels",
+                "print": "MicroPython print()",
                 "buttons": "LVGL-knoppen",
                 "events": "LVGL-events",
                 "bars": "LVGL-voortgangsbalken"
@@ -214,6 +215,11 @@
                     "instruction": "Wijzig de tekst in label.set_text. Vervang label.center() door de uitlijnregel hieronder, zodat er ruimte komt voor meer bedieningselementen.",
                     "goal": "Je eigen boodschap verschijnt bovenaan het scherm."
                 },
+                "logging": {
+                    "title": "Schrijf een bericht naar de terminal",
+                    "instruction": "Voeg print(...) toe in onCreate, boven self.setContentView(screen). print is de eenvoudigste manier om te loggen wat je app doet. De terminal opent onder de editor zodat je het bericht ziet wanneer de app start.",
+                    "goal": "Bij het starten schrijft de app App started in de terminal."
+                },
                 "button": {
                     "title": "Voeg een knop toe",
                     "instruction": "Voeg deze code onder de labelcode en boven self.setContentView(screen) toe. De inspringing moet overeenkomen met de andere regels in onCreate.",
@@ -225,18 +231,19 @@
                     "goal": "Elke tik op de knop verhoogt het getal op het scherm."
                 },
                 "progress": {
-                    "title": "Voeg nog een widget toe",
-                    "instruction": "Voeg onder de tellercode een voortgangsbalk toe. Zo leer je nog een LVGL-widget en zijn waarde-API kennen.",
-                    "goal": "Je app toont een knop, een tikkenteller en een voortgangsbalk op 70%."
+                    "title": "Vul een voortgangsbalk met tikken",
+                    "instruction": "Behoud self.count = 0 en vervang daarna de huidige on_click-functie en de regel button.add_event_cb door de code hieronder. De balk gebruikt een bereik van 0 tot 10 en wordt na elke tik bijgewerkt.",
+                    "goal": "Elke tik vult een tiende van de balk. Na 10 tikken staat de teller op 10/10 en is de balk vol."
                 }
             },
             "errors": {
                 "wrong-file": "Open main.py van de app die je hebt gemaakt voordat je deze stap controleert.",
                 "starter-missing": "Het basislabel ontbreekt. Herstel eerst de code van het Hello World-sjabloon.",
                 "greeting-unchanged": "Wijzig de begroeting en verplaats het label omhoog met label.align(...).",
+                "logging-missing": "Voeg een print(...)-aanroep toe zodat de app een bericht naar de terminal schrijft.",
                 "button-missing": "Er is nog geen volledige knop gevonden. Voeg zowel lv.button als het bijbehorende label toe.",
                 "counter-missing": "Koppel de klik op de knop aan een teller met add_event_cb.",
-                "progress-missing": "Voeg een lv.bar-voortgangswidget toe en stel de waarde in.",
+                "progress-missing": "Koppel de voortgangsbalk aan self.count, gebruik een bereik van 0 tot 10 en stop de teller na 10 tikken.",
                 "save-failed": "De code is goedgekeurd, maar bewaren is mislukt. Controleer de verbinding en probeer opnieuw."
             }
         },
