@@ -12,7 +12,6 @@ import { ConnectionUID } from './domain/connection_uid'
 import { sleep } from './domain/utils'
 import { hasOrphanBadgeWindow } from './domain/virtualBadge'
 import { useEditorTabsStore } from './stores/editorTabs'
-import { useFileStore } from './stores/files'
 
 async function bootstrap(): Promise<void> {
     await initI18n()
@@ -38,8 +37,7 @@ async function bootstrap(): Promise<void> {
         const dirtyTabs = useEditorTabsStore
             .getState()
             .tabs.some((t) => t.dirty && !(t.fn === 'Untitled' && !t.content))
-        const changedFiles = useFileStore.getState().changedPaths.size > 0
-        if (dirtyTabs || changedFiles) {
+        if (dirtyTabs) {
             // preventDefault() is the standard trigger; modern Chrome/Firefox/Safari
             // all honor it (legacy returnValue assignment is deprecated).
             e.preventDefault()
@@ -62,24 +60,9 @@ function initPwa(): void {
                 },
             })
         },
-        onOfflineReady() {
-            toast.success('Offline ready', {
-                description: 'This app now works with cached assets while offline.',
-            })
-        },
         onRegisterError(error) {
             console.error('Service worker registration failed', error)
         },
-    })
-
-    window.addEventListener('offline', () => {
-        toast.warning('You are offline', {
-            description: 'Some network-dependent actions may be unavailable.',
-        })
-    })
-
-    window.addEventListener('online', () => {
-        toast.success('Back online')
     })
 }
 
