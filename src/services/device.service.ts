@@ -605,16 +605,22 @@ export async function takeScreenshot(): Promise<void> {
         toast.error(t('tool.screenshot-busy', 'Stop the running program first'))
         return
     }
-    const W = 320
-    const H = 240
     await withLoader(t('tool.screenshot-taking', 'Taking screenshot…'), async () => {
-        const hex = await withRawMode(async (raw) => {
+        // capture_screenshot()'s width/height only size the buffer; the LVGL
+        // snapshot always renders at the display's real resolution, so ask
+        // the device for it (e.g. Fri3d badge 2024 is 296x240, not 320x240).
+        const out = await withRawMode(async (raw) => {
             return await raw.exec(
                 `
 import binascii
+import lvgl as lv
 from mpos.ui.testing import capture_screenshot, wait_for_render
+_d = lv.display_get_default()
+_w = _d.get_horizontal_resolution()
+_h = _d.get_vertical_resolution()
 wait_for_render()
-_b = capture_screenshot(width=${W}, height=${H}, all_layers=True)
+_b = capture_screenshot(width=_w, height=_h, all_layers=True)
+print('%dx%d;' % (_w, _h), end='')
 for _i in range(0, len(_b), 256):
     print(binascii.hexlify(_b[_i:_i+256]).decode(), end='')
 del _b
@@ -622,9 +628,13 @@ del _b
                 30000,
             )
         })
-        if (!hex) throw new Error('No screenshot data received')
-        const buf = new Uint8Array(hex.match(/../g)!.map((h) => parseInt(h, 16)))
-        const blob = await rgb565ToPngBlob(buf, W, H)
+        const m = out?.match(/^(\d+)x(\d+);([0-9a-fA-F]+)/)
+        if (!m) throw new Error('No screenshot data received')
+        const width = parseInt(m[1], 10)
+        const height = parseInt(m[2], 10)
+        const buf = new Uint8Array(m[3].match(/../g)!.map((h) => parseInt(h, 16)))
+        if (buf.length < width * height * 2) throw new Error('Incomplete screenshot data')
+        const blob = await rgb565ToPngBlob(buf, width, height)
         download(blob)
     }).catch((err) => {
         console.error(err)
