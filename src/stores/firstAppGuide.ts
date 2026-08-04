@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { FIRST_APP_GUIDE_STEPS } from '../features/first-app-guide/guideSteps'
 
 interface FirstAppGuideStore {
     open: boolean
@@ -15,7 +16,7 @@ export const useFirstAppGuideStore = create<FirstAppGuideStore>((set) => ({
     step: 0,
     start: (appId) => set({ open: true, appId, step: 0 }),
     close: () => set({ open: false }),
-    setStep: (step) => set({ step: Math.max(0, Math.min(5, step)) }),
+    setStep: (step) => set({ step: Math.max(0, Math.min(FIRST_APP_GUIDE_STEPS.length - 1, step)) }),
 }))
 
 export function startFirstAppGuide(appId: string): void {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkFirstAppStep, FIRST_APP_GUIDE_STEPS } from '../src/features/first-app-guide/guideSteps'
+import { checkFirstAppStep, FIRST_APP_GUIDE_STEPS, firstAppStepSolution } from '../src/features/first-app-guide/guideSteps'
 
 const appId = 'com.example.first'
 const filename = `/apps/${appId}/main.py`
@@ -39,5 +39,19 @@ describe('first app guide checks', () => {
 
         source += '\nprogress.set_range(0, 10)\nprogress.set_value(self.count, False)\nself.count = min(self.count + 1, 10)'
         expect(checkFirstAppStep(5, appId, filename, source)).toBeNull()
+
+        expect(checkFirstAppStep(6, appId, filename, source)).toBe('joystick-missing')
+        source += '\nscreen.add_event_cb(on_key, lv.EVENT.KEY, None)\nkey = event.get_key()\nif key == lv.KEY.LEFT:\nlv.group_get_default().add_obj(screen)'
+        expect(checkFirstAppStep(6, appId, filename, source)).toBeNull()
+
+        expect(checkFirstAppStep(7, appId, filename, source)).toBe('game-missing')
+        source += '\nspark.set_text(lv.SYMBOL.CHARGE)\nself.sx = random.randint(-130, 130)\nif event.get_key() == lv.KEY.ENTER:'
+        expect(checkFirstAppStep(7, appId, filename, source)).toBeNull()
+    })
+
+    it('provides a solution that passes the check for every step', () => {
+        for (let step = 0; step < FIRST_APP_GUIDE_STEPS.length; step++) {
+            expect(checkFirstAppStep(step, appId, filename, firstAppStepSolution(step))).toBeNull()
+        }
     })
 })

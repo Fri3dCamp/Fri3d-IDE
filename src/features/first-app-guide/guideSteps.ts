@@ -1,14 +1,106 @@
 export interface GuideDocLink {
-    key: 'creating-apps' | 'app-lifecycle' | 'labels' | 'print' | 'buttons' | 'events' | 'bars'
+    key:
+        | 'creating-apps'
+        | 'app-lifecycle'
+        | 'labels'
+        | 'print'
+        | 'buttons'
+        | 'events'
+        | 'bars'
+        | 'indev'
+        | 'random'
     url: string
     fallback: string
 }
 
 export interface FirstAppGuideStep {
-    id: 'start' | 'greeting' | 'logging' | 'button' | 'counter' | 'progress'
+    id: 'start' | 'greeting' | 'logging' | 'button' | 'counter' | 'progress' | 'joystick' | 'game'
     snippet?: string
     docs: GuideDocLink[]
 }
+
+const GREETING_SNIPPET = `        label.set_text("Hello, badge coder!")
+        label.align(lv.ALIGN.CENTER, 0, -60)`
+
+const LOGGING_SNIPPET = `        print("App started")`
+
+const BUTTON_SNIPPET = `        button = lv.button(screen)
+        button.center()
+        button_label = lv.label(button)
+        button_label.set_text("Tap me")
+        button_label.center()`
+
+const COUNTER_SNIPPET = `        self.count = 0
+
+        def on_click(event):
+            self.count += 1
+            label.set_text("Taps: {}".format(self.count))
+
+        button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`
+
+const PROGRESS_SNIPPET = `        progress = lv.bar(screen)
+        progress.set_width(180)
+        progress.set_range(0, 10)
+        progress.set_value(0, False)
+        progress.align(lv.ALIGN.CENTER, 0, 70)
+
+        def on_click(event):
+            self.count = min(self.count + 1, 10)
+            label.set_text("Taps: {}/10".format(self.count))
+            progress.set_value(self.count, False)
+
+        button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`
+
+const JOYSTICK_SNIPPET = `        self.px = 0
+        self.py = 40
+        player = lv.label(screen)
+        player.set_text(lv.SYMBOL.PLAY)
+        player.align(lv.ALIGN.CENTER, self.px, self.py)
+
+        def on_key(event):
+            key = event.get_key()
+            if key == lv.KEY.LEFT:
+                self.px -= 10
+            elif key == lv.KEY.RIGHT:
+                self.px += 10
+            elif key == lv.KEY.UP:
+                self.py -= 10
+            elif key == lv.KEY.DOWN:
+                self.py += 10
+            self.px = max(-130, min(130, self.px))
+            self.py = max(-90, min(90, self.py))
+            player.align(lv.ALIGN.CENTER, self.px, self.py)
+
+        lv.group_get_default().add_obj(screen)
+        lv.group_focus_obj(screen)
+        screen.add_event_cb(on_key, lv.EVENT.KEY, None)`
+
+const GAME_SNIPPET = `        import random
+
+        spark = lv.label(screen)
+        spark.set_text(lv.SYMBOL.CHARGE)
+
+        def move_spark():
+            self.sx = random.randint(-130, 130)
+            self.sy = random.randint(-90, 90)
+            spark.align(lv.ALIGN.CENTER, self.sx, self.sy)
+
+        move_spark()
+
+        def catch():
+            if abs(self.px - self.sx) < 25 and abs(self.py - self.sy) < 25:
+                self.count = min(self.count + 1, 10)
+                label.set_text("Sparks: {}/10".format(self.count))
+                progress.set_value(self.count, False)
+                if self.count == 10:
+                    label.set_text("You win! " + lv.SYMBOL.OK)
+                move_spark()
+
+        def on_catch_key(event):
+            if event.get_key() == lv.KEY.ENTER:
+                catch()
+
+        screen.add_event_cb(on_catch_key, lv.EVENT.KEY, None)`
 
 export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
     {
@@ -35,8 +127,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
                 fallback: 'LVGL labels',
             },
         ],
-        snippet: `        label.set_text("Hello, badge coder!")
-        label.align(lv.ALIGN.CENTER, 0, -60)`,
+        snippet: GREETING_SNIPPET,
     },
     {
         id: 'logging',
@@ -47,7 +138,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
                 fallback: 'MicroPython print()',
             },
         ],
-        snippet: `        print("App started")`,
+        snippet: LOGGING_SNIPPET,
     },
     {
         id: 'button',
@@ -58,11 +149,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
                 fallback: 'LVGL buttons',
             },
         ],
-        snippet: `        button = lv.button(screen)
-        button.center()
-        button_label = lv.label(button)
-        button_label.set_text("Tap me")
-        button_label.center()`,
+        snippet: BUTTON_SNIPPET,
     },
     {
         id: 'counter',
@@ -73,13 +160,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
                 fallback: 'LVGL events',
             },
         ],
-        snippet: `        self.count = 0
-
-        def on_click(event):
-            self.count += 1
-            label.set_text("Taps: {}".format(self.count))
-
-        button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`,
+        snippet: COUNTER_SNIPPET,
     },
     {
         id: 'progress',
@@ -90,18 +171,34 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
                 fallback: 'LVGL bars',
             },
         ],
-        snippet: `        progress = lv.bar(screen)
-        progress.set_width(180)
-        progress.set_range(0, 10)
-        progress.set_value(0, False)
-        progress.align(lv.ALIGN.CENTER, 0, 70)
-
-        def on_click(event):
-            self.count = min(self.count + 1, 10)
-            label.set_text("Taps: {}/10".format(self.count))
-            progress.set_value(self.count, False)
-
-        button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`,
+        snippet: PROGRESS_SNIPPET,
+    },
+    {
+        id: 'joystick',
+        docs: [
+            {
+                key: 'indev',
+                url: 'https://docs.lvgl.io/9.2/overview/indev.html',
+                fallback: 'LVGL input devices',
+            },
+            {
+                key: 'events',
+                url: 'https://docs.lvgl.io/9.2/overview/event.html',
+                fallback: 'LVGL events',
+            },
+        ],
+        snippet: JOYSTICK_SNIPPET,
+    },
+    {
+        id: 'game',
+        docs: [
+            {
+                key: 'random',
+                url: 'https://docs.micropython.org/en/latest/library/random.html',
+                fallback: 'MicroPython random numbers',
+            },
+        ],
+        snippet: GAME_SNIPPET,
     },
 ]
 
@@ -113,6 +210,8 @@ export type GuideCheckError =
     | 'button-missing'
     | 'counter-missing'
     | 'progress-missing'
+    | 'joystick-missing'
+    | 'game-missing'
 
 export function checkFirstAppStep(
     step: number,
@@ -154,5 +253,44 @@ export function checkFirstAppStep(
     ) {
         return 'progress-missing'
     }
+    if (
+        stepId === 'joystick' &&
+        (!content.includes('lv.EVENT.KEY') ||
+            !content.includes('get_key') ||
+            !content.includes('lv.KEY.LEFT') ||
+            !content.includes('group_get_default'))
+    ) {
+        return 'joystick-missing'
+    }
+    if (
+        stepId === 'game' &&
+        (!content.includes('lv.SYMBOL.CHARGE') ||
+            !content.includes('random.randint') ||
+            !content.includes('lv.KEY.ENTER'))
+    ) {
+        return 'game-missing'
+    }
     return null
+}
+
+/** Full canonical main.py for a given step, used by the "stuck" escape hatch. */
+export function firstAppStepSolution(step: number): string {
+    const body: string[] = []
+    if (step >= 2) body.push(LOGGING_SNIPPET)
+    body.push('        screen = lv.obj()', '        label = lv.label(screen)')
+    if (step >= 1) {
+        body.push(GREETING_SNIPPET)
+    } else {
+        body.push('        label.set_text("Hello from my first app!")', '        label.center()')
+    }
+    if (step >= 3) body.push('', BUTTON_SNIPPET)
+    if (step === 4) body.push('', COUNTER_SNIPPET)
+    if (step >= 5) body.push('', '        self.count = 0', '', PROGRESS_SNIPPET)
+    if (step >= 6) body.push('', JOYSTICK_SNIPPET)
+    if (step >= 7) body.push('', GAME_SNIPPET)
+    body.push('', '        self.setContentView(screen)')
+
+    return ['from mpos import Activity', 'import lvgl as lv', '', '', 'class Main(Activity):', '    def onCreate(self):', ...body, ''].join(
+        '\n',
+    )
 }

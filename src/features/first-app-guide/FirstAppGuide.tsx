@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, Clipboard, ExternalLink, Rocket, X } from 'lucide-react'
+import { CheckCircle2, Clipboard, ExternalLink, LifeBuoy, Rocket, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useConfirm, usePrompt } from '../../components/dialogs'
 import { launchApp } from '../../services/apps.service'
@@ -8,7 +8,8 @@ import { useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useFirstAppGuideStore } from '../../stores/firstAppGuide'
 import { useUiStore } from '../../stores/ui'
-import { checkFirstAppStep, FIRST_APP_GUIDE_STEPS, type GuideCheckError } from './guideSteps'
+import { getLiveView } from '../editor/CodeEditor'
+import { checkFirstAppStep, FIRST_APP_GUIDE_STEPS, firstAppStepSolution, type GuideCheckError } from './guideSteps'
 import { PythonSnippet } from './PythonSnippet'
 
 type CheckState = 'idle' | 'running' | 'success' | GuideCheckError | 'save-failed'
@@ -62,6 +63,27 @@ export function FirstAppGuide() {
         setCheckState('success')
     }
 
+    const insertSolution = async () => {
+        if (!activeTab || activeTab.fn !== `/apps/${appId}/main.py`) {
+            setCheckState('wrong-file')
+            return
+        }
+        const ok = await confirm(
+            t(
+                'first-app-guide.stuck-confirm',
+                'Replace everything in main.py with the working code for this step? Your own changes will be lost.',
+            ),
+        )
+        if (!ok) return
+        const solution = firstAppStepSolution(stepIndex)
+        const view = getLiveView(activeTab.id)
+        if (view) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: solution } })
+        const tabs = useEditorTabsStore.getState()
+        tabs.setContent(activeTab.id, solution)
+        tabs.markDirty(activeTab.id)
+        setCheckState('idle')
+    }
+
     const copySnippet = async () => {
         if (!step.snippet) return
         await navigator.clipboard.writeText(step.snippet)
@@ -104,6 +126,14 @@ export function FirstAppGuide() {
             'progress-missing': [
                 'first-app-guide.errors.progress-missing',
                 'Connect the progress bar to self.count and fill it in 10 taps.',
+            ],
+            'joystick-missing': [
+                'first-app-guide.errors.joystick-missing',
+                'No joystick handling found yet. Add on_key, register it with lv.EVENT.KEY, and add the screen to the input group.',
+            ],
+            'game-missing': [
+                'first-app-guide.errors.game-missing',
+                'The game is not finished yet. Add the spark (lv.SYMBOL.CHARGE), move it with random.randint, and catch it with the A button (lv.KEY.ENTER).',
             ],
             'save-failed': [
                 'first-app-guide.errors.save-failed',
@@ -237,6 +267,15 @@ export function FirstAppGuide() {
                         {statusMessage}
                     </div>
                 ) : null}
+
+                <button
+                    type="button"
+                    onClick={() => void insertSolution()}
+                    className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold opacity-70 hover:underline hover:opacity-100"
+                >
+                    <LifeBuoy size={13} aria-hidden />
+                    {t('first-app-guide.stuck', 'Stuck? Replace my code with the answer')}
+                </button>
             </div>
 
             <div className="flex items-center justify-between gap-2 border-t-2 border-black p-3">
