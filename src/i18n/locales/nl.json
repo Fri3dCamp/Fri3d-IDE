@@ -187,7 +187,9 @@
                 "print": "MicroPython print()",
                 "buttons": "LVGL-knoppen",
                 "events": "LVGL-events",
-                "bars": "LVGL-voortgangsbalken"
+                "bars": "LVGL-voortgangsbalken",
+                "indev": "LVGL-invoerapparaten",
+                "random": "MicroPython willekeurige getallen"
             },
             "virtual-controls": {
                 "title": "Zet de virtuele badge uit de weg",
@@ -234,6 +236,16 @@
                     "title": "Vul een voortgangsbalk met tikken",
                     "instruction": "Behoud self.count = 0 en vervang daarna de huidige on_click-functie en de regel button.add_event_cb door de code hieronder. De balk gebruikt een bereik van 0 tot 10 en wordt na elke tik bijgewerkt.",
                     "goal": "Elke tik vult een tiende van de balk. Na 10 tikken staat de teller op 10/10 en is de balk vol."
+                },
+                "joystick": {
+                    "title": "Sturen met de joystick",
+                    "instruction": "Tijd om er een spel van te maken! Voeg deze code toe onder de code van de voortgangsbalk en boven self.setContentView(screen). Er verschijnt een scheepje dat je bestuurt met de joystick van de badge. Op de virtuele badge: klik eerst op het badgescherm en stuur daarna met de pijltjestoetsen.",
+                    "goal": "Er verschijnt een scheepje dat rondvliegt wanneer je de joystick beweegt."
+                },
+                "game": {
+                    "title": "Vang de vonk!",
+                    "instruction": "De finale: een echt spel. Voeg deze code toe onder de joystickcode. Er verschijnt een vonk op een willekeurige plek—vlieg er met je scheepje naartoe en druk op de A-knop (Enter op de virtuele badge) om hem te vangen. Elke vangst vult de voortgangsbalk.",
+                    "goal": "Vang 10 vonken om de balk te vullen en het spel te winnen."
                 }
             },
             "errors": {
@@ -244,8 +256,12 @@
                 "button-missing": "Er is nog geen volledige knop gevonden. Voeg zowel lv.button als het bijbehorende label toe.",
                 "counter-missing": "Koppel de klik op de knop aan een teller met add_event_cb.",
                 "progress-missing": "Koppel de voortgangsbalk aan self.count, gebruik een bereik van 0 tot 10 en stop de teller na 10 tikken.",
-                "save-failed": "De code is goedgekeurd, maar bewaren is mislukt. Controleer de verbinding en probeer opnieuw."
-            }
+                "save-failed": "De code is goedgekeurd, maar bewaren is mislukt. Controleer de verbinding en probeer opnieuw.",
+                "joystick-missing": "Er is nog geen joystickbesturing gevonden. Voeg on_key toe, registreer die met lv.EVENT.KEY en voeg het scherm toe aan de invoergroep.",
+                "game-missing": "Het spel is nog niet af. Voeg de vonk toe (lv.SYMBOL.CHARGE), verplaats hem met random.randint en vang hem met de A-knop (lv.KEY.ENTER)."
+            },
+            "stuck": "Vastgelopen? Vervang mijn code door het antwoord",
+            "stuck-confirm": "Alles in main.py vervangen door de werkende code voor deze stap? Je eigen wijzigingen gaan verloren."
         },
         "app": {
             "scaffold-btn": "Nieuwe app-sjabloon maken",
@@ -277,7 +293,6 @@
                 "validate-required": "App volledige naam is vereist",
                 "validate-dot": "App volledige naam moet ten minste een punt bevatten, bijv. com.example.myapp",
                 "validate-chars": "App volledige naam mag alleen letters, cijfers, punten, koppeltekens en underscores bevatten",
-                "btn-ok": "OK",
                 "loading-create": "App {{fullname}} wordt aangemaakt…",
                 "field-publisher": "Uitgever",
                 "field-short-desc": "Korte beschrijving",
@@ -564,7 +579,7 @@
             "field-hidden": "Verborgen",
             "hidden-hint": "Verbergen in BadgeHub-overzicht",
             "field-development-status": "Ontwikkelstatus",
-            "status-wip": "Werk in uitvoering",
+            "status-wip": "In ontwikkeling",
             "status-stable": "Stabiel",
             "step-create": "Project aanmaken…",
             "step-mpk": "App lezen van apparaat…",
@@ -593,8 +608,6 @@
             "sort-name": "Appnaam",
             "status": "Status",
             "status-all": "Alle statussen",
-            "status-stable": "Stabiel",
-            "status-wip": "In ontwikkeling",
             "incompatible": "Niet voor deze badge",
             "install-failed": "Installatie mislukt",
             "no-mpk": "Dit project heeft geen installeerbaar .mpk-bestand",
