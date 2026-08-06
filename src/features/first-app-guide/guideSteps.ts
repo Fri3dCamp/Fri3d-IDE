@@ -51,13 +51,17 @@ const PROGRESS_SNIPPET = `        progress = lv.bar(screen)
 
         button.add_event_cb(on_click, lv.EVENT.CLICKED, None)`
 
-const JOYSTICK_SNIPPET = `        self.px = 0
+const PLAYER_SNIPPET = `        self.px = 0
         self.py = 40
         player = lv.label(screen)
         player.set_text(lv.SYMBOL.PLAY)
-        player.align(lv.ALIGN.CENTER, self.px, self.py)
+        player.align(lv.ALIGN.CENTER, self.px, self.py)`
 
-        def on_key(event):
+const KEY_WIRING_SNIPPET = `        lv.group_get_default().add_obj(screen)
+        lv.group_focus_obj(screen)
+        screen.add_event_cb(on_key, lv.EVENT.KEY, None)`
+
+const JOYSTICK_ON_KEY_SNIPPET = `        def on_key(event):
             key = event.get_key()
             if key == lv.KEY.LEFT:
                 self.px -= 10
@@ -69,13 +73,17 @@ const JOYSTICK_SNIPPET = `        self.px = 0
                 self.py += 10
             self.px = max(-130, min(130, self.px))
             self.py = max(-90, min(90, self.py))
-            player.align(lv.ALIGN.CENTER, self.px, self.py)
+            player.align(lv.ALIGN.CENTER, self.px, self.py)`
 
-        lv.group_get_default().add_obj(screen)
-        lv.group_focus_obj(screen)
-        screen.add_event_cb(on_key, lv.EVENT.KEY, None)`
+const JOYSTICK_SNIPPET = `${PLAYER_SNIPPET}
+
+${JOYSTICK_ON_KEY_SNIPPET}
+
+${KEY_WIRING_SNIPPET}`
 
 const GAME_SNIPPET = `        import random
+
+        button.add_flag(lv.obj.FLAG.HIDDEN)
 
         spark = lv.label(screen)
         spark.set_text(lv.SYMBOL.CHARGE)
@@ -96,11 +104,23 @@ const GAME_SNIPPET = `        import random
                     label.set_text("You win! " + lv.SYMBOL.OK)
                 move_spark()
 
-        def on_catch_key(event):
-            if event.get_key() == lv.KEY.ENTER:
+        def on_key(event):
+            key = event.get_key()
+            if key == lv.KEY.LEFT:
+                self.px -= 10
+            elif key == lv.KEY.RIGHT:
+                self.px += 10
+            elif key == lv.KEY.UP:
+                self.py -= 10
+            elif key == lv.KEY.DOWN:
+                self.py += 10
+            elif key == lv.KEY.ENTER:
                 catch()
+            self.px = max(-130, min(130, self.px))
+            self.py = max(-90, min(90, self.py))
+            player.align(lv.ALIGN.CENTER, self.px, self.py)
 
-        screen.add_event_cb(on_catch_key, lv.EVENT.KEY, None)`
+${KEY_WIRING_SNIPPET}`
 
 export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
     {
@@ -286,7 +306,8 @@ export function firstAppStepSolution(step: number): string {
     if (step >= 3) body.push('', BUTTON_SNIPPET)
     if (step === 4) body.push('', COUNTER_SNIPPET)
     if (step >= 5) body.push('', '        self.count = 0', '', PROGRESS_SNIPPET)
-    if (step >= 6) body.push('', JOYSTICK_SNIPPET)
+    if (step >= 6) body.push('', PLAYER_SNIPPET)
+    if (step === 6) body.push('', JOYSTICK_ON_KEY_SNIPPET, '', KEY_WIRING_SNIPPET)
     if (step >= 7) body.push('', GAME_SNIPPET)
     body.push('', '        self.setContentView(screen)')
 

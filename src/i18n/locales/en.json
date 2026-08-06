@@ -330,7 +330,7 @@
                 },
                 "game": {
                     "title": "Catch the spark!",
-                    "instruction": "The finale: a real game. Add this code below the joystick code. A spark appears at a random spot—fly your ship to it and press the A button (Enter on the virtual badge) to catch it. Every catch fills the progress bar.",
+                    "instruction": "The finale: a real game. Replace everything from def on_key down to screen.add_event_cb(on_key, lv.EVENT.KEY, None) with the code below. It hides the tap button (its job is done), drops a spark at a random spot, and teaches on_key one more trick: press the A button (Enter on the virtual badge) while your ship is close to catch the spark. Every catch fills the bar.",
                     "goal": "Catch 10 sparks to fill the bar and win the game."
                 }
             },
