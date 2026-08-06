@@ -244,7 +244,7 @@
                 },
                 "game": {
                     "title": "Vang de vonk!",
-                    "instruction": "De finale: een echt spel. Voeg deze code toe onder de joystickcode. Er verschijnt een vonk op een willekeurige plek—vlieg er met je scheepje naartoe en druk op de A-knop (Enter op de virtuele badge) om hem te vangen. Elke vangst vult de voortgangsbalk.",
+                    "instruction": "De finale: een echt spel. Vervang alles vanaf def on_key tot en met screen.add_event_cb(on_key, lv.EVENT.KEY, None) door de code hieronder. Die verbergt de tikknop (zijn werk zit erop), laat een vonk op een willekeurige plek verschijnen en leert on_key een nieuwe truc: druk op de A-knop (Enter op de virtuele badge) terwijl je scheepje dichtbij is om de vonk te vangen. Elke vangst vult de balk.",
                     "goal": "Vang 10 vonken om de balk te vullen en het spel te winnen."
                 }
             },
