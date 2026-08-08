@@ -198,8 +198,8 @@ export function ToolPanel() {
             <div className="flex items-center gap-2">
                 {canInstall && (
                     <ToolbarButton
-                        title={t('tool.install-app', 'Install app')}
-                        label={t('tool.install-app', 'Install app')}
+                        title={t('tool.install-app', 'Install Fri3d-IDE as app')}
+                        label={t('tool.install-app', 'Install Fri3d-IDE as app')}
                         onClick={() => void install()}
                     >
                         <Download size={18} aria-hidden />
