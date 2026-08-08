@@ -27,13 +27,17 @@
       --screen-cy: 22.5;
     }
 
+    /* Transparent inline (floating panel in the IDE shows through around the
+       rounded badge); pop-out mode overrides with a black backdrop below. */
     html, body { margin: 0; height: 100%; overflow: hidden;
       display: flex; align-items: flex-start; justify-content: center;
-      background: #141418 !important; }
+      background: transparent !important; }
 
-    /* Standalone (pop-out / PWA) mode: black backdrop, badge centered and
-       scaled to fit the viewport (mobile landscape = full-screen badge). */
-    body.popout { background: #000 !important; align-items: center; }
+    /* Standalone (pop-out / PWA) mode: badge centered and scaled to fit the
+       viewport (mobile landscape = full-screen badge). Backdrop follows the
+       IDE theme (?theme= param), falling back to the OS preference. */
+    body.popout { background: #fff !important; align-items: center; }
+    body.popout.dark { background: #000 !important; }
     body.popout #badge { transform-origin: center center; }
 
     /* Dock button (pop-out only): sends the badge back into the IDE. */
@@ -425,6 +429,18 @@
       var isPWA = window.matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
       if (!params.get('popout') && !isPWA) return;
       document.body.classList.add('popout');
+
+      // Backdrop theme: IDE passes its resolved theme via ?theme=dark|light;
+      // without it (PWA / direct open) follow the OS preference, live.
+      var themeParam = params.get('theme');
+      var darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
+      function applyDark(dark) {
+        document.body.classList.toggle('dark', dark);
+      }
+      applyDark(themeParam ? themeParam === 'dark' : darkMQ.matches);
+      if (!themeParam) {
+        darkMQ.addEventListener('change', function (e) { applyDark(e.matches); });
+      }
 
       // Scale badge to fit the viewport (phone landscape = full-screen badge).
       var badge = document.getElementById('badge');

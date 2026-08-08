@@ -351,7 +351,6 @@ export class VirtualBadgeTransport extends Transport {
         const iframeWrap = document.createElement('div')
         Object.assign(iframeWrap.style, {
             overflow: 'hidden',
-            background: '#141418',
             maxHeight: '2000px',
             opacity: '1',
             transition: 'max-height .25s ease, opacity .2s ease',
@@ -368,9 +367,10 @@ export class VirtualBadgeTransport extends Transport {
             height: '369px',
             border: 'none',
             display: 'block',
-            // Paint iframe itself before its document loads; avoids white flash.
-            background: '#141418',
-            colorScheme: 'dark',
+            background: 'transparent',
+            // Must match the badge page's `color-scheme: only light` meta —
+            // a mismatch makes the browser force an opaque iframe backdrop.
+            colorScheme: 'light',
         } as Partial<CSSStyleDeclaration>)
         iframeWrap.appendChild(iframe)
         container.appendChild(iframeWrap)
@@ -512,8 +512,10 @@ export class VirtualBadgeTransport extends Transport {
 
         const badgeW = 830
         const badgeH = 400
+        // Resolved IDE theme (settings + OS pref), mirrored by initTheme().
+        const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
         const win = window.open(
-            `${this.pageUrl}?popout=1`,
+            `${this.pageUrl}?popout=1&theme=${theme}`,
             'fri3d-ide-vbadge',
             `popup=yes,width=${badgeW},height=${badgeH}`,
         )
