@@ -1,6 +1,5 @@
 import { expect, test, type Page, type Request } from '@playwright/test'
 
-const ONBOARDING_STORAGE_KEY = 'fri3d.onboarding.tour.v4'
 const BADGEHUB_AUTH_CONSOLE_ERRORS = [
     'Failed to load resource: the server responded with a status of 403',
     'Keycloak init failed',
@@ -37,8 +36,11 @@ function isApplicationAsset(request: Request, page: Page): boolean {
         ['document', 'script', 'stylesheet'].includes(request.resourceType())
 }
 
-async function skipOnboarding(page: Page): Promise<void> {
-    await page.addInitScript((key) => localStorage.setItem(key, 'done'), ONBOARDING_STORAGE_KEY)
+/** The Welcome tab greets every fresh session in the editor area. */
+function welcomeTab(page: Page) {
+    return page.getByRole('tabpanel').filter({
+        has: page.getByRole('heading', { name: 'Welcome to Fri3d-IDE' }),
+    })
 }
 
 function expectNoBrowserProblems(
@@ -59,14 +61,15 @@ function expectNoBrowserProblems(
 
 test('production bundle boots without runtime or asset errors', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
-    await skipOnboarding(page)
 
     const response = await page.goto('./')
 
     expect(response?.ok()).toBe(true)
     await expect(page.getByText('Fri3d-IDE', { exact: true }).first()).toBeVisible()
-    await expect(page.locator('.cm-editor')).toBeVisible()
+    await expect(welcomeTab(page)).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Terminal' })).toBeVisible()
+    await page.getByRole('button', { name: 'New file' }).click()
+    await expect(page.locator('.cm-editor')).toBeVisible()
     expectNoBrowserProblems(problems)
 })
 
@@ -92,16 +95,15 @@ test('first-run onboarding reaches the IDE shell', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
     await page.goto('./')
 
-    const welcome = page.getByRole('dialog', { name: 'What do you want to do?' })
+    const welcome = welcomeTab(page)
     await expect(welcome).toBeVisible()
     await welcome.getByRole('button', { name: /Build my first app/ }).click()
     const targetChoice = page.getByRole('dialog', { name: 'Where should the app run?' })
     await expect(targetChoice).toBeVisible()
     await targetChoice.getByRole('button', { name: 'Back' }).click()
-    await expect(welcome).toBeVisible()
-    await welcome.getByRole('button', { name: 'Skip to editor' }).click()
+    await expect(targetChoice).toBeHidden()
 
-    await expect(page.getByText('What do you want to do?', { exact: true })).toBeHidden()
+    await page.getByRole('button', { name: 'New file' }).click()
     await expect(page.locator('.cm-editor')).toBeVisible()
     await expect(page.getByRole('button', { name: /^Save & Run$/ })).toBeDisabled()
     expectNoBrowserProblems(problems)
@@ -109,7 +111,6 @@ test('first-run onboarding reaches the IDE shell', async ({ page }) => {
 
 test('core shell navigation, editor tabs, and persisted settings work', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
-    await skipOnboarding(page)
     await page.goto('./')
 
     const editorTabs = page.getByRole('tablist').filter({ has: page.getByRole('button', { name: 'New file' }) })
@@ -139,7 +140,6 @@ test('core shell navigation, editor tabs, and persisted settings work', async ({
 
 test('Web Serial and Bluetooth permission cancellation is handled safely', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
-    await skipOnboarding(page)
     await page.addInitScript(() => {
         const cancelled = (key: string) => async () => {
             localStorage.setItem(key, String(Number(localStorage.getItem(key) ?? '0') + 1))
@@ -156,27 +156,28 @@ test('Web Serial and Bluetooth permission cancellation is handled safely', async
     })
     await page.goto('./')
 
+    // The Welcome tab repeats the connect buttons, so stay inside the side menu.
+    const sideMenu = page.getByLabel('Side menu')
     await page.getByRole('tab', { name: 'File Manager' }).click()
-    await page.getByRole('button', { name: 'Connect device' }).click()
+    await sideMenu.getByRole('button', { name: 'Connect device' }).click()
     await expect.poll(() => page.evaluate(() => localStorage.getItem('e2e.serialRequestCount'))).toBe('1')
-    await expect(page.getByRole('button', { name: 'Connect device' })).toBeEnabled()
+    await expect(sideMenu.getByRole('button', { name: 'Connect device' })).toBeEnabled()
 
     await page.getByRole('tab', { name: 'Settings' }).click()
     await page.getByRole('checkbox', { name: /Advanced mode/ }).check()
     await page.getByRole('tab', { name: 'File Manager' }).click()
-    await page.getByRole('button', { name: 'Connect Bluetooth' }).click()
+    await sideMenu.getByRole('button', { name: 'Connect Bluetooth' }).click()
     await expect.poll(() => page.evaluate(() => localStorage.getItem('e2e.bluetoothRequestCount'))).toBe('1')
-    await expect(page.getByRole('button', { name: 'Connect Bluetooth' })).toBeEnabled()
+    await expect(sideMenu.getByRole('button', { name: 'Connect Bluetooth' })).toBeEnabled()
     expectNoBrowserProblems(problems, BADGEHUB_AUTH_CONSOLE_ERRORS)
 })
 
 test('virtual badge starts in the production shell', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
-    await skipOnboarding(page)
     await page.goto('./')
 
     await page.getByRole('tab', { name: 'File Manager' }).click()
-    await page.getByRole('button', { name: 'Connect to virtual badge' }).click()
+    await page.getByLabel('Side menu').getByRole('button', { name: 'Connect to virtual badge' }).click()
     await page.getByRole('button', { name: 'Confirm' }).click()
 
     const badge = page.locator('#virtual-badge-panel iframe[title="MicroPythonOS virtual badge"]')
@@ -194,7 +195,6 @@ test('virtual badge starts in the production shell', async ({ page }) => {
 
 test('BadgeHub authentication outage falls back to a login action', async ({ page }) => {
     const problems = watchForBrowserProblems(page)
-    await skipOnboarding(page)
     await page.route('https://keycloak.badgehub.eu/**', (route) => route.abort('failed'))
     await page.goto('./')
 

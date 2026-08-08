@@ -57,8 +57,11 @@ test('first-app guide builds a joystick game on the virtual badge', async ({ pag
     test.setTimeout(420_000)
     await page.goto('./')
 
-    // Onboarding: build my first app on the virtual badge.
-    const welcome = page.getByRole('dialog', { name: 'What do you want to do?' })
+    // Onboarding: build my first app on the virtual badge, started from the
+    // Welcome tab (the side menu repeats the button, so scope to the tab panel).
+    const welcome = page.getByRole('tabpanel').filter({
+        has: page.getByRole('heading', { name: 'Welcome to Fri3d-IDE' }),
+    })
     await welcome.getByRole('button', { name: /Build my first app/ }).click()
     const targetChoice = page.getByRole('dialog', { name: 'Where should the app run?' })
     await targetChoice.getByRole('button', { name: /Virtual badge/ }).click()
