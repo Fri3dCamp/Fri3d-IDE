@@ -152,6 +152,7 @@ export async function rawInstallPkg(
     if (!version) {
         [ name, version ] = splitPkgName(name)
     }
+    const versionSpec = version || 'latest'
 
     if (!pkg_info) {
         try {
@@ -178,6 +179,21 @@ export async function rawInstallPkg(
             }
         } catch (_err) {
             throw new Error(`Cannot find ${name}@${version}`)
+        }
+    }
+
+    if ('arch' in pkg_info) {
+        const supportedArchitectures = (Array.isArray(pkg_info.arch) ? pkg_info.arch : [pkg_info.arch]).map(String)
+        if (!supportedArchitectures.includes(String(dev.mpy_arch))) {
+            throw new Error(`${name}@${versionSpec} requires architecture: ${supportedArchitectures.join(', ')}`)
+        }
+    }
+
+    if ('mpy' in pkg_info) {
+        const supportedAbis = (Array.isArray(pkg_info.mpy) ? pkg_info.mpy : [pkg_info.mpy]).map(String)
+        const deviceAbi = `${dev.mpy_ver}.${dev.mpy_sub}`
+        if (!supportedAbis.includes(deviceAbi)) {
+            throw new Error(`${name}@${versionSpec} requires MPY ABI: ${supportedAbis.join(', ')}`)
         }
     }
 

@@ -1,5 +1,38 @@
-import { describe, expect, it } from 'vitest'
-import { WebSerial } from '../src/domain/transports'
+import { describe, expect, it, vi } from 'vitest'
+import { WebBluetooth, WebSerial, WebSocketREPL } from '../src/domain/transports'
+
+describe('transport write limits', () => {
+    it('chunks Bluetooth writes into 20-byte packets', async () => {
+        Object.defineProperty(navigator, 'bluetooth', {
+            configurable: true,
+            value: {},
+        })
+        const transport = new WebBluetooth()
+        const writeValue = vi.fn().mockResolvedValue(undefined)
+        transport.tx = { writeValue }
+
+        await transport.write('x'.repeat(45))
+
+        expect(writeValue.mock.calls.map(([chunk]) => chunk.byteLength)).toEqual([20, 20, 5])
+    })
+
+    it('sends WebREPL data in 512-byte chunks', async () => {
+        vi.useFakeTimers()
+        try {
+            const transport = new WebSocketREPL('ws://device.local')
+            const send = vi.fn()
+            transport.socket = { send } as unknown as WebSocket
+
+            const write = transport.write('x'.repeat(1025))
+            await vi.runAllTimersAsync()
+            await write
+
+            expect(send.mock.calls.map(([chunk]) => chunk.length)).toEqual([512, 512, 1])
+        } finally {
+            vi.useRealTimers()
+        }
+    })
+})
 
 describe('WebSerial port metadata', () => {
     it('accepts ports without USB vendor and product IDs', async () => {
