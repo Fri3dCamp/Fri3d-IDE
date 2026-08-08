@@ -1,6 +1,7 @@
 import { Cable, Compass, MonitorSmartphone, PackagePlus, Store } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useConfirm, usePrompt } from '../../components/dialogs'
+import { openChangelogTab } from '../../services/changelog.service'
 import { connectDevice } from '../../services/device.service'
 import { isConnectionActive, isConnectionPending, useConnectionStore } from '../../stores/connection'
 import { Fri3dLogo } from './Fri3dLogo'
@@ -117,6 +118,14 @@ export function WelcomeTab() {
                         {t('tool.conn.vm', 'Connect to virtual badge')}
                     </button>
                 </div>
+
+                <button
+                    type="button"
+                    className="mt-8 text-sm text-fg-highlight underline opacity-80 hover:opacity-100"
+                    onClick={openChangelogTab}
+                >
+                    {t('welcome.whats-new', "What's new in v{{version}}", { version: VIPER_IDE_VERSION })}
+                </button>
             </div>
         </div>
     )

@@ -11,6 +11,7 @@ import { FirstAppGuide } from './features/first-app-guide/FirstAppGuide'
 import { useEditorTabsStore, openWelcomeTab } from './stores/editorTabs'
 import { useSettingsStore } from './stores/settings'
 import { saveCurrentFile, runCurrentFile, reboot } from './services/device.service'
+import { showChangelogOnUpdate } from './services/changelog.service'
 
 /** Global keyboard shortcuts (Ctrl/Cmd+S, F5, Ctrl/Cmd+D). */
 function useShortcuts() {
@@ -47,9 +48,11 @@ function Shell() {
     useShortcuts()
     useZoom()
 
-    // VS Code-style Welcome tab on fresh sessions (no recovered work).
+    // VS Code-style Welcome tab on fresh sessions (no recovered work),
+    // plus release notes once after an update.
     useEffect(() => {
         if (useEditorTabsStore.getState().tabs.length === 0) openWelcomeTab()
+        showChangelogOnUpdate()
     }, [])
 
     return (

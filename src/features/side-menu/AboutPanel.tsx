@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { ClipboardCopy } from 'lucide-react'
+import { ClipboardCopy, ScrollText } from 'lucide-react'
 import { toast } from 'sonner'
 import { createDiagnosticsReport } from '../../services/diagnostics'
+import { openChangelogTab } from '../../services/changelog.service'
 
 function buildDate(): string {
     try {
@@ -28,6 +29,14 @@ export function AboutPanel() {
             <div className="mt-2 font-heading text-xl font-black">Fri3d-IDE</div>
             <div className="text-sm opacity-80">{VIPER_IDE_VERSION}</div>
             <div className="text-xs opacity-60">build {buildDate()}</div>
+            <button
+                type="button"
+                className="mx-auto mt-2 flex items-center gap-1.5 text-sm text-fg-highlight underline"
+                onClick={openChangelogTab}
+            >
+                <ScrollText size={14} aria-hidden />
+                {t('about.changelog', "What's new")}
+            </button>
             <button
                 type="button"
                 className="mx-auto mt-3 flex items-center gap-2 border-2 border-black bg-cta px-3 py-1.5 text-sm font-semibold text-cta-fg shadow-brutal"

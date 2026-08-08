@@ -158,6 +158,7 @@
             "vbadge-popout-default": "Open in separate window"
         },
         "about": {
+            "changelog": "What's new",
             "cta": "If you like Fri3d-IDE, please give it a GitHub star ⭐ and spread the word on social media 📢",
             "report-bug": "You can also report a bug 🐞",
             "by": "by",
@@ -172,7 +173,8 @@
             "subtitle": "MicroPython IDE for the Fri3d Camp 2026 badge.",
             "tours-title": "Guided tours",
             "tours-text": "Step-by-step tours that walk you through the IDE.",
-            "or-connect": "Or skip the tours and connect directly:"
+            "or-connect": "Or skip the tours and connect directly:",
+            "whats-new": "What's new in v{{version}}"
         },
         "onboarding": {
             "step": "Step {{current}} of {{total}}",
