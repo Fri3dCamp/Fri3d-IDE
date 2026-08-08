@@ -35,10 +35,17 @@ export function restartOnboardingTour() {
     window.dispatchEvent(new Event(TOUR_RESTART_EVENT))
 }
 
+const ONBOARDING_TASKS: OnboardingTask[] = ['connect', 'virtual', 'build', 'badgehub']
+
+/** Start a guided tour directly at the given task (skips the task chooser). */
+export function startOnboardingTask(task: OnboardingTask) {
+    localStorage.removeItem(TOUR_STORAGE_KEY)
+    window.dispatchEvent(new CustomEvent(TOUR_RESTART_EVENT, { detail: { task } }))
+}
+
 /** Open first-app onboarding directly at real/virtual badge choice. */
 export function startFirstAppOnboarding() {
-    localStorage.removeItem(TOUR_STORAGE_KEY)
-    window.dispatchEvent(new CustomEvent(TOUR_RESTART_EVENT, { detail: { task: 'build' } }))
+    startOnboardingTask('build')
 }
 
 type TourMode = null | 'choose' | 'target' | 'connecting' | 'touring'
@@ -54,22 +61,32 @@ export function GuidedTour() {
     const [rect, setRect] = useState<DOMRect | null>(null)
     const [cardHeight, setCardHeight] = useState(220)
     const cardRef = useRef<HTMLDivElement>(null)
+    const chooseTaskRef = useRef<(task: OnboardingTask) => void>(() => {})
     const status = useConnectionStore((state) => state.status)
     const connectionError = useConnectionStore((state) => state.error)
     const createAppSubmitting = useOnboardingStore((state) => state.guidedCreateAppSubmitting)
     const steps = useTourSteps(task, t)
 
+    // First-run entry point is the Welcome tab (WelcomeTab.tsx); the tour
+    // only appears via restartOnboardingTour()/startOnboardingTask().
     useEffect(() => {
-        if (localStorage.getItem(TOUR_STORAGE_KEY) !== 'done') setMode('choose')
         const restart = (event: Event) => {
+            const detail = event instanceof CustomEvent ? (event.detail?.task as unknown) : null
             const requestedTask =
-                event instanceof CustomEvent && event.detail?.task === 'build' ? 'build' : null
+                typeof detail === 'string' && (ONBOARDING_TASKS as string[]).includes(detail)
+                    ? (detail as OnboardingTask)
+                    : null
             endGuidedCreateApp()
             endGuidedBadgeHub()
-            setTask(requestedTask)
             setTarget(null)
             setStep(0)
-            setMode(requestedTask === 'build' ? 'target' : 'choose')
+            if (requestedTask) {
+                // Jump straight into the task (target choice or connect).
+                chooseTaskRef.current(requestedTask)
+            } else {
+                setTask(null)
+                setMode('choose')
+            }
         }
         window.addEventListener(TOUR_RESTART_EVENT, restart)
         return () => window.removeEventListener(TOUR_RESTART_EVENT, restart)
@@ -193,6 +210,8 @@ export function GuidedTour() {
         setTarget(null)
         setMode('target')
     }
+    // Ref so the mount-once restart listener always calls the latest closure.
+    chooseTaskRef.current = chooseTask
 
     if (mode === null) return null
     if (mode === 'choose') return <OnboardingWelcome onChoose={chooseTask} onSkip={finish} />

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useEditorTabsStore, type EditorTab } from '../../stores/editorTabs'
 import { useFileStore } from '../../stores/files'
 import { imageMimeFor } from '../../services/files.service'
+import { WelcomeTab } from '../onboarding/WelcomeTab'
 import { CodeEditor } from './CodeEditor'
 
 const MarkdownViewer = lazy(() =>
@@ -98,6 +99,9 @@ function Pane({ tab }: { tab: EditorTab }) {
         dirtyRef.current = tab.dirty
     }, [tab.id, tab.dirty])
 
+    if (tab.kind === 'welcome') {
+        return <WelcomeTab />
+    }
     if (tab.kind === 'image' && tab.content instanceof Uint8Array) {
         return <ImageViewer content={tab.content} fn={tab.fn} />
     }

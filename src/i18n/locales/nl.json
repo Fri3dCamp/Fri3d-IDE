@@ -345,6 +345,13 @@
             "wrong-port-hint": "De gekozen poort reageerde niet als een MicroPython-apparaat. Kies een andere poort en probeer opnieuw.",
             "vbadge-disclaimer": "De virtuele badge is een voorproefje van wat de echte Fri3d-badge kan. Hij draait hetzelfde MicroPythonOS, maar niet alles werkt hetzelfde: hardware zoals wifi, sensoren en geluid ontbreekt of gedraagt zich anders, en timing/prestaties verschillen van het echte apparaat."
         },
+        "welcome": {
+            "title": "Welkom bij Fri3d-IDE",
+            "subtitle": "MicroPython-IDE voor de Fri3d Camp 2026-badge.",
+            "tours-title": "Rondleidingen",
+            "tours-text": "Stapsgewijze rondleidingen door de IDE.",
+            "or-connect": "Of sla de rondleidingen over en verbind direct:"
+        },
         "onboarding": {
             "step": "Stap {{current}} van {{total}}",
             "skip": "Gids overslaan",

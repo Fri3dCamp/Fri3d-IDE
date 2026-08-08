@@ -8,7 +8,7 @@ import { EditorPanes } from './features/editor/EditorPanes'
 import { TerminalDock } from './features/terminal/TerminalDock'
 import { GuidedTour } from './features/onboarding/GuidedTour'
 import { FirstAppGuide } from './features/first-app-guide/FirstAppGuide'
-import { useEditorTabsStore, createUntitledTab } from './stores/editorTabs'
+import { useEditorTabsStore, openWelcomeTab } from './stores/editorTabs'
 import { useSettingsStore } from './stores/settings'
 import { saveCurrentFile, runCurrentFile, reboot } from './services/device.service'
 
@@ -47,22 +47,9 @@ function Shell() {
     useShortcuts()
     useZoom()
 
-    // Welcome scratch tab on first mount.
+    // VS Code-style Welcome tab on fresh sessions (no recovered work).
     useEffect(() => {
-        if (useEditorTabsStore.getState().tabs.length === 0) {
-            createUntitledTab()
-            const tab = useEditorTabsStore.getState().tabs[0]
-            useEditorTabsStore.getState().setContent(
-                tab.id,
-                [
-                    '# Fri3d-IDE - MicroPython Web IDE',
-                    '# Read more: https://fri3dcamp.github.io/badge_2026/',
-                    '',
-                    '# Connect your device and start creating! 🤖👨‍💻🕹️',
-                    '',
-                ].join('\n'),
-            )
-        }
+        if (useEditorTabsStore.getState().tabs.length === 0) openWelcomeTab()
     }, [])
 
     return (

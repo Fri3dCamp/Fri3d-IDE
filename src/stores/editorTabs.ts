@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type TabKind = 'code' | 'markdown' | 'svg' | 'image' | 'hex'
+export type TabKind = 'code' | 'markdown' | 'svg' | 'image' | 'hex' | 'welcome'
 
 export interface EditorTab {
     id: string
@@ -45,6 +45,17 @@ const newId = () => `tab-${++tabSeq}`
 const RECOVERY_KEY = 'fri3d-ide-editor-recovery-v1'
 const RECOVERY_MAX_BYTES = 2 * 1024 * 1024
 
+/** Boilerplate of the pre-Welcome-tab auto-created scratch tab. It was born
+ *  dirty, so every past visitor has it in recovery; drop it unedited so the
+ *  Welcome tab can appear. */
+const LEGACY_SCRATCH_CONTENT = [
+    '# Fri3d-IDE - MicroPython Web IDE',
+    '# Read more: https://fri3dcamp.github.io/badge_2026/',
+    '',
+    '# Connect your device and start creating! 🤖👨‍💻🕹️',
+    '',
+].join('\n')
+
 interface RecoveredSession {
     tabs: EditorTab[]
     activeId: string | null
@@ -63,6 +74,13 @@ function loadRecoveredSession(): RecoveredSession {
                       typeof tab.fn !== 'string' ||
                       typeof tab.content !== 'string' ||
                       tab.dirty !== true
+                  ) {
+                      return []
+                  }
+                  // Worthless scratch tabs: empty, or the legacy boilerplate.
+                  if (
+                      tab.fn === 'Untitled' &&
+                      (tab.content.trim() === '' || tab.content === LEGACY_SCRATCH_CONTENT)
                   ) {
                       return []
                   }
@@ -201,6 +219,17 @@ useEditorTabsStore.subscribe((state) => {
         }
     }, 250)
 })
+
+/** Open (or re-activate) the VS Code-style Welcome tab. */
+export function openWelcomeTab(): void {
+    useEditorTabsStore.getState().openTab({
+        fn: 'Welcome',
+        kind: 'welcome',
+        viewMode: 'view',
+        readOnly: true,
+        content: '',
+    })
+}
 
 export function createUntitledTab(): void {
     const store = useEditorTabsStore.getState()

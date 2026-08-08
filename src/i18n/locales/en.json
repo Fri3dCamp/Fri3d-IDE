@@ -167,6 +167,13 @@
             "diagnostics-copied": "Diagnostics copied",
             "diagnostics-failed": "Could not copy diagnostics"
         },
+        "welcome": {
+            "title": "Welcome to Fri3d-IDE",
+            "subtitle": "MicroPython IDE for the Fri3d Camp 2026 badge.",
+            "tours-title": "Guided tours",
+            "tours-text": "Step-by-step tours that walk you through the IDE.",
+            "or-connect": "Or skip the tours and connect directly:"
+        },
         "onboarding": {
             "step": "Step {{current}} of {{total}}",
             "skip": "Skip guide",

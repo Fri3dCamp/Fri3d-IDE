@@ -486,7 +486,7 @@ export async function runCurrentFile(): Promise<void> {
     if (port instanceof VirtualBadgeTransport) port.showBadge()
 
     const tab = useEditorTabsStore.getState().activeTab()
-    if (!tab) return
+    if (!tab || tab.kind === 'welcome') return
     if (!tab.fn.endsWith('.py')) {
         toast.error(t('files.not-executable', '{{fn}} file is not executable', { fn: tab.fn }))
         return
@@ -657,7 +657,7 @@ export async function saveCurrentFile(ui: ConnectUi): Promise<boolean> {
     if (!port) return false
     const tabsStore = useEditorTabsStore.getState()
     const tab = tabsStore.activeTab()
-    if (!tab || typeof tab.content !== 'string') return false
+    if (!tab || tab.kind === 'welcome' || typeof tab.content !== 'string') return false
     if (tab.readOnly) {
         toast.warning(t('files.read-only', 'File is read only'))
         return false
