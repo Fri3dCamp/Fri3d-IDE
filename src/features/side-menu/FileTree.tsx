@@ -7,6 +7,7 @@ import {
     Cable,
     ChevronRight,
     Cog,
+    Download,
     File,
     FileWarning,
     FolderClosed,
@@ -23,7 +24,7 @@ import { useFileStore, isFolder, type FsNode } from '../../stores/files'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useSettingsStore } from '../../stores/settings'
 import { sizeFmt } from '../../domain/utils'
-import { openFile, createItem, removeItem, renameItem, loadFolder } from '../../services/files.service'
+import { openFile, createItem, removeItem, renameItem, downloadFile, loadFolder } from '../../services/files.service'
 import { uploadEntriesToDirectory } from '../../services/device.service'
 import type { LocalUploadEntry } from '../../domain/upload'
 import { useFolderDropTarget, dropHighlightClass } from './DropUpload'
@@ -186,6 +187,15 @@ function FileRow({ node, depth }: { node: Extract<FsNode, { size: number }>; dep
                     {node.name}
                     {changed && <span aria-label={t('files.modified', 'modified')}> •</span>}
                 </span>
+            </button>
+            <button
+                type="button"
+                title={t('files.download', 'Download')}
+                aria-label={t('files.download', 'Download')}
+                className={actionClass}
+                onClick={() => void downloadFile(node.path)}
+            >
+                <Download size={13} aria-hidden />
             </button>
             <button
                 type="button"

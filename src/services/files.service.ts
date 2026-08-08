@@ -194,6 +194,33 @@ export async function createItem(parentPath: string, name: string, isFolder: boo
     )
 }
 
+/** Download a file from the device through the browser. */
+export async function downloadFile(path: string): Promise<void> {
+    const { port } = useConnectionStore.getState()
+    if (!port) return
+
+    const name = path.split('/').at(-1) ?? path
+    try {
+        await withLoader(t('files.downloading', 'Downloading {{fn}}…', { fn: name }), () =>
+            withRawMode(async (raw) => {
+                const content = await raw.readFile(path)
+                const mime = imageMimeFor(path) ?? 'application/octet-stream'
+                const blob = new Blob([content as BlobPart], { type: mime })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = name
+                a.click()
+                setTimeout(() => URL.revokeObjectURL(url), 10000)
+            }),
+        )
+    } catch (err) {
+        toast.error(t('files.download-failed', 'Could not download {{fn}}', { fn: name }), {
+            description: err instanceof Error ? err.message : String(err),
+        })
+    }
+}
+
 export async function removeItem(ui: ConnectUi, path: string, isDir: boolean): Promise<void> {
     const { port } = useConnectionStore.getState()
     if (!port) return
