@@ -17,7 +17,6 @@ import {
     useOnboardingStore,
 } from '../../stores/onboarding'
 import { useUiStore } from '../../stores/ui'
-import { OnboardingWelcome } from './OnboardingWelcome'
 import { OnboardingTargetChoice } from './OnboardingTargetChoice'
 import {
     directTargetForTask,
@@ -27,19 +26,12 @@ import {
 import { firstVisibleRect, tourCardPosition } from './tourLayout'
 import { useTourSteps } from './useTourSteps'
 
-const TOUR_STORAGE_KEY = 'fri3d.onboarding.tour.v4'
 const TOUR_RESTART_EVENT = 'fri3d:onboarding:restart'
-
-export function restartOnboardingTour() {
-    localStorage.removeItem(TOUR_STORAGE_KEY)
-    window.dispatchEvent(new Event(TOUR_RESTART_EVENT))
-}
 
 const ONBOARDING_TASKS: OnboardingTask[] = ['connect', 'virtual', 'build', 'badgehub']
 
 /** Start a guided tour directly at the given task (skips the task chooser). */
 export function startOnboardingTask(task: OnboardingTask) {
-    localStorage.removeItem(TOUR_STORAGE_KEY)
     window.dispatchEvent(new CustomEvent(TOUR_RESTART_EVENT, { detail: { task } }))
 }
 
@@ -48,7 +40,7 @@ export function startFirstAppOnboarding() {
     startOnboardingTask('build')
 }
 
-type TourMode = null | 'choose' | 'target' | 'connecting' | 'touring'
+type TourMode = null | 'target' | 'connecting' | 'touring'
 
 export function GuidedTour() {
     const { t } = useTranslation()
@@ -67,8 +59,7 @@ export function GuidedTour() {
     const createAppSubmitting = useOnboardingStore((state) => state.guidedCreateAppSubmitting)
     const steps = useTourSteps(task, t)
 
-    // First-run entry point is the Welcome tab (WelcomeTab.tsx); the tour
-    // only appears via restartOnboardingTour()/startOnboardingTask().
+    // Welcome tab owns tour selection; this overlay only runs selected tasks.
     useEffect(() => {
         const restart = (event: Event) => {
             const detail = event instanceof CustomEvent ? (event.detail?.task as unknown) : null
@@ -80,13 +71,7 @@ export function GuidedTour() {
             endGuidedBadgeHub()
             setTarget(null)
             setStep(0)
-            if (requestedTask) {
-                // Jump straight into the task (target choice or connect).
-                chooseTaskRef.current(requestedTask)
-            } else {
-                setTask(null)
-                setMode('choose')
-            }
+            if (requestedTask) chooseTaskRef.current(requestedTask)
         }
         window.addEventListener(TOUR_RESTART_EVENT, restart)
         return () => window.removeEventListener(TOUR_RESTART_EVENT, restart)
@@ -107,7 +92,6 @@ export function GuidedTour() {
             if (task !== 'build' || !(event instanceof CustomEvent)) return
             const appId = typeof event.detail?.appId === 'string' ? event.detail.appId : ''
             if (!appId) return
-            localStorage.setItem(TOUR_STORAGE_KEY, 'done')
             setMode(null)
             startFirstAppGuide(appId)
         }
@@ -183,7 +167,6 @@ export function GuidedTour() {
     const finish = () => {
         endGuidedCreateApp()
         endGuidedBadgeHub()
-        localStorage.setItem(TOUR_STORAGE_KEY, 'done')
         setMode(null)
     }
 
@@ -195,7 +178,7 @@ export function GuidedTour() {
         void connectDevice(transport, { confirm, prompt }).then(() => {
             const currentStatus = useConnectionStore.getState().status
             if (currentStatus === 'disconnected') {
-                setMode(selectedTask === 'build' || selectedTask === 'badgehub' ? 'target' : 'choose')
+                setMode(selectedTask === 'build' || selectedTask === 'badgehub' ? 'target' : null)
             }
         })
     }
@@ -214,7 +197,6 @@ export function GuidedTour() {
     chooseTaskRef.current = chooseTask
 
     if (mode === null) return null
-    if (mode === 'choose') return <OnboardingWelcome onChoose={chooseTask} onSkip={finish} />
     if (mode === 'target' && (task === 'build' || task === 'badgehub')) {
         return (
             <OnboardingTargetChoice
@@ -223,7 +205,7 @@ export function GuidedTour() {
                 onBack={() => {
                     setTask(null)
                     setTarget(null)
-                    setMode('choose')
+                    setMode(null)
                 }}
             />
         )
@@ -247,7 +229,7 @@ export function GuidedTour() {
                             type="button"
                             className="mt-4 border-2 border-black px-3 py-1.5 text-sm font-semibold"
                             onClick={() =>
-                                setMode(task === 'build' || task === 'badgehub' ? 'target' : 'choose')
+                                setMode(task === 'build' || task === 'badgehub' ? 'target' : null)
                             }
                         >
                             {t('onboarding.back', 'Back')}

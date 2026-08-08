@@ -3,7 +3,7 @@ import { Compass, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSettingsStore, type Settings } from '../../stores/settings'
 import { LANGUAGES, i18next } from '../../i18n'
-import { restartOnboardingTour } from '../onboarding/GuidedTour'
+import { openWelcomeTab } from '../../stores/editorTabs'
 import { resetVirtualBadgeStorage, isVirtualBadgeRunning } from '../../domain/virtualBadge'
 import { useConfirm } from '../../components/dialogs'
 import { BadgeHubAccount } from './BadgeHubAccount'
@@ -156,11 +156,11 @@ export function SettingsPanel() {
             <div className="title-lines text-xs">{t('settings.help', 'help')}</div>
             <button
                 type="button"
-                onClick={restartOnboardingTour}
+                onClick={openWelcomeTab}
                 className="mt-1 flex items-center gap-2 border-2 border-black bg-transparent px-3 py-1.5 text-sm font-semibold text-fg transition-colors hover:bg-black/10 dark:hover:bg-white/10"
             >
                 <Compass size={15} aria-hidden />
-                {t('settings.restart-tour', 'Show welcome tour again')}
+                {t('settings.restart-tour', 'Open welcome tab')}
             </button>
         </div>
     )
