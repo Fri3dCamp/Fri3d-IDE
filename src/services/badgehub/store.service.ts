@@ -3,6 +3,7 @@ import { useAppsStore } from '../../stores/apps'
 import { parseMpk, installMpk } from '../apps.service'
 import * as api from './api'
 import type { ProjectRatings, ProjectSummary } from './api'
+import { selectMpkFile } from './package-selection'
 
 const t = (key: string, fallback: string, opts?: Record<string, unknown>) =>
     i18next.t(key, fallback, opts) as string
@@ -69,9 +70,7 @@ export async function installFromBadgeHub(
     const details = await api.getProject(storeApp.slug)
     const files = details.version?.files ?? []
     const executable = details.version?.app_metadata?.application?.[0]?.executable
-    const mpkFile =
-        (executable && files.find((f) => f.full_path === executable)) ??
-        files.find((f) => f.ext === '.mpk')
+    const mpkFile = selectMpkFile(files, executable, details.version?.app_metadata?.version)
     if (!mpkFile) {
         throw new Error(t('badgehub.no-mpk', 'This project has no installable .mpk file'))
     }
