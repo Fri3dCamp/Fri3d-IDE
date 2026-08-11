@@ -143,7 +143,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         docs: [
             {
                 key: 'labels',
-                url: 'https://docs.lvgl.io/9.2/widgets/label.html',
+                url: 'https://lvgl.io/docs/open/9.4/details/widgets/label.html',
                 fallback: 'LVGL labels',
             },
         ],
@@ -165,7 +165,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         docs: [
             {
                 key: 'buttons',
-                url: 'https://docs.lvgl.io/9.2/widgets/button.html',
+                url: 'https://lvgl.io/docs/open/9.4/details/widgets/button.html',
                 fallback: 'LVGL buttons',
             },
         ],
@@ -176,7 +176,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         docs: [
             {
                 key: 'events',
-                url: 'https://docs.lvgl.io/9.2/overview/event.html',
+                url: 'https://lvgl.io/docs/open/9.4/details/common-widget-features/events',
                 fallback: 'LVGL events',
             },
         ],
@@ -187,7 +187,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         docs: [
             {
                 key: 'bars',
-                url: 'https://docs.lvgl.io/9.2/widgets/bar.html',
+                url: 'https://lvgl.io/docs/open/9.4/details/widgets/bar',
                 fallback: 'LVGL bars',
             },
         ],
@@ -198,12 +198,12 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         docs: [
             {
                 key: 'indev',
-                url: 'https://docs.lvgl.io/9.2/overview/indev.html',
+                url: 'https://lvgl.io/docs/open/9.4/details/main-modules/indev/overview',
                 fallback: 'LVGL input devices',
             },
             {
                 key: 'events',
-                url: 'https://docs.lvgl.io/9.2/overview/event.html',
+                url: 'https://lvgl.io/docs/open/9.4/details/common-widget-features/events',
                 fallback: 'LVGL events',
             },
         ],
