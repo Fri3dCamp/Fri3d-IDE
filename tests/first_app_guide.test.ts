@@ -25,7 +25,7 @@ describe('first app guide checks', () => {
         expect(checkFirstAppStep(1, appId, filename, source)).toBeNull()
         expect(checkFirstAppStep(2, appId, filename, source)).toBe('logging-missing')
 
-        source += '\nprint("App started")'
+        source += '\nimport logging\nlogger = logging.getLogger(__name__)\nlogger.info("App started")'
         expect(checkFirstAppStep(2, appId, filename, source)).toBeNull()
 
         source += '\nbutton = lv.button(screen)\nbutton_label = lv.label(button)'

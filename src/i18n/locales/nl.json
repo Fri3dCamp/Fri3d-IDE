@@ -222,8 +222,8 @@
                     "goal": "Je eigen boodschap verschijnt bovenaan het scherm."
                 },
                 "logging": {
-                    "title": "Schrijf een bericht naar de terminal",
-                    "instruction": "Voeg print(...) toe in onCreate, boven self.setContentView(screen). print is de eenvoudigste manier om te loggen wat je app doet. De terminal opent onder de editor zodat je het bericht ziet wanneer de app start.",
+                    "title": "Log een bericht naar de terminal",
+                    "instruction": "Voeg import logging toe, maak een logger met logging.getLogger(__name__) en roep logger.info(\"App started\") aan in onCreate, boven self.setContentView(screen). De terminal opent onder de editor zodat je het bericht ziet wanneer de app start.",
                     "goal": "Bij het starten schrijft de app App started in de terminal."
                 },
                 "button": {
@@ -256,7 +256,7 @@
                 "wrong-file": "Open main.py van de app die je hebt gemaakt voordat je deze stap controleert.",
                 "starter-missing": "Het basislabel ontbreekt. Herstel eerst de code van het Hello World-sjabloon.",
                 "greeting-unchanged": "Wijzig de begroeting en verplaats het label omhoog met label.align(...).",
-                "logging-missing": "Voeg een print(...)-aanroep toe zodat de app een bericht naar de terminal schrijft.",
+                "logging-missing": "Maak een logger met logging.getLogger(__name__) en schrijf een logger.info(...)-bericht.",
                 "button-missing": "Er is nog geen volledige knop gevonden. Voeg zowel lv.button als het bijbehorende label toe.",
                 "counter-missing": "Koppel de klik op de knop aan een teller met add_event_cb.",
                 "progress-missing": "Koppel de voortgangsbalk aan self.count, gebruik een bereik van 0 tot 10 en stop de teller na 10 tikken.",

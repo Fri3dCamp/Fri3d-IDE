@@ -311,8 +311,8 @@
                     "goal": "Your own message appears near the top of the screen."
                 },
                 "logging": {
-                    "title": "Print a message to the terminal",
-                    "instruction": "Add print(...) inside onCreate, above self.setContentView(screen). print is the simplest way to log what your app is doing. The terminal opens below the editor so you can see the message when the app launches.",
+                    "title": "Log a message to the terminal",
+                    "instruction": "Add import logging, create a logger with logging.getLogger(__name__), and call logger.info(\"App started\") inside onCreate, above self.setContentView(screen). The terminal opens below the editor so you can see the message when the app launches.",
                     "goal": "Launching the app writes App started in the terminal."
                 },
                 "button": {
@@ -345,7 +345,7 @@
                 "wrong-file": "Open main.py from the app you created before checking this step.",
                 "starter-missing": "Starter label is missing. Restore the Hello World template code first.",
                 "greeting-unchanged": "Change the greeting and move the label upward with label.align(...).",
-                "logging-missing": "Add a print(...) call so the app writes a message to the terminal.",
+                "logging-missing": "Create a logger with logging.getLogger(__name__) and write a logger.info(...) message.",
                 "button-missing": "No complete button found yet. Add both lv.button and its label.",
                 "counter-missing": "Connect the button click to a counter using add_event_cb.",
                 "progress-missing": "Connect the progress bar to self.count, use a 0–10 range, and stop the counter at 10 taps.",

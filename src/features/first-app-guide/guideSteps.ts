@@ -22,7 +22,9 @@ export interface FirstAppGuideStep {
 const GREETING_SNIPPET = `        label.set_text("Hello, badge coder!")
         label.align(lv.ALIGN.CENTER, 0, -60)`
 
-const LOGGING_SNIPPET = `        print("App started")`
+const LOGGING_SNIPPET = `        import logging
+        logger = logging.getLogger(__name__)
+        logger.info("App started")`
 
 const BUTTON_SNIPPET = `        button = lv.button(screen)
         button.center()
@@ -151,7 +153,7 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
             {
                 key: 'print',
                 url: 'https://docs.micropython.org/en/latest/library/builtins.html#print',
-                fallback: 'MicroPython print()',
+                fallback: 'Python logging',
             },
         ],
         snippet: LOGGING_SNIPPET,
@@ -248,7 +250,14 @@ export function checkFirstAppStep(
     ) {
         return 'greeting-unchanged'
     }
-    if (stepId === 'logging' && !content.includes('print(')) return 'logging-missing'
+    if (
+        stepId === 'logging' &&
+        (!content.includes('import logging') ||
+            !content.includes('logging.getLogger') ||
+            !content.includes('logger.info('))
+    ) {
+        return 'logging-missing'
+    }
     if (stepId === 'button' && (!content.includes('lv.button(screen)') || !content.includes('lv.label(button)'))) {
         return 'button-missing'
     }

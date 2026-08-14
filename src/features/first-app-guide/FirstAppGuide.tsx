@@ -113,7 +113,7 @@ export function FirstAppGuide() {
             ],
             'logging-missing': [
                 'first-app-guide.errors.logging-missing',
-                'Add a print(...) call so the app writes a message to the terminal.',
+                'Create a logger with logging.getLogger(__name__) and write a logger.info(...) message.',
             ],
             'button-missing': [
                 'first-app-guide.errors.button-missing',
