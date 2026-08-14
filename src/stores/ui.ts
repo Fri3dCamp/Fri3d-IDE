@@ -38,6 +38,7 @@ interface UiStore {
     setRunning(running: boolean): void
     setOffline(offline: boolean): void
     showLoader(message: string): LoaderHandle
+    clearLoaders(): void
 }
 
 const isMobile = () => window.innerWidth <= 768
@@ -73,6 +74,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
     toggleTerminalCollapsed: () => set((state) => ({ terminalCollapsed: !state.terminalCollapsed })),
     setRunning: (running) => set({ isRunning: running }),
     setOffline: (offline) => set((state) => (state.offline === offline ? state : { offline })),
+    clearLoaders: () => set({ loaders: [] }),
 
     showLoader: (message) => {
         const id = ++loaderSeq

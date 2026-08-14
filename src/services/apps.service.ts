@@ -1,6 +1,6 @@
 import { toast } from 'sonner'
 import { i18next } from '../i18n'
-import { useConnectionStore } from '../stores/connection'
+import { isConnectionActive, useConnectionStore } from '../stores/connection'
 import { useAppsStore, type AppInfo } from '../stores/apps'
 import { useEditorTabsStore } from '../stores/editorTabs'
 import { withLoader } from '../stores/ui'
@@ -89,6 +89,10 @@ export async function refreshApps(): Promise<void> {
         await withLoader(t('apps.scanning', 'Scanning apps…'), async (loader) => {
             await withRawMode(async (raw) => {
                 const apps = await scanAppsVia(raw, (done, total, currentAppId) => {
+                    const connection = useConnectionStore.getState()
+                    if (connection.port !== port || !isConnectionActive(connection.status)) {
+                        throw new Error('Connection closed')
+                    }
                     loader.update({
                         message:
                             total > 0
@@ -101,12 +105,18 @@ export async function refreshApps(): Promise<void> {
                         progress: total > 0 ? done / total : 1,
                     })
                 })
+                const connection = useConnectionStore.getState()
+                if (connection.port !== port || !isConnectionActive(connection.status)) return
                 loader.update({ progress: 1 })
                 useAppsStore.getState().setApps(apps)
             })
         })
     } catch (err) {
-        console.warn('app scan failed:', err)
+        const connection = useConnectionStore.getState()
+        if (connection.port === port && isConnectionActive(connection.status)) {
+            console.warn('app scan failed:', err)
+        }
+    } finally {
         useAppsStore.getState().setScanning(false)
     }
 }

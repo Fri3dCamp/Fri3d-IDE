@@ -7,6 +7,7 @@ describe('terminal dock state', () => {
             terminalTab: 'terminal',
             terminalHeight: 200,
             terminalCollapsed: false,
+            loaders: [],
         })
     })
 
@@ -26,5 +27,16 @@ describe('terminal dock state', () => {
             terminalTab: 'display',
             terminalCollapsed: false,
         })
+    })
+
+    it('clears stacked loaders on demand', () => {
+        const loader = useUiStore.getState().showLoader('Scanning apps…')
+        loader.update({ progress: 0.5 })
+
+        expect(useUiStore.getState().loaders).toHaveLength(1)
+
+        useUiStore.getState().clearLoaders()
+
+        expect(useUiStore.getState().loaders).toEqual([])
     })
 })

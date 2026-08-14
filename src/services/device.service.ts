@@ -188,6 +188,7 @@ function resetDeviceState(): void {
     useConnectionStore.getState().setDisconnected()
     useFileStore.getState().reset()
     useAppsStore.getState().reset()
+    useUiStore.getState().clearLoaders()
     useUiStore.getState().setRunning(false)
 }
 
