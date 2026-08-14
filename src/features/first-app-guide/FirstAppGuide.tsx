@@ -7,7 +7,6 @@ import { saveCurrentFile } from '../../services/device.service'
 import { useConnectionStore } from '../../stores/connection'
 import { useEditorTabsStore } from '../../stores/editorTabs'
 import { useFirstAppGuideStore } from '../../stores/firstAppGuide'
-import { useUiStore } from '../../stores/ui'
 import { getLiveView } from '../editor/CodeEditor'
 import { checkFirstAppStep, FIRST_APP_GUIDE_STEPS, firstAppStepSolution, type GuideCheckError } from './guideSteps'
 import { PythonSnippet } from './PythonSnippet'
@@ -26,7 +25,6 @@ export function FirstAppGuide() {
     const stepIndex = useFirstAppGuideStore((state) => state.step)
     const close = useFirstAppGuideStore((state) => state.close)
     const setStep = useFirstAppGuideStore((state) => state.setStep)
-    const setTerminalTab = useUiStore((state) => state.setTerminalTab)
     const isVirtualBadge = useConnectionStore((state) => state.transportType === 'vm')
     const activeTab = useEditorTabsStore((state) => state.tabs.find((tab) => tab.id === state.activeId))
     const [checkState, setCheckState] = useState<CheckState>('idle')
@@ -38,10 +36,6 @@ export function FirstAppGuide() {
         setCheckState('idle')
         setCopied(false)
     }, [stepIndex, activeTab?.id])
-
-    useEffect(() => {
-        if (open && step?.id === 'logging') setTerminalTab('terminal')
-    }, [open, setTerminalTab, step?.id])
 
     if (!open || !appId || !step) return null
 
@@ -110,10 +104,6 @@ export function FirstAppGuide() {
             'greeting-unchanged': [
                 'first-app-guide.errors.greeting-unchanged',
                 'Change the greeting and move the label upward with label.align(...).',
-            ],
-            'logging-missing': [
-                'first-app-guide.errors.logging-missing',
-                'Create a logger with logging.getLogger(__name__) and write a logger.info(...) message.',
             ],
             'button-missing': [
                 'first-app-guide.errors.button-missing',

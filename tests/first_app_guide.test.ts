@@ -23,30 +23,25 @@ describe('first app guide checks', () => {
 
         source = source.replace('Hello from My App!', 'Hello, badge coder!') + '\nlabel.align(lv.ALIGN.CENTER, 0, -60)'
         expect(checkFirstAppStep(1, appId, filename, source)).toBeNull()
-        expect(checkFirstAppStep(2, appId, filename, source)).toBe('logging-missing')
-
-        source += '\nimport logging\nlogger = logging.getLogger(__name__)\nlogger.info("App started")'
+        source += '\nbutton = lv.button(screen)\nbutton_label = lv.label(button)'
         expect(checkFirstAppStep(2, appId, filename, source)).toBeNull()
 
-        source += '\nbutton = lv.button(screen)\nbutton_label = lv.label(button)'
+        source += '\nself.count = 0\nbutton.add_event_cb(on_click, lv.EVENT.CLICKED, None)'
         expect(checkFirstAppStep(3, appId, filename, source)).toBeNull()
 
-        source += '\nself.count = 0\nbutton.add_event_cb(on_click, lv.EVENT.CLICKED, None)'
-        expect(checkFirstAppStep(4, appId, filename, source)).toBeNull()
-
         source += '\nprogress = lv.bar(screen)\nprogress.set_value(70, False)'
-        expect(checkFirstAppStep(5, appId, filename, source)).toBe('progress-missing')
+        expect(checkFirstAppStep(4, appId, filename, source)).toBe('progress-missing')
 
         source += '\nprogress.set_range(0, 10)\nprogress.set_value(self.count, False)\nself.count = min(self.count + 1, 10)'
+        expect(checkFirstAppStep(4, appId, filename, source)).toBeNull()
+
+        expect(checkFirstAppStep(5, appId, filename, source)).toBe('joystick-missing')
+        source += '\nfrom mpos import TaskManager\nimport mpos\nasync def read_joystick():\n digital = mpos.io_expander.digital\n digital[1]\n digital[4]\n await TaskManager.sleep_ms(20)\nTaskManager.create_task(read_joystick())'
         expect(checkFirstAppStep(5, appId, filename, source)).toBeNull()
 
-        expect(checkFirstAppStep(6, appId, filename, source)).toBe('joystick-missing')
-        source += '\nfrom mpos import TaskManager\nimport mpos\nasync def read_joystick():\n digital = mpos.io_expander.digital\n digital[1]\n digital[4]\n await TaskManager.sleep_ms(20)\nTaskManager.create_task(read_joystick())'
-        expect(checkFirstAppStep(6, appId, filename, source)).toBeNull()
-
-        expect(checkFirstAppStep(7, appId, filename, source)).toBe('game-missing')
+        expect(checkFirstAppStep(6, appId, filename, source)).toBe('game-missing')
         source += '\nspark.set_text(lv.SYMBOL.CHARGE)\nself.sx = random.randint(-130, 130)\nif event.get_key() == lv.KEY.ENTER:'
-        expect(checkFirstAppStep(7, appId, filename, source)).toBeNull()
+        expect(checkFirstAppStep(6, appId, filename, source)).toBeNull()
     })
 
     it('provides a solution that passes the check for every step', () => {

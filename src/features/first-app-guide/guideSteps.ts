@@ -14,17 +14,13 @@ export interface GuideDocLink {
 }
 
 export interface FirstAppGuideStep {
-    id: 'start' | 'greeting' | 'logging' | 'button' | 'counter' | 'progress' | 'joystick' | 'game'
+    id: 'start' | 'greeting' | 'button' | 'counter' | 'progress' | 'joystick' | 'game'
     snippet?: string
     docs: GuideDocLink[]
 }
 
 const GREETING_SNIPPET = `        label.set_text("Hello, badge coder!")
         label.align(lv.ALIGN.CENTER, 0, -60)`
-
-const LOGGING_SNIPPET = `        import logging
-        logger = logging.getLogger(__name__)
-        logger.info("App started")`
 
 const BUTTON_SNIPPET = `        button = lv.button(screen)
         button.center()
@@ -148,17 +144,6 @@ export const FIRST_APP_GUIDE_STEPS: FirstAppGuideStep[] = [
         snippet: GREETING_SNIPPET,
     },
     {
-        id: 'logging',
-        docs: [
-            {
-                key: 'print',
-                url: 'https://docs.micropython.org/en/latest/library/builtins.html#print',
-                fallback: 'Python logging',
-            },
-        ],
-        snippet: LOGGING_SNIPPET,
-    },
-    {
         id: 'button',
         docs: [
             {
@@ -224,7 +209,6 @@ export type GuideCheckError =
     | 'wrong-file'
     | 'starter-missing'
     | 'greeting-unchanged'
-    | 'logging-missing'
     | 'button-missing'
     | 'counter-missing'
     | 'progress-missing'
@@ -249,14 +233,6 @@ export function checkFirstAppStep(
             !content.includes('label.align(lv.ALIGN.CENTER'))
     ) {
         return 'greeting-unchanged'
-    }
-    if (
-        stepId === 'logging' &&
-        (!content.includes('import logging') ||
-            !content.includes('logging.getLogger') ||
-            !content.includes('logger.info('))
-    ) {
-        return 'logging-missing'
     }
     if (stepId === 'button' && (!content.includes('lv.button(screen)') || !content.includes('lv.label(button)'))) {
         return 'button-missing'
@@ -302,22 +278,25 @@ export function checkFirstAppStep(
 /** Full canonical main.py for a given step, used by the "stuck" escape hatch. */
 export function firstAppStepSolution(step: number): string {
     const body: string[] = []
-    if (step >= 2) body.push(LOGGING_SNIPPET)
     body.push('        screen = lv.obj()', '        label = lv.label(screen)')
     if (step >= 1) {
         body.push(GREETING_SNIPPET)
     } else {
         body.push('        label.set_text("Hello from my first app!")', '        label.center()')
     }
-    if (step >= 3) body.push('', BUTTON_SNIPPET)
-    if (step === 4) body.push('', COUNTER_SNIPPET)
-    if (step >= 5) body.push('', '        self.count = 0', '', PROGRESS_SNIPPET)
-    if (step >= 6) body.push('', PLAYER_SNIPPET)
-    if (step === 6) body.push('', JOYSTICK_ON_KEY_SNIPPET)
-    if (step >= 7) body.push('', GAME_SNIPPET)
+    if (step >= 2) body.push('', BUTTON_SNIPPET)
+    if (step === 3) body.push('', COUNTER_SNIPPET)
+    if (step >= 4) body.push('', '        self.count = 0', '', PROGRESS_SNIPPET)
+    if (step >= 5) body.push('', PLAYER_SNIPPET)
+    if (step === 5) body.push('', JOYSTICK_ON_KEY_SNIPPET)
+    if (step >= 6) body.push('', GAME_SNIPPET)
     body.push('', '        self.setContentView(screen)')
 
-    const imports = step >= 6 ? ['from mpos import Activity, TaskManager', 'import mpos', 'import lvgl as lv'] : ['from mpos import Activity', 'import lvgl as lv']
+    const imports = [
+        step >= 5 ? 'from mpos import Activity, TaskManager' : 'from mpos import Activity',
+        ...(step >= 5 ? ['import mpos'] : []),
+        'import lvgl as lv',
+    ]
     return [...imports, '', '', 'class Main(Activity):', '    def onCreate(self):', ...body, ''].join(
         '\n',
     )

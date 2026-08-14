@@ -52,7 +52,7 @@ export function AppToaster() {
     return (
         <TopLayer>
             <Toaster
-                position="bottom-right"
+                position="top-right"
                 theme={dark ? 'dark' : 'light'}
                 toastOptions={{
                     classNames: {
@@ -70,7 +70,7 @@ export function LoaderStack() {
     if (!loaders.length) return null
     return (
         <TopLayer>
-            <div className="pointer-events-none fixed inset-e-3 top-14 flex flex-col gap-2" aria-live="polite">
+            <div className="pointer-events-none fixed inset-e-3 top-28 flex flex-col gap-2" aria-live="polite">
                 {loaders.map((l) => (
                     <div
                         key={l.id}
