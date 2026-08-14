@@ -243,7 +243,7 @@
                 },
                 "joystick": {
                     "title": "Sturen met de joystick",
-                    "instruction": "Tijd om er een spel van te maken! Voeg deze code toe onder de code van de voortgangsbalk en boven self.setContentView(screen). Er verschijnt een scheepje dat je bestuurt met de joystick van de badge. Op de virtuele badge: klik eerst op het badgescherm en stuur daarna met de pijltjestoetsen.",
+                    "instruction": "Tijd om er een spel van te maken! Voeg deze code toe onder de code van de voortgangsbalk en boven self.setContentView(screen). Er verschijnt een scheepje dat je bestuurt met de joystick van de badge. Op de virtuele badge sleep je met de joystick om te sturen.",
                     "goal": "Er verschijnt een scheepje dat rondvliegt wanneer je de joystick beweegt."
                 },
                 "game": {
@@ -261,7 +261,7 @@
                 "counter-missing": "Koppel de klik op de knop aan een teller met add_event_cb.",
                 "progress-missing": "Koppel de voortgangsbalk aan self.count, gebruik een bereik van 0 tot 10 en stop de teller na 10 tikken.",
                 "save-failed": "De code is goedgekeurd, maar bewaren is mislukt. Controleer de verbinding en probeer opnieuw.",
-                "joystick-missing": "Er is nog geen joystickbesturing gevonden. Voeg on_key toe, registreer die met lv.EVENT.KEY en voeg het scherm toe aan de invoergroep.",
+                "joystick-missing": "Er is nog geen joystickbesturing gevonden. Lees mpos.io_expander.digital en start een pollingtaak met TaskManager.",
                 "game-missing": "Het spel is nog niet af. Voeg de vonk toe (lv.SYMBOL.CHARGE), verplaats hem met random.randint en vang hem met de A-knop (lv.KEY.ENTER)."
             },
             "stuck": "Vastgelopen? Vervang mijn code door het antwoord",

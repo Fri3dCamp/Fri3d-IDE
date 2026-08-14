@@ -57,29 +57,25 @@ const PLAYER_SNIPPET = `        self.px = 0
         player.set_text(lv.SYMBOL.PLAY)
         player.align(lv.ALIGN.CENTER, self.px, self.py)`
 
-const KEY_WIRING_SNIPPET = `        lv.group_get_default().add_obj(screen)
-        lv.group_focus_obj(screen)
-        screen.add_event_cb(on_key, lv.EVENT.KEY, None)`
+const JOYSTICK_ON_KEY_SNIPPET = `        async def read_joystick():
+            while True:
+                digital = mpos.io_expander.digital
+                self.px += (int(digital[1]) - int(digital[2])) * 3
+                self.py += (int(digital[3]) - int(digital[4])) * 3
+                self.px = max(-130, min(130, self.px))
+                self.py = max(-90, min(90, self.py))
+                player.align(lv.ALIGN.CENTER, self.px, self.py)
+                await TaskManager.sleep_ms(20)
 
-const JOYSTICK_ON_KEY_SNIPPET = `        def on_key(event):
-            key = event.get_key()
-            if key == lv.KEY.LEFT:
-                self.px -= 10
-            elif key == lv.KEY.RIGHT:
-                self.px += 10
-            elif key == lv.KEY.UP:
-                self.py -= 10
-            elif key == lv.KEY.DOWN:
-                self.py += 10
-            self.px = max(-130, min(130, self.px))
-            self.py = max(-90, min(90, self.py))
-            player.align(lv.ALIGN.CENTER, self.px, self.py)`
+        TaskManager.create_task(read_joystick())`
 
 const JOYSTICK_SNIPPET = `${PLAYER_SNIPPET}
 
-${JOYSTICK_ON_KEY_SNIPPET}
+${JOYSTICK_ON_KEY_SNIPPET}`
 
-${KEY_WIRING_SNIPPET}`
+const KEY_WIRING_SNIPPET = `        lv.group_get_default().add_obj(screen)
+        lv.group_focus_obj(screen)
+        screen.add_event_cb(on_key, lv.EVENT.KEY, None)`
 
 const GAME_SNIPPET = `        import random
 
@@ -275,10 +271,11 @@ export function checkFirstAppStep(
     }
     if (
         stepId === 'joystick' &&
-        (!content.includes('lv.EVENT.KEY') ||
-            !content.includes('get_key') ||
-            !content.includes('lv.KEY.LEFT') ||
-            !content.includes('group_get_default'))
+        (!content.includes('mpos.io_expander.digital') ||
+            !content.includes('TaskManager.create_task') ||
+            !content.includes('TaskManager.sleep_ms') ||
+            !content.includes('digital[1]') ||
+            !content.includes('digital[4]'))
     ) {
         return 'joystick-missing'
     }
@@ -307,11 +304,12 @@ export function firstAppStepSolution(step: number): string {
     if (step === 4) body.push('', COUNTER_SNIPPET)
     if (step >= 5) body.push('', '        self.count = 0', '', PROGRESS_SNIPPET)
     if (step >= 6) body.push('', PLAYER_SNIPPET)
-    if (step === 6) body.push('', JOYSTICK_ON_KEY_SNIPPET, '', KEY_WIRING_SNIPPET)
+    if (step === 6) body.push('', JOYSTICK_ON_KEY_SNIPPET)
     if (step >= 7) body.push('', GAME_SNIPPET)
     body.push('', '        self.setContentView(screen)')
 
-    return ['from mpos import Activity', 'import lvgl as lv', '', '', 'class Main(Activity):', '    def onCreate(self):', ...body, ''].join(
+    const imports = step >= 6 ? ['from mpos import Activity, TaskManager', 'import mpos', 'import lvgl as lv'] : ['from mpos import Activity', 'import lvgl as lv']
+    return [...imports, '', '', 'class Main(Activity):', '    def onCreate(self):', ...body, ''].join(
         '\n',
     )
 }

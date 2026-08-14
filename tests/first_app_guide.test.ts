@@ -41,7 +41,7 @@ describe('first app guide checks', () => {
         expect(checkFirstAppStep(5, appId, filename, source)).toBeNull()
 
         expect(checkFirstAppStep(6, appId, filename, source)).toBe('joystick-missing')
-        source += '\nscreen.add_event_cb(on_key, lv.EVENT.KEY, None)\nkey = event.get_key()\nif key == lv.KEY.LEFT:\nlv.group_get_default().add_obj(screen)'
+        source += '\nfrom mpos import TaskManager\nimport mpos\nasync def read_joystick():\n digital = mpos.io_expander.digital\n digital[1]\n digital[4]\n await TaskManager.sleep_ms(20)\nTaskManager.create_task(read_joystick())'
         expect(checkFirstAppStep(6, appId, filename, source)).toBeNull()
 
         expect(checkFirstAppStep(7, appId, filename, source)).toBe('game-missing')

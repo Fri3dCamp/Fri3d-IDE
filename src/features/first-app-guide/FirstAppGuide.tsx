@@ -129,7 +129,7 @@ export function FirstAppGuide() {
             ],
             'joystick-missing': [
                 'first-app-guide.errors.joystick-missing',
-                'No joystick handling found yet. Add on_key, register it with lv.EVENT.KEY, and add the screen to the input group.',
+                'No joystick handling found yet. Read mpos.io_expander.digital and start a TaskManager polling task.',
             ],
             'game-missing': [
                 'first-app-guide.errors.game-missing',

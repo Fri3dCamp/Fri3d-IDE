@@ -332,7 +332,7 @@
                 },
                 "joystick": {
                     "title": "Steer with the joystick",
-                    "instruction": "Time to turn this into a game! Add this code below the progress bar code and above self.setContentView(screen). It creates a little ship you steer with the badge joystick. On the virtual badge: click the badge screen first, then steer with the arrow keys.",
+                    "instruction": "Time to turn this into a game! Add this code below the progress bar code and above self.setContentView(screen). It creates a little ship you steer with the badge joystick. On the virtual badge, drag the joystick to steer.",
                     "goal": "A small ship appears and flies around when you move the joystick."
                 },
                 "game": {
@@ -350,7 +350,7 @@
                 "counter-missing": "Connect the button click to a counter using add_event_cb.",
                 "progress-missing": "Connect the progress bar to self.count, use a 0–10 range, and stop the counter at 10 taps.",
                 "save-failed": "Code passed the check, but saving failed. Check the connection and try again.",
-                "joystick-missing": "No joystick handling found yet. Add on_key, register it with lv.EVENT.KEY, and add the screen to the input group.",
+                "joystick-missing": "No joystick handling found yet. Read mpos.io_expander.digital and start a TaskManager polling task.",
                 "game-missing": "The game is not finished yet. Add the spark (lv.SYMBOL.CHARGE), move it with random.randint, and catch it with the A button (lv.KEY.ENTER)."
             },
             "stuck": "Stuck? Replace my code with the answer",
