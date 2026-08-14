@@ -2,7 +2,7 @@ import { toast } from 'sonner'
 import { i18next } from '../../i18n'
 import { withLoader } from '../../stores/ui'
 import type { AppInfo } from '../../stores/apps'
-import { buildMpkBytes, loadAppDetails, loadAppIconDataUrl } from '../apps.service'
+import { buildMpkBytes, loadAppDetails, loadAppIconDataUrl, updateAppVersion } from '../apps.service'
 import * as api from './api'
 import { BadgeHubApiError, type AppMetadata } from './api'
 
@@ -119,12 +119,15 @@ export async function publishAppToBadgeHub(
                 await api.createProject(slug, fields.gitUrl || undefined)
             }
 
+            const versionUpdated = await updateAppVersion(app, fields.version)
+            if (!versionUpdated) throw new Error(t('app.connect-first', 'Connect your board first'))
+
             progress(t('badgehub.step-mpk', 'Reading app from device…'))
             const mpkBytes = await buildMpkBytes(app, (s) => {
                 if (s.message) loader.update({ message: s.message, progress: s.progress })
             })
             if (!mpkBytes) throw new Error(t('app.connect-first', 'Connect your board first'))
-            const mpkName = `${slug}_${fields.version || '0.0.0'}.mpk`
+            const mpkName = `${slug}.mpk`
 
             progress(t('badgehub.step-metadata', 'Updating metadata…'))
             const metadata: AppMetadata = {

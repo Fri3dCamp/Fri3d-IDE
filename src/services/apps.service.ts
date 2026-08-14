@@ -294,6 +294,38 @@ AppManager.refresh_apps()
     return ok
 }
 
+/** Update only the app version in MANIFEST.JSON and refresh the app list. */
+export async function updateAppVersion(app: AppInfo, version: string): Promise<boolean> {
+    const { port } = useConnectionStore.getState()
+    if (!port) return false
+
+    const result = await withRawMode(async (raw) => {
+        let manifest: Record<string, unknown> = {}
+        try {
+            const bytes = await raw.readFile(`${app.path}/MANIFEST.JSON`)
+            manifest = JSON.parse(new TextDecoder().decode(bytes))
+        } catch {
+            manifest = {
+                fullname: app.fullname,
+                activities: app.activities,
+            }
+        }
+        manifest.version = version.trim() || '0.1.0'
+        await raw.writeFile(`${app.path}/MANIFEST.JSON`, JSON.stringify(manifest, null, 2) + '\n')
+        try {
+            await raw.exec(`
+from mpos import AppManager
+AppManager.refresh_apps()
+`)
+        } catch {
+            /* non-MPOS device: manifest saved anyway */
+        }
+        useAppsStore.getState().setApps(await scanAppsVia(raw))
+        return true
+    })
+    return result === true
+}
+
 /** Open one file of an app in the editor. */
 export async function openAppFile(path: string): Promise<void> {
     const { port } = useConnectionStore.getState()
