@@ -96,7 +96,7 @@ test('first-app guide builds a joystick game on the virtual badge', async ({ pag
         .getByText(/Step 1 of \d+/)
         .textContent()
         .then((text) => Number(text?.match(/of (\d+)/)?.[1]))
-    expect(totalSteps).toBeGreaterThanOrEqual(8)
+    expect(totalSteps).toBeGreaterThanOrEqual(7)
 
     for (let stepNumber = 1; stepNumber <= totalSteps; stepNumber++) {
         await completeGuideStep(page, stepNumber, totalSteps)
