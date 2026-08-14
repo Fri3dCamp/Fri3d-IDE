@@ -2,6 +2,16 @@
 
 All notable user-facing changes to Fri3d-IDE.
 
+## v1.2.4 — 2026-08-14
+
+### Improved
+
+- **BadgeHub publishing** — uploaded MPK filenames no longer include the
+  version; the selected version is kept in the app manifest and BadgeHub
+  metadata.
+- **First-app guide** — updated the end-to-end test for the current seven-step
+  guide.
+
 ## v1.2.0 — 2026-08-08
 
 ### New
